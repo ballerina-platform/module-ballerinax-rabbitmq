@@ -1,4 +1,4 @@
-// Copyright (c) 2019 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+// Copyright (c) 2020 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 //
 // WSO2 Inc. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -14,17 +14,20 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# The details of an error.
-#
-# + message - Specific error message of the error
-# + cause - Any other error, which causes this error
-public type Detail record {
-    string message;
-    error cause?;
-};
+import ballerina/rabbitmq;
 
-# Represents the reason for the RabbitMQ module related errors.
-public const RABBITMQ_ERROR = "{ballerina/rabbitmq}Error";
+rabbitmq:Connection connection = new ({host: "localhost", port: 5672});
 
-# Represents the RabbitMQ module related errors.
-public type Error error<RABBITMQ_ERROR, Detail>;
+listener rabbitmq:Listener channelListener = new (connection);
+
+@rabbitmq:ServiceConfig {
+    queueConfig: {
+        queueName: "MyQueue"
+    }
+}
+service rabbitmqConsumer on channelListener {
+
+    resource function onMessage(rabbitmq:Message message) {
+    }
+}
+
