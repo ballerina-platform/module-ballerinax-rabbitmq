@@ -1,0 +1,29 @@
+[project]
+org-name = "ballerina"
+version = "0.6.6"
+
+[platform]
+target = "java8"
+
+
+    [[platform.libraries]]
+    artifactId = "amqp-client"
+    version = "5.7.3"
+    path = "./lib/amqp-client-5.7.3.jar"
+    groupId = "com.rabbitmq"
+    modules = ["rabbitmq"]
+
+    [[platform.libraries]]
+    artifactId = "rabbitmq"
+    version = "0.6.6-SNAPSHOT"
+    path = "../rabbitmq-native/build/libs/rabbitmq-native-0.6.6-SNAPSHOT.jar"
+    groupId = "ballerina"
+    modules = ["rabbitmq"]
+
+    [[platform.libraries]]
+    artifactId = "rabbitmq"
+    version = "0.6.6-SNAPSHOT"
+    path = "../rabbitmq-test-utils/build/libs/rabbitmq-test-utils-0.6.6-SNAPSHOT.jar"
+    groupId = "org.ballerinalang.stdlib.messaging.rabbitmq"
+    modules = ["rabbitmq"]
+    scope = "testOnly"
