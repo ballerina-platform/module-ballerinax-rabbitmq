@@ -5,7 +5,6 @@ version = "0.6.6"
 [platform]
 target = "java8"
 
-
     [[platform.libraries]]
     artifactId = "amqp-client"
     version = "5.7.3"
