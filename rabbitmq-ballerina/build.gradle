@@ -23,6 +23,7 @@ configurations {
     jbalTools
     rabbitmqBallerinaBirDir
     rabbitmqBallerinaJar
+    externalJars
 }
 
 dependencies {
@@ -30,6 +31,9 @@ dependencies {
         transitive = false
     }
     compile project(':rabbitmq-native')
+    externalJars (group: 'com.rabbitmq', name: 'amqp-client', version: "${amqpVersion}") {
+        transitive = false
+    }
 }
 
 clean {
@@ -49,6 +53,11 @@ task unpackJballerinaTools(type: Copy) {
         from zipTree(artifact.getFile())
         into new File("${buildDir}/target/extracted-distributions", "jballerina-tools-zip")
     }
+}
+
+task copyToLib(type: Copy) {
+    into "$project.projectDir/lib"
+    from configurations.externalJars
 }
 
 def moduleName = "rabbitmq"
@@ -179,5 +188,6 @@ publishing {
 
 ballerinaBuild.dependsOn ":rabbitmq-native:build"
 ballerinaBuild.dependsOn ":rabbitmq-test-utils:build"
+unpackJballerinaTools.dependsOn copyToLib
 ballerinaBuild.dependsOn unpackJballerinaTools
 build.dependsOn ballerinaBuild
