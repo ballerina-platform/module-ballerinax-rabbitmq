@@ -59,7 +59,7 @@ allprojects {
         }
 
         maven {
-            url = 'https://maven.pkg.github.com/ballerina-platform/module-ballerina-rabbitmq'
+            url = 'https://maven.pkg.github.com/ballerina-platform/module-ballerinax-rabbitmq'
         }
     }
 }

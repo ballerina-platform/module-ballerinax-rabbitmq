@@ -1,2 +1,2 @@
-# module-ballerina-rabbitmq
+# module-ballerinax-rabbitmq
 Ballerina RabbitMQ Module.
