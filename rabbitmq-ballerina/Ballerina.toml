@@ -1,5 +1,5 @@
 [project]
-org-name = "ballerina"
+org-name = "ballerinax"
 version = "@toml.version@"
 
 [platform]
