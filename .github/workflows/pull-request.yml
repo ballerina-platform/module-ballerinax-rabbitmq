@@ -1,4 +1,4 @@
-name: Ballerina JWT module build
+name: Ballerina RabbitMQ module build
 
 on: [push, pull_request]
 
