@@ -61,7 +61,7 @@ task copyToLib(type: Copy) {
 }
 
 def moduleName = "rabbitmq"
-def moduleOrg = "ballerina"
+def moduleOrg = "ballerinax"
 def ballerinaConfigFile = new File("$project.projectDir/Ballerina.toml")
 def artifactBallerinaDocs = file("$project.projectDir/build/docs_parent/")
 def artifactCacheParent = file("$project.projectDir/build/cache_parent/")
@@ -182,7 +182,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/ballerina-platform/module-ballerina-rabbitmq")
+            url = uri("https://maven.pkg.github.com/ballerina-platform/module-ballerinax-rabbitmq")
             credentials {
                 username = System.getenv("GITHUB_ACTOR")
                 password = System.getenv("GITHUB_TOKEN")
