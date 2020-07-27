@@ -192,7 +192,6 @@ publishing {
 }
 
 ballerinaBuild.dependsOn ":rabbitmq-native:build"
-ballerinaBuild.dependsOn ":rabbitmq-test-utils:build"
 unpackJballerinaTools.dependsOn copyToLib
 ballerinaBuild.dependsOn unpackJballerinaTools
 build.dependsOn ballerinaBuild

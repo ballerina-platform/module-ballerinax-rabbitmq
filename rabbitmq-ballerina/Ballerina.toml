@@ -1,6 +1,6 @@
 [project]
 org-name = "ballerinax"
-version = "@toml.version@"
+version = "1.0.1"
 
 [platform]
 target = "java8"
@@ -14,15 +14,8 @@ target = "java8"
 
     [[platform.libraries]]
     artifactId = "rabbitmq"
-    version = "0.6.6-SNAPSHOT"
-    path = "../rabbitmq-native/build/libs/rabbitmq-native-@project.version@.jar"
+    version = "1.0.1-SNAPSHOT"
+    path = "../rabbitmq-native/build/libs/rabbitmq-native-1.0.1-SNAPSHOT.jar"
     groupId = "ballerina"
     modules = ["rabbitmq"]
 
-    [[platform.libraries]]
-    artifactId = "rabbitmq"
-    version = "0.6.6-SNAPSHOT"
-    path = "../rabbitmq-test-utils/build/libs/rabbitmq-test-utils-@project.version@.jar"
-    groupId = "org.ballerinalang.stdlib.messaging.rabbitmq"
-    modules = ["rabbitmq"]
-    scope = "testOnly"
