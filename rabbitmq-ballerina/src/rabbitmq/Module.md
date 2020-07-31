@@ -66,7 +66,7 @@ Client applications work with exchanges and queues, which are the high-level bui
    
    string|rabbitmq:Error? queueResult = newChannel->queueDeclare();
    if (queueResult is string) {
-        rabbitmq:Error? bindResult = newChannel.queueBind(queueResult, "MyExchange", "routing-key");
+        rabbitmq:Error? bindResult = newChannel->queueBind(queueResult, "MyExchange", "routing-key");
    }
 ```
 
