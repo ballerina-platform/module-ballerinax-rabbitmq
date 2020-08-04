@@ -74,6 +74,33 @@ public function testProducer() {
     }
 }
 
+@test:Config {
+    dependsOn: ["testChannel", "testProducer"],
+    groups: ["rabbitmq"]
+}
+public function testSyncConsumer() {
+    string message = "Hello from Ballerina";
+    Channel? channelObj = rabbitmqChannel;
+    if (channelObj is Channel) {
+        Error? producerResult = channelObj->basicPublish(message, QUEUE_NAME);
+        if (producerResult is ()) {
+            Message|Error getResult = channelObj->basicGet(QUEUE_NAME, AUTO_ACK);
+            if (getResult is Error) {
+                test:assertFail("Pulling a message from the broker caused an error.");
+            } else {
+                string|Error messageReceived = getResult.getTextContent();
+                if (messageReceived is string) {
+                    test:assertEquals(messageReceived, message, msg = "Message received does not match.");
+                } else {
+                    test:assertFail("Retrieving text content of the message failed.");
+                }
+            }
+        } else {
+            test:assertFail("Producing a message to the broker caused an error.");
+        }
+    }
+}
+
 @test:AfterSuite
 function cleanUp() {
     Connection? con = connection;
