@@ -35,7 +35,7 @@ public class RabbitMQConstants {
     // RabbitMQ package name constant fields
     public static final String ORG_NAME = "ballerinax";
     static final String RABBITMQ = "rabbitmq";
-    static final String RABBITMQ_VERSION = "1.0.1";
+    static final String RABBITMQ_VERSION = "1.0.2";
     public static final String PACKAGE_RABBITMQ =
             ORG_NAME + ORG_NAME_SEPARATOR + RABBITMQ + VERSION_SEPARATOR + RABBITMQ_VERSION;
     public static final String PACKAGE_RABBITMQ_FQN =
@@ -123,7 +123,7 @@ public class RabbitMQConstants {
 
     // Channel constant fields
     public static final String CHANNEL_NATIVE_OBJECT = "rabbitmq_channel_object";
-    static final BString JAVA_CLIENT_CHANNEL = StringUtils.fromString("amqpChannel");
+    public static final BString JAVA_CLIENT_CHANNEL = StringUtils.fromString("amqpChannel");
 
     // Message constant fields
     public static final String MESSAGE_OBJECT = "Message";
@@ -147,7 +147,7 @@ public class RabbitMQConstants {
     static final String ROLLBACK_FAILED = "Transaction rollback failed: ";
 
     // Basic Properties constant fields
-    static final String RECORD_BASIC_PROPERTIES = "BasicProperties";
+    public static final String RECORD_BASIC_PROPERTIES = "BasicProperties";
     public static final BString ALIAS_REPLY_TO = StringUtils.fromString("replyTo");
     public static final BString ALIAS_CONTENT_TYPE = StringUtils.fromString("contentType");
     public static final BString ALIAS_CONTENT_ENCODING = StringUtils.fromString("contentEncoding");
