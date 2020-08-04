@@ -20,7 +20,7 @@ import ballerina/java;
 handle JAVA_NULL = java:createNull();
 
 # Types of message content that can be published.
-public type MessageContent int | float | byte | boolean | string | map<any> | xml | json | byte[];
+public type MessageContent int|float|byte|boolean|string|map<any>|xml|json|byte[];
 
 # Types of exchanges supported by the Ballerina RabbitMQ Connector.
 public type ExchangeType "direct"|"fanout"|"topic"|"headers";
@@ -35,7 +35,7 @@ public const FANOUT_EXCHANGE = "fanout";
 public const TOPIC_EXCHANGE = "topic";
 
 # Types of acknowledgement modes supported by the Ballerina RabbitMQ Connector.
-public type AcknowledgementMode AUTO_ACK | CLIENT_ACK;
+public type AcknowledgementMode AUTO_ACK|CLIENT_ACK;
 
 # Constant for the RabbitMQ auto acknowledgement mode.
 public const AUTO_ACK = "auto";

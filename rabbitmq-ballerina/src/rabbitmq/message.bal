@@ -77,7 +77,7 @@ public type Message client object {
     # ```
     #
     # + return - Properties of the message or else a `rabbitmq:Error` if an error is encountered
-    public function getProperties() returns BasicProperties | Error {
+    public function getProperties() returns BasicProperties|Error {
         var basicProperties = self.properties;
         if (basicProperties is BasicProperties) {
             return basicProperties;
@@ -92,7 +92,7 @@ public type Message client object {
 # ```
 #
 # + return - Message data as string value or else a `rabbitmq:Error` if an error is encountered
-   public function getTextContent() returns @tainted string | Error {
+   public function getTextContent() returns @tainted string|Error {
         return nativeGetTextContent(self.messageContent);
    }
 
@@ -102,7 +102,7 @@ public type Message client object {
     # ```
     #
     # + return - Message data as a float value or else a `rabbitmq:Error` if an error is encountered
-    public function getFloatContent() returns @tainted float | Error {
+    public function getFloatContent() returns @tainted float|Error {
         return  nativeGetFloatContent(self.messageContent);
     }
 
@@ -112,7 +112,7 @@ public type Message client object {
     # ```
     #
     # + return - Message data as an int value or else a `rabbitmq:Error` if an error is encountered
-    public function getIntContent() returns @tainted int | Error {
+    public function getIntContent() returns @tainted int|Error {
        return nativeGetIntContent(self.messageContent);
     }
 
@@ -132,7 +132,7 @@ public type Message client object {
     # ```
     #
     # + return - Message data as a JSON value or else a `rabbitmq:Error` if an error is encountered
-    public function getJSONContent() returns @tainted json | Error {
+    public function getJSONContent() returns @tainted json|Error {
         return nativeGetJSONContent(self.messageContent);
     }
 
@@ -142,7 +142,7 @@ public type Message client object {
     # ```
     #
     # + return - Message data as an XML value or else a `rabbitmq:Error` if an error is encountered
-    public function getXMLContent() returns @tainted xml | Error {
+    public function getXMLContent() returns @tainted xml|Error {
         return nativeGetXMLContent(self.messageContent);
     }
 };
@@ -162,31 +162,31 @@ boolean requeue, Message messageObj) returns Error? =
     class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
 } external;
 
-function nativeGetTextContent(byte[] messageContent) returns string | Error =
+function nativeGetTextContent(byte[] messageContent) returns string|Error =
 @java:Method {
     name: "getTextContent",
     class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
 } external;
 
-function nativeGetFloatContent(byte[] messageContent) returns float | Error  =
+function nativeGetFloatContent(byte[] messageContent) returns float|Error  =
 @java:Method {
     name: "getFloatContent",
     class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
 } external;
 
-function nativeGetIntContent(byte[] messageContent) returns int | Error  =
+function nativeGetIntContent(byte[] messageContent) returns int|Error  =
 @java:Method {
     name: "getIntContent",
     class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
 } external;
 
-function nativeGetXMLContent(byte[] messageContent) returns xml | Error  =
+function nativeGetXMLContent(byte[] messageContent) returns xml|Error  =
 @java:Method {
     name: "getXMLContent",
     class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
 } external;
 
-function nativeGetJSONContent(byte[] messageContent) returns json | Error  =
+function nativeGetJSONContent(byte[] messageContent) returns json|Error  =
 @java:Method {
     name: "getJSONContent",
     class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
