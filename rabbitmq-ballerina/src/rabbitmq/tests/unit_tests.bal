@@ -19,6 +19,7 @@ import ballerina/test;
 
 Connection? connection = ();
 Channel? rabbitmqChannel = ();
+const QUEUE_NAME = "MyQueue";
 
 @test:BeforeSuite
 function setup() {
@@ -28,6 +29,10 @@ function setup() {
     log:printInfo("Creating a ballerina RabbitMQ channel.");
     rabbitmqChannel = new (newConnection);
     connection = newConnection;
+    Channel? channelObj = rabbitmqChannel;
+    if (channelObj is Channel) {
+        string? queueResult = checkpanic channelObj->queueDeclare({queueName: QUEUE_NAME});
+    }
 }
 
 @test:Config {
@@ -53,6 +58,20 @@ public function testChannel() {
         flag = true;
     }
     test:assertTrue(flag, msg = "RabbitMQ Channel creation failed.");
+}
+
+@test:Config {
+    dependsOn: ["testChannel"],
+    groups: ["rabbitmq"]
+}
+public function testProducer() {
+    Channel? channelObj = rabbitmqChannel;
+    if (channelObj is Channel) {
+        Error? producerResult = channelObj->basicPublish("Hello from Ballerina", QUEUE_NAME);
+        if (producerResult is Error) {
+            test:assertFail("Producing a message to the broker caused an error.");
+        }
+    }
 }
 
 @test:AfterSuite
