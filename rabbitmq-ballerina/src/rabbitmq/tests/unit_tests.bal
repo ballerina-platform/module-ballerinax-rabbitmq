@@ -15,11 +15,14 @@
 // under the License.
 
 import ballerina/log;
+import ballerina/runtime;
 import ballerina/test;
 
 Connection? connection = ();
 Channel? rabbitmqChannel = ();
+Listener? rabbitmqListener = ();
 const QUEUE_NAME = "MyQueue";
+string asyncConsumerMessage = "";
 
 @test:BeforeSuite
 function setup() {
@@ -33,6 +36,7 @@ function setup() {
     if (channelObj is Channel) {
         string? queueResult = checkpanic channelObj->queueDeclare({queueName: QUEUE_NAME});
     }
+    rabbitmqListener = new (newConnection);
 }
 
 @test:Config {
@@ -71,6 +75,7 @@ public function testProducer() {
         if (producerResult is Error) {
             test:assertFail("Producing a message to the broker caused an error.");
         }
+        checkpanic channelObj->queuePurge(QUEUE_NAME);
     }
 }
 
@@ -79,33 +84,83 @@ public function testProducer() {
     groups: ["rabbitmq"]
 }
 public function testSyncConsumer() {
-    string message = "Hello from Ballerina";
+    string message = "Testing Sync Consumer";
     Channel? channelObj = rabbitmqChannel;
     if (channelObj is Channel) {
-        Error? producerResult = channelObj->basicPublish(message, QUEUE_NAME);
-        if (producerResult is ()) {
-            Message|Error getResult = channelObj->basicGet(QUEUE_NAME, AUTO_ACK);
-            if (getResult is Error) {
-                test:assertFail("Pulling a message from the broker caused an error.");
-            } else {
-                string|Error messageReceived = getResult.getTextContent();
-                if (messageReceived is string) {
-                    test:assertEquals(messageReceived, message, msg = "Message received does not match.");
-                } else {
-                    test:assertFail("Retrieving text content of the message failed.");
-                }
-            }
+        produceMessage(message);
+        Message|Error getResult = channelObj->basicGet(QUEUE_NAME, AUTO_ACK);
+        if (getResult is Error) {
+            test:assertFail("Pulling a message from the broker caused an error.");
         } else {
-            test:assertFail("Producing a message to the broker caused an error.");
+            string messageReceived = checkpanic getResult.getTextContent();
+            test:assertEquals(messageReceived, message, msg = "Message received does not match.");
         }
     }
 }
 
+@test:Config {
+    dependsOn: ["testConnection"],
+    groups: ["rabbitmq"]
+}
+public function testListener() {
+    boolean flag = false;
+    Listener? channelListener = rabbitmqListener;
+    if (channelListener is Listener) {
+        flag = true;
+    }
+    test:assertTrue(flag, msg = "RabbitMQ Listener creation failed.");
+}
+
+@test:Config {
+    dependsOn: ["testListener", "testSyncConsumer"],
+    groups: ["rabbitmq"]
+}
+public function testAsyncConsumer() {
+    string message = "Testing Async Consumer";
+    produceMessage(message);
+    Listener? channelListener = rabbitmqListener;
+    if (channelListener is Listener) {
+        checkpanic channelListener.__attach(asyncTestService);
+        checkpanic channelListener.__start();
+        runtime:sleep(2000);
+        test:assertEquals(asyncConsumerMessage, message, msg = "Message received does not match.");
+    }
+}
+
+service asyncTestService =
+@ServiceConfig {
+    queueConfig: {
+        queueName: QUEUE_NAME
+    }
+}
+service {
+    resource function onMessage(Message message) {
+        var messageContent = message.getTextContent();
+        if (messageContent is string) {
+            asyncConsumerMessage = <@untainted> messageContent;
+            log:printInfo("The message received: " + messageContent);
+        } else {
+            log:printError("Error occurred while retrieving the message content.");
+        }
+    }
+};
+
 @test:AfterSuite
 function cleanUp() {
+    Channel? channelObj = rabbitmqChannel;
+    if (channelObj is Channel) {
+        checkpanic channelObj->queuePurge(QUEUE_NAME);
+    }
     Connection? con = connection;
     if (con is Connection) {
         log:printInfo("Closing the active resources.");
         checkpanic con.close();
+    }
+}
+
+function produceMessage(string message) {
+    Channel? channelObj = rabbitmqChannel;
+    if (channelObj is Channel) {
+        checkpanic channelObj->basicPublish(message, QUEUE_NAME);
     }
 }
