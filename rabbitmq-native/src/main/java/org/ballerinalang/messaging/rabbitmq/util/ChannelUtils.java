@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -274,6 +275,9 @@ public class ChannelUtils {
     public static Object basicGet(BString queueName, boolean ackMode, Channel channel) {
         try {
             GetResponse response = channel.basicGet(queueName.getValue(), ackMode);
+            if (Objects.isNull(response)) {
+                return RabbitMQUtils.returnErrorValue("No messages are found in the queue.");
+            }
             ObjectValue messageObjectValue = createAndPopulateMessageObjectValue(response, channel, ackMode);
             ArrayValue messageContent = (ArrayValue) messageObjectValue.get(RabbitMQConstants.MESSAGE_CONTENT);
             RabbitMQMetricsUtil.reportConsume(channel, queueName.getValue(), messageContent.getBytes().length,
