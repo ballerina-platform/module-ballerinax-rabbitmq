@@ -86,12 +86,12 @@ public type Message client object {
         return e;
     }
 
-# Retrieves the text content of the RabbitMQ message.
-# ```ballerina
-# string|rabbitmq:Error msgContent = message.getTextContent();
-# ```
-#
-# + return - Message data as string value or else a `rabbitmq:Error` if an error is encountered
+    # Retrieves the text content of the RabbitMQ message.
+    # ```ballerina
+    # string|rabbitmq:Error msgContent = message.getTextContent();
+    # ```
+    #
+    # + return - Message data as string value or else a `rabbitmq:Error` if an error is encountered
    public function getTextContent() returns @tainted string|Error {
         return nativeGetTextContent(self.messageContent);
    }

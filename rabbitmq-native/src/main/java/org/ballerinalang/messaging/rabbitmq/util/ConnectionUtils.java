@@ -18,6 +18,7 @@
 
 package org.ballerinalang.messaging.rabbitmq.util;
 
+import com.rabbitmq.client.AlreadyClosedException;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import org.ballerinalang.jvm.values.MapValue;
@@ -110,8 +111,8 @@ public class ConnectionUtils {
             return connection;
         } catch (IOException | TimeoutException exception) {
             RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_CONNECTION);
-            throw new RabbitMQConnectorException(RabbitMQConstants.CREATE_CONNECTION_ERROR
-                    + exception.getMessage(), exception);
+            throw  RabbitMQUtils.returnErrorValue(RabbitMQConstants.CREATE_CONNECTION_ERROR
+                    + exception.getMessage());
         }
     }
 
@@ -211,7 +212,7 @@ public class ConnectionUtils {
                 connection.close();
             }
             RabbitMQMetricsUtil.reportConnectionClose(connection);
-        } catch (IOException | ArithmeticException exception) {
+        } catch (IOException | ArithmeticException | AlreadyClosedException exception) {
             RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_CONNECTION_CLOSE);
             return RabbitMQUtils.returnErrorValue("Error occurred while closing the connection: "
                     + exception.getMessage());
