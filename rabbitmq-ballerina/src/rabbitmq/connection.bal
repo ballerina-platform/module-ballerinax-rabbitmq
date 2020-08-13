@@ -19,7 +19,7 @@ import ballerina/java;
 # Represents a single network connection to the RabbitMQ broker.
 public type Connection object {
 
-    handle amqpConnection;
+    handle amqpConnection = JAVA_NULL;
 
     # Initializes a Ballerina RabbitMQ Connection object.
     #

@@ -94,7 +94,7 @@ public function testConnectionClose() {
 }
 public function testConnectionCloseWithParams() {
     Connection closeConnection = new (successConfig);
-    Error? closeResult = closeConnection.close(CONNECTION_CLOSE_CODE, "Closing Connection.");
+    Error? closeResult = closeConnection.close(CLOSE_CODE, "Closing Connection.");
     if (closeResult is Error) {
         log:printError(closeResult.message());
         test:assertFail("Closing the connection failed.");
@@ -107,15 +107,15 @@ public function testConnectionCloseWithParams() {
     groups: ["rabbitmq-connection"]
 }
 public function testConnectionCloseNegative() {
-    string expected = "Error occurred while closing the connection: connection is already closed due to clean " +
-    "connection shutdown; protocol method: #method<connection.close>(reply-code=200, reply-text=OK, class-id=0, " +
-    "method-id=0)";
+    string expectedConnectionClosed = "Error occurred while closing the connection: connection is already closed " +
+        "due to clean connection shutdown; protocol method: #method<connection.close>(reply-code=200, reply-text=OK, " +
+        "class-id=0, method-id=0)";
     Connection closeConnection = new (successConfig);
     Error? closeResult = closeConnection.close();
     Error? closeAgainResult = closeConnection.close();
     if (closeAgainResult is Error) {
         string message = closeAgainResult.message();
-        test:assertEquals(message, expected, msg = "Error occurred does not match.");
+        test:assertEquals(message, expectedConnectionClosed, msg = "Error occurred does not match.");
     }
 }
 
@@ -153,7 +153,7 @@ public function testAbortConnection() {
 }
 public function testAbortConnectionWithParams() {
     Connection abortConnection = new (successConfig);
-    error? abortResult = trap abortConnection.abortConnection(CONNECTION_CLOSE_CODE, "Aborting Connection.");
+    error? abortResult = trap abortConnection.abortConnection(CLOSE_CODE, "Aborting Connection.");
     if (abortResult is error) {
         log:printError(abortResult.message());
         test:assertFail("Aborting the connection failed.");

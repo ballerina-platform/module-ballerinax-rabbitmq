@@ -23,8 +23,13 @@ Connection? sharedConnection = ();
 Channel? sharedChannel = ();
 Listener? sharedListener = ();
 Connection? isClosedConnection = ();
-const CONNECTION_CLOSE_CODE = 200;
+const CLOSE_CODE = 200;
 const QUEUE = "MyQueue";
+const DELETE_QUEUE = "DeleteTempQueue";
+const DELETE_EXCHANGE_NAME = "DeleteTempExchange";
+const DIRECT_EXCHANGE_NAME = "MyDirectExchange";
+const TOPIC_EXCHANGE_NAME = "MyTopicExchange";
+const FANOUT_EXCHANGE_NAME = "MyFanoutExchange";
 
 ConnectionConfiguration successConfig = { host: "0.0.0.0",
                                           port: 5672 };
@@ -47,12 +52,8 @@ function setup() {
     runtime:sleep(20000);
 }
 
-@test:AfterSuite
+@test:AfterSuite {}
 function cleanUp() {
-    Channel? channelObj = sharedChannel;
-    if (channelObj is Channel) {
-        checkpanic channelObj->queuePurge(QUEUE);
-    }
     Connection? con = sharedConnection;
     if (con is Connection) {
         log:printInfo("Closing the active resources...");

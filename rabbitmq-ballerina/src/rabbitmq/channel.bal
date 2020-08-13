@@ -63,7 +63,7 @@ public type Channel client object {
 
     # Binds a queue to an exchange with the given binding key.
     # ```ballerina
-    # rabbitmq:Error? bindResult = newChannel.queueBind("MyQueue", "MyExchange", "routing-key");
+    # rabbitmq:Error? bindResult = newChannel->queueBind("MyQueue", "MyExchange", "routing-key");
     # ```
     #
     # + queueName - Name of the queue

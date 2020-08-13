@@ -76,6 +76,7 @@ public class RabbitMQConstants {
 
     // Connection constant fields
     public static final String CONNECTION_OBJECT = "Connection";
+    public static final BString CONNECTION_FIELD = StringUtils.fromString("amqpConnection");
     public static final String CONNECTION_NATIVE_OBJECT = "rabbitmq_connection_object";
 
     // Connection configuration constant fields
