@@ -227,7 +227,7 @@ service {
     }
 };
 
-@test:AfterSuite
+@test:AfterSuite {}
 function cleanUp() {
     Channel? channelObj = rabbitmqChannel;
     if (channelObj is Channel) {
