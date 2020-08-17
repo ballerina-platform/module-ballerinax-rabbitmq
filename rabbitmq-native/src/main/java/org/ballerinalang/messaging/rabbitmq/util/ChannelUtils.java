@@ -55,13 +55,14 @@ import java.util.concurrent.TimeoutException;
  * @since 0.995.0
  */
 public class ChannelUtils {
-    public static Channel createChannel(Connection connection, ObjectValue channelObj) {
+    public static Channel createChannel(Connection connection, ObjectValue channelObj, ObjectValue connectionObj) {
         try {
             Channel channel = connection.createChannel();
             RabbitMQMetricsUtil.reportNewChannel(channel);
             String connectorId = channelObj.getStringValue(RabbitMQConstants.CONNECTOR_ID).getValue();
             channelObj.addNativeData(RabbitMQConstants.RABBITMQ_TRANSACTION_CONTEXT,
                                      new RabbitMQTransactionContext(channel, connectorId));
+            channelObj.addNativeData(RabbitMQConstants.CONNECTION_NATIVE_OBJECT, connectionObj);
             return channel;
         } catch (IOException | AlreadyClosedException exception) {
             RabbitMQMetricsUtil.reportError(connection, RabbitMQObservabilityConstants.ERROR_TYPE_CHANNEL_CREATE);
@@ -227,7 +228,7 @@ public class ChannelUtils {
             boolean validCloseCode = closeCode != null && RabbitMQUtils.checkIfInt(closeCode);
             boolean validCloseMessage = closeMessage != null && RabbitMQUtils.checkIfString(closeMessage);
             if (validCloseCode && validCloseMessage) {
-                channel.close((int) closeCode, closeMessage.toString());
+                channel.close(Integer.parseInt(closeCode.toString()), closeMessage.toString());
             } else {
                 channel.close();
             }
@@ -247,7 +248,7 @@ public class ChannelUtils {
             boolean validCloseCode = closeCode != null && RabbitMQUtils.checkIfInt(closeCode);
             boolean validCloseMessage = closeMessage != null && RabbitMQUtils.checkIfString(closeMessage);
             if (validCloseCode && validCloseMessage) {
-                channel.abort((int) closeCode, closeMessage.toString());
+                channel.abort(Integer.parseInt(closeCode.toString()), closeMessage.toString());
             } else {
                 channel.abort();
             }
@@ -261,16 +262,13 @@ public class ChannelUtils {
         }
     }
 
-    public static Object getConnection(Channel channel) {
+    public static Object getConnection(Channel channel, ObjectValue channelObj) {
         try {
-            Connection connection = channel.getConnection();
-            ObjectValue connectionObject = BallerinaValues.createObjectValue(RabbitMQConstants.PACKAGE_ID_RABBITMQ,
-                                                                             RabbitMQConstants.CONNECTION_OBJECT);
-            connectionObject.set(RabbitMQConstants.CONNECTION_FIELD, connection);
-            connectionObject.addNativeData(RabbitMQConstants.CONNECTION_NATIVE_OBJECT, connection);
+            ObjectValue connectionObject =
+                    (ObjectValue) channelObj.getNativeData(RabbitMQConstants.CONNECTION_NATIVE_OBJECT);
             RabbitMQTracingUtil.traceResourceInvocation(channel);
             return connectionObject;
-        } catch (AlreadyClosedException exception) {
+        } catch (Exception exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_GET_CONNECTION);
             return RabbitMQUtils.returnErrorValue("Error occurred while retrieving the connection: "
                                                           + exception.getMessage());

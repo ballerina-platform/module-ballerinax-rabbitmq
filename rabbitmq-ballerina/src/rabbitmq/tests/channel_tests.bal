@@ -362,23 +362,6 @@ public function testQueueDelete() {
     }
 }
 
-// Delete a non-declared queue.
-@test:Config {
-    dependsOn: ["testChannelWithConnection"],
-    groups: ["rabbitmq-channel"]
-}
-public function testQueueDeleteNegative() {
-    string expected = "";
-    Channel channelObj = new (successConfig);
-    Error? deleteResult = channelObj->queueDelete("del1234");
-    if (deleteResult is Error) {
-        string message = deleteResult.message();
-        test:assertEquals(message, expected, msg = "Error message does not match.");
-    } else {
-        test:assertFail("Error expected.");
-    }
-}
-
 // Delete an already existing exchange.
 @test:Config {
     dependsOn: ["testDeclareDirectExchange"],
@@ -393,22 +376,5 @@ public function testExchangeDelete() {
         if (deleteResult is Error) {
             test:assertFail("Deleting the existing exchange failed.");
         }
-    }
-}
-
-// Delete a non-declared exchange.
-@test:Config {
-    dependsOn: ["testChannelWithConnection"],
-    groups: ["rabbitmq-channel"]
-}
-public function testExchangeDeleteNegative() {
-    string expected = "";
-    Channel channelObj = new (successConfig);
-    Error? deleteResult = channelObj->exchangeDelete(DELETE_EXCHANGE_NAME);
-    if (deleteResult is Error) {
-        string message = deleteResult.message();
-        test:assertEquals(message, expected, msg = "Error message does not match.");
-    } else {
-        test:assertFail("Error expected.");
     }
 }

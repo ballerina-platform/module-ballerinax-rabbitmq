@@ -30,7 +30,7 @@ public type Channel client object {
     public function init(ConnectionConfiguration|Connection connectionOrConnectionConfig) {
         Connection connection = (connectionOrConnectionConfig is Connection) ?
                                 connectionOrConnectionConfig : new Connection(connectionOrConnectionConfig);
-        self.amqpChannel = createChannel(connection.amqpConnection, self);
+        self.amqpChannel = createChannel(connection.amqpConnection, self, connection);
     }
 
     # Declares a non-exclusive, auto-delete, or non-durable queue with the given configurations.
@@ -148,7 +148,7 @@ public type Channel client object {
     #
     # + return - A `rabbitmq:Connection` object or else a `rabbitmq:Error` if an I/O error is encountered
     public function getConnection() returns Connection|Error {
-        return nativeGetConnection(self.amqpChannel);
+        return nativeGetConnection(self.amqpChannel, self);
     }
 
     # Closes the `rabbitmq:Channel`.
@@ -183,7 +183,7 @@ public type Channel client object {
     }
 };
 
-function createChannel(handle connection, Channel channelObj) returns handle =
+function createChannel(handle connection, Channel channelObj, Connection connectionObj) returns handle =
 @java:Method {
     class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
 } external;
@@ -243,7 +243,7 @@ function nativeChannelAbort(int? closeCode, string? closeMessage, handle amqpCha
     class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
 } external;
 
-function nativeGetConnection(handle amqpChannel) returns Connection|Error =
+function nativeGetConnection(handle amqpChannel, Channel channelObj) returns Connection|Error =
 @java:Method {
     name: "getConnection",
     class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
