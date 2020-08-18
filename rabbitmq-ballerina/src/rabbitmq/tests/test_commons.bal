@@ -49,7 +49,7 @@ function setup() {
     log:printInfo("Starting RabbitMQ Docker Container...");
     var dockerStartResult = system:exec("docker", {}, "/", "run", "-d", "--name", "rabbit-tests", "-p", "15672:15672",
     "-p", "5672:5672", "rabbitmq:3-management");
-    runtime:sleep(20000);
+    runtime:sleep(35000);
 }
 
 @test:AfterSuite {}
@@ -64,9 +64,18 @@ function cleanUp() {
     var dockerRmResult = system:exec("docker", {}, "/", "rm", "rabbit-tests");
 }
 
+// Produces messages to test the sync and async consumers.
 function produceMessage(string message, string queueName) {
     Channel? channelObj = sharedChannel;
     if (channelObj is Channel) {
         checkpanic channelObj->basicPublish(message, queueName);
+    }
+}
+
+// Declares queues to test the sync and async consumers.
+function declareQueue(string queueName) {
+    Channel? channelObj = sharedChannel;
+    if (channelObj is Channel) {
+        string? result = checkpanic channelObj->queueDeclare({ queueName: queueName });
     }
 }

@@ -147,13 +147,26 @@ public class ChannelUtils {
         try {
             AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties.Builder();
             if (properties != null) {
+                String replyTo = null;
+                String contentType = null;
+                String contentEncoding = null;
+                String correlationId = null;
                 @SuppressWarnings(RabbitMQConstants.UNCHECKED)
                 MapValue<BString, Object> basicPropsMap = (MapValue) properties;
-                String replyTo = basicPropsMap.getStringValue(RabbitMQConstants.ALIAS_REPLY_TO).getValue();
-                String contentType = basicPropsMap.getStringValue(RabbitMQConstants.ALIAS_CONTENT_TYPE).getValue();
-                String contentEncoding = basicPropsMap.getStringValue(RabbitMQConstants.ALIAS_CONTENT_ENCODING)
-                        .getValue();
-                String correlationId = basicPropsMap.getStringValue(RabbitMQConstants.ALIAS_CORRELATION_ID).getValue();
+                if (basicPropsMap.containsKey(RabbitMQConstants.ALIAS_REPLY_TO)) {
+                    replyTo = basicPropsMap.getStringValue(RabbitMQConstants.ALIAS_REPLY_TO).getValue();
+                }
+                if (basicPropsMap.containsKey(RabbitMQConstants.ALIAS_CONTENT_TYPE)) {
+                    contentType = basicPropsMap.getStringValue(RabbitMQConstants.ALIAS_CONTENT_TYPE).getValue();
+                }
+                if (basicPropsMap.containsKey(RabbitMQConstants.ALIAS_CONTENT_ENCODING)) {
+                    contentEncoding = basicPropsMap.getStringValue(RabbitMQConstants.ALIAS_CONTENT_ENCODING)
+                            .getValue();
+                }
+                if (basicPropsMap.containsKey(RabbitMQConstants.ALIAS_CORRELATION_ID)) {
+                    correlationId = basicPropsMap.getStringValue(RabbitMQConstants.ALIAS_CORRELATION_ID)
+                            .getValue();
+                }
                 if (replyTo != null) {
                     builder.replyTo(replyTo);
                 }
@@ -287,10 +300,11 @@ public class ChannelUtils {
                                               RabbitMQObservabilityConstants.CONSUME_TYPE_CHANNEL);
             RabbitMQTracingUtil.traceQueueResourceInvocation(channel, queueName.getValue());
             return messageObjectValue;
-        } catch (IOException e) {
+        } catch (IOException | AlreadyClosedException e) {
+            String message = e.getMessage() == null ? "Queue does not exist." : e.getMessage();
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_BASIC_GET);
             return RabbitMQUtils.returnErrorValue("Error occurred while retrieving the message: " +
-                                                          e.getMessage());
+                                                          message);
         }
     }
 

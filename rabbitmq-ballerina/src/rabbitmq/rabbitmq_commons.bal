@@ -50,10 +50,10 @@ public const CLIENT_ACK = "client";
 # + contentEncoding - Content encoding of the message
 # + correlationId - Client-specific ID that can be used to mark or identify messages between clients
 public type BasicProperties record {|
-    string? replyTo;
-    string? contentType = ();
-    string? contentEncoding = ();
-    string? correlationId = ();
+    string replyTo?;
+    string contentType?;
+    string contentEncoding?;
+    string correlationId?;
 |};
 
 # Configurations used to declare a queue.
