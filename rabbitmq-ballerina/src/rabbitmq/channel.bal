@@ -86,7 +86,7 @@ public type Channel client object {
     # + properties - Other properties for the message (routing headers, etc.)
     # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
     public remote function basicPublish(@untainted MessageContent messageContent, string routingKey,
-                        string exchangeName = "", public BasicProperties? properties = ()) returns Error? {
+                        string exchangeName = "", BasicProperties? properties = ()) returns Error? {
         return nativeBasicPublish(messageContent, routingKey, exchangeName, properties, self.amqpChannel, self);
     }
 
