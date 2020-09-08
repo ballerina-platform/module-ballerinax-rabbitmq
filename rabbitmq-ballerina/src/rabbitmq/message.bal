@@ -48,7 +48,7 @@ public type Message client object {
     #              `false` to reject just the called on message
     # + requeue - `true` if the rejected message(s) should be re-queued rather than discarded/dead-lettered
     # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
-    public remote function basicNack(boolean multiple = false, public boolean requeue = true)
+    public remote function basicNack(boolean multiple = false, boolean requeue = true)
                             returns Error? {
         var result = nativeBasicNack(self.amqpChannel, self.deliveryTag, self.autoAck, self.ackStatus,
                                 multiple, requeue, self);
