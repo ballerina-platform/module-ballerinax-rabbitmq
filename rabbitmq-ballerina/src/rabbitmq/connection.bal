@@ -17,7 +17,7 @@
 import ballerina/java;
 
 # Represents a single network connection to the RabbitMQ broker.
-public type Connection object {
+public class Connection {
 
     handle amqpConnection;
 
@@ -70,26 +70,26 @@ public type Connection object {
     public function isClosed() returns boolean {
         return nativeIsClosed(self.amqpConnection);
     }
-};
+}
 
 function createConnection(ConnectionConfiguration connectionConfiguration) returns handle =
 @java:Method {
-    class: "org.ballerinalang.messaging.rabbitmq.util.ConnectionUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.ConnectionUtils"
 } external;
 
 function nativeIsClosed(handle amqpConnection) returns boolean =
 @java:Method {
     name: "isClosed",
-    class: "org.ballerinalang.messaging.rabbitmq.util.ConnectionUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.ConnectionUtils"
 } external;
 
 function handleCloseConnection(int? closeCode, string? closeMessage, int? timeout, handle amqpConnection)
 returns Error? =
 @java:Method {
-    class: "org.ballerinalang.messaging.rabbitmq.util.ConnectionUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.ConnectionUtils"
 } external;
 
 function handleAbortConnection(int? closeCode, string? closeMessage, int? timeout, handle amqpConnection) =
 @java:Method {
-    class: "org.ballerinalang.messaging.rabbitmq.util.ConnectionUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.ConnectionUtils"
 } external;

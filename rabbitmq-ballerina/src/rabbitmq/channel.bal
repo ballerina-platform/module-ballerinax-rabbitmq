@@ -18,7 +18,7 @@ import ballerina/java;
 import ballerina/system;
 
 # The Ballerina interface to provide AMQP Channel related functionality.
-public type Channel client object {
+public client class Channel {
 
     handle amqpChannel = JAVA_NULL;
     string connectorId = system:uuid();
@@ -181,76 +181,76 @@ public type Channel client object {
     function getChannel() returns handle {
         return self.amqpChannel;
     }
-};
+}
 
 function createChannel(handle connection, Channel channelObj) returns handle =
 @java:Method {
-    class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
 } external;
 
 function nativeQueueDeclare(QueueConfiguration? config, handle amqpChannel) returns string|Error? =
 @java:Method {
     name: "queueDeclare",
-    class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
 } external;
 
 function nativeExchangeDeclare(ExchangeConfiguration config, handle amqpChannel) returns Error? =
 @java:Method {
     name: "exchangeDeclare",
-    class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
 } external;
 
 function nativeQueueBind(string queueName, string exchangeName, string bindingKey, handle amqpChannel) returns Error? =
 @java:Method {
     name: "queueBind",
-    class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
 } external;
 
 function nativeBasicPublish(MessageContent messageContent, string routingKey, string exchangeName,
 BasicProperties? properties, handle amqpChannel, Channel channelObj) returns Error? =
 @java:Method {
     name: "basicPublish",
-    class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
 } external;
 
 function nativeQueueDelete(string queueName, boolean ifUnused, boolean ifEmpty, handle amqpChannel) returns Error? =
 @java:Method {
     name: "queueDelete",
-    class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
 } external;
 
 function nativeExchangeDelete(string exchangeName, handle amqpChannel) returns Error? =
 @java:Method {
     name: "exchangeDelete",
-    class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
 } external;
 
 function nativeQueuePurge(string queueName, handle amqpChannel) returns Error? =
 @java:Method {
     name: "queuePurge",
-    class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
 } external;
 
 function nativeChannelClose(int? closeCode, string? closeMessage, handle amqpChannel) returns Error? =
 @java:Method {
     name: "close",
-    class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
 } external;
 
 function nativeChannelAbort(int? closeCode, string? closeMessage, handle amqpChannel) returns Error? =
 @java:Method {
     name: "abort",
-    class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
 } external;
 
 function nativeGetConnection(handle amqpChannel) returns Connection|Error =
 @java:Method {
     name: "getConnection",
-    class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
 } external;
 
 function nativeBasicGet(string queueName, boolean ackMode, handle amqpChannel) returns Message|Error =
 @java:Method {
     name: "basicGet",
-    class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
 } external;
