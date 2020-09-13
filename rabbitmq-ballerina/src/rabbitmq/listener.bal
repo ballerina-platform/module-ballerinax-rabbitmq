@@ -19,7 +19,7 @@ import ballerina/java;
 
 # Ballerina RabbitMQ Message Listener.
 # Provides a listener to consume messages from the RabbitMQ server.
-public type Listener object {
+public class Listener {
 
     *lang:Listener;
 
@@ -92,7 +92,7 @@ public type Listener object {
     private function setQosSettings(int? prefetchCount, int? prefetchSize) returns error? {
         return nativeSetQosSettings(prefetchCount, prefetchSize, self);
     }
-};
+}
 
 # Configurations required to create a subscription.
 #
@@ -114,36 +114,36 @@ public annotation RabbitMQServiceConfig ServiceConfig on service;
 function externInit(Listener lis, handle amqpChannel) =
 @java:Method {
     name: "init",
-    class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
 } external;
 
 function registerListener(Listener lis, service serviceType) returns Error? =
 @java:Method {
-    class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
 } external;
 
 function 'start(Listener lis) returns Error? =
 @java:Method {
-    class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
 } external;
 
 function detach(Listener lis, service serviceType) returns Error? =
 @java:Method {
-    class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
 } external;
 
 function stop(Listener lis) returns Error? =
 @java:Method {
-    class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
 } external;
 
 function abortConnection(Listener lis) returns Error? =
 @java:Method {
-    class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
 } external;
 
 function nativeSetQosSettings(int? prefetchCount, int? prefetchSize, Listener lis) returns Error? =
 @java:Method {
     name: "setQosSettings",
-    class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
 } external;

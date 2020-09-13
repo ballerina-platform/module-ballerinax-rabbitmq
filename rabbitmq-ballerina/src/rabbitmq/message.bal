@@ -17,7 +17,7 @@
 import ballerina/java;
 
 # Provides the functionality to manipulate the messages received by the consumer services.
-public type Message client object {
+public client class Message {
    handle amqpChannel = JAVA_NULL;
    private byte[] messageContent = [];
    private int deliveryTag = -1;
@@ -145,49 +145,49 @@ public type Message client object {
     public function getXMLContent() returns @tainted xml|Error {
         return nativeGetXMLContent(self.messageContent);
     }
-};
+}
 
 function nativeBasicAck(handle amqpChannel, int deliveryTag, boolean multiple, boolean ackMode, boolean ackStatus,
 Message messageObj)
 returns Error? =
 @java:Method {
     name: "basicAck",
-    class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
 } external;
 
 function nativeBasicNack(handle amqpChannel, int deliveryTag, boolean ackMode, boolean ackStatus, boolean multiple,
 boolean requeue, Message messageObj) returns Error? =
 @java:Method {
     name: "basicNack",
-    class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
 } external;
 
 function nativeGetTextContent(byte[] messageContent) returns string|Error =
 @java:Method {
     name: "getTextContent",
-    class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
 } external;
 
 function nativeGetFloatContent(byte[] messageContent) returns float|Error  =
 @java:Method {
     name: "getFloatContent",
-    class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
 } external;
 
 function nativeGetIntContent(byte[] messageContent) returns int|Error  =
 @java:Method {
     name: "getIntContent",
-    class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
 } external;
 
 function nativeGetXMLContent(byte[] messageContent) returns xml|Error  =
 @java:Method {
     name: "getXMLContent",
-    class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
 } external;
 
 function nativeGetJSONContent(byte[] messageContent) returns json|Error  =
 @java:Method {
     name: "getJSONContent",
-    class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
+    'class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
 } external;
