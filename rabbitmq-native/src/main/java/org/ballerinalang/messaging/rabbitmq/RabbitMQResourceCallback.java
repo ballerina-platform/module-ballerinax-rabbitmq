@@ -19,9 +19,9 @@
 package org.ballerinalang.messaging.rabbitmq;
 
 import com.rabbitmq.client.Channel;
+import org.ballerinalang.jvm.api.values.BError;
 import org.ballerinalang.jvm.services.ErrorHandlerUtils;
-import org.ballerinalang.jvm.values.ErrorValue;
-import org.ballerinalang.jvm.values.connector.CallableUnitCallback;
+import org.ballerinalang.jvm.api.connector.CallableUnitCallback;
 import org.ballerinalang.messaging.rabbitmq.observability.RabbitMQMetricsUtil;
 import org.ballerinalang.messaging.rabbitmq.observability.RabbitMQObservabilityConstants;
 
@@ -53,7 +53,7 @@ public class RabbitMQResourceCallback implements CallableUnitCallback {
     }
 
     @Override
-    public void notifyFailure(ErrorValue error) {
+    public void notifyFailure(org.ballerinalang.jvm.api.values.BError error) {
         countDownLatch.countDown();
         RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_DISPATCH);
         ErrorHandlerUtils.printError("RabbitMQ Error: " + error.getPrintableStackTrace());

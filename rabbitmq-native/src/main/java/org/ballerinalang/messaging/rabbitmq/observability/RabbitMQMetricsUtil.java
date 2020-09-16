@@ -20,11 +20,11 @@ package org.ballerinalang.messaging.rabbitmq.observability;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
+import org.ballerinalang.jvm.api.values.BObject;
 import org.ballerinalang.jvm.observability.ObserveUtils;
 import org.ballerinalang.jvm.observability.metrics.DefaultMetricRegistry;
 import org.ballerinalang.jvm.observability.metrics.MetricId;
 import org.ballerinalang.jvm.observability.metrics.MetricRegistry;
-import org.ballerinalang.jvm.values.ObjectValue;
 import org.ballerinalang.messaging.rabbitmq.RabbitMQConstants;
 
 import java.util.ArrayList;
@@ -186,7 +186,7 @@ public class RabbitMQMetricsUtil {
      * @param channel RabbitMQ channel.
      * @param service Service (queueName can be obtained).
      */
-    public static void reportSubscription(Channel channel, ObjectValue service) {
+    public static void reportSubscription(Channel channel, BObject service) {
         if (!ObserveUtils.isMetricsEnabled()) {
             return;
         }
@@ -203,7 +203,7 @@ public class RabbitMQMetricsUtil {
      * @param channel RabbitMQ channel.
      * @param service Service (queueName can be obtained).
      */
-    public static void reportUnsubscription(Channel channel, ObjectValue service) {
+    public static void reportUnsubscription(Channel channel, BObject service) {
         if (!ObserveUtils.isMetricsEnabled()) {
             return;
         }
@@ -218,15 +218,15 @@ public class RabbitMQMetricsUtil {
      * Reports a bulk unsubscription.
      *
      * @param channel             RabbitMQ channel.
-     * @param listenerObjectValue Listener ObjectValue.
+     * @param listenerBObject Listener BObject.
      */
-    public static void reportBulkUnsubscription(Channel channel, ObjectValue listenerObjectValue) {
+    public static void reportBulkUnsubscription(Channel channel, BObject listenerBObject) {
         if (!ObserveUtils.isMetricsEnabled()) {
             return;
         }
-        ArrayList<ObjectValue> services =
-                (ArrayList<ObjectValue>) listenerObjectValue.getNativeData(RabbitMQConstants.CONSUMER_SERVICES);
-        for (ObjectValue service : services) {
+        ArrayList<BObject> services =
+                (ArrayList<BObject>) listenerBObject.getNativeData(RabbitMQConstants.CONSUMER_SERVICES);
+        for (BObject service : services) {
             reportUnsubscription(channel, service);
         }
     }

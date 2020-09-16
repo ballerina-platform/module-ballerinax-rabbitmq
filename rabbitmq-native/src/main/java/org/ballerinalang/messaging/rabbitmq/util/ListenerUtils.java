@@ -20,12 +20,13 @@ package org.ballerinalang.messaging.rabbitmq.util;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
-import org.ballerinalang.jvm.BRuntime;
-import org.ballerinalang.jvm.BallerinaErrors;
+import org.ballerinalang.jvm.api.BErrorCreator;
+import org.ballerinalang.jvm.api.BRuntime;
+import org.ballerinalang.jvm.api.BStringUtils;
+import org.ballerinalang.jvm.api.values.BMap;
+import org.ballerinalang.jvm.api.values.BObject;
+import org.ballerinalang.jvm.api.values.BString;
 import org.ballerinalang.jvm.scheduling.Strand;
-import org.ballerinalang.jvm.values.MapValue;
-import org.ballerinalang.jvm.values.ObjectValue;
-import org.ballerinalang.jvm.values.api.BString;
 import org.ballerinalang.messaging.rabbitmq.MessageDispatcher;
 import org.ballerinalang.messaging.rabbitmq.RabbitMQConnectorException;
 import org.ballerinalang.messaging.rabbitmq.RabbitMQConstants;
@@ -47,20 +48,22 @@ import java.util.concurrent.TimeoutException;
 public class ListenerUtils {
     private static final PrintStream console;
     private static boolean started = false;
-    private static ArrayList<ObjectValue> services = new ArrayList<>();
-    private static ArrayList<ObjectValue> startedServices = new ArrayList<>();
+    private static ArrayList<BObject> services = new ArrayList<>();
+    private static ArrayList<BObject> startedServices = new ArrayList<>();
     private static BRuntime runtime;
+    private static final BString IO_ERROR_MSG = BStringUtils
+            .fromString("An I/O error occurred while setting the global quality of service settings for the listener");
 
-    public static void init(ObjectValue listenerObjectValue, Channel channel) {
-        listenerObjectValue.addNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT, channel);
-        listenerObjectValue.addNativeData(RabbitMQConstants.CONSUMER_SERVICES, services);
-        listenerObjectValue.addNativeData(RabbitMQConstants.STARTED_SERVICES, startedServices);
+    public static void init(BObject listenerBObject, Channel channel) {
+        listenerBObject.addNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT, channel);
+        listenerBObject.addNativeData(RabbitMQConstants.CONSUMER_SERVICES, services);
+        listenerBObject.addNativeData(RabbitMQConstants.STARTED_SERVICES, startedServices);
         RabbitMQMetricsUtil.reportNewConsumer(channel);
     }
 
-    public static Object registerListener(ObjectValue listenerObjectValue, ObjectValue service) {
+    public static Object registerListener(BObject listenerBObject, BObject service) {
         runtime = BRuntime.getCurrentRuntime();
-        Channel channel = (Channel) listenerObjectValue.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
+        Channel channel = (Channel) listenerBObject.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         if (service == null) {
             return null;
         }
@@ -72,37 +75,37 @@ public class ListenerUtils {
                     e.getMessage());
         }
         if (isStarted()) {
-            ObjectValue channelObject = (ObjectValue) listenerObjectValue.get(RabbitMQConstants.CHANNEL_REFERENCE);
+            BObject channelObject = (BObject) listenerBObject.get(RabbitMQConstants.CHANNEL_REFERENCE);
             services =
-                    (ArrayList<ObjectValue>) listenerObjectValue.getNativeData(RabbitMQConstants.CONSUMER_SERVICES);
-            startReceivingMessages(service, channel, listenerObjectValue, channelObject);
+                    (ArrayList<BObject>) listenerBObject.getNativeData(RabbitMQConstants.CONSUMER_SERVICES);
+            startReceivingMessages(service, channel, listenerBObject, channelObject);
         }
         services.add(service);
         return null;
     }
 
-    public static Object start(ObjectValue listenerObjectValue) {
+    public static Object start(BObject listenerBObject) {
         runtime = BRuntime.getCurrentRuntime();
         boolean autoAck;
-        ObjectValue channelObject = (ObjectValue) listenerObjectValue.get(RabbitMQConstants.CHANNEL_REFERENCE);
-        Channel channel = (Channel) listenerObjectValue.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
+        BObject channelObject = (BObject) listenerBObject.get(RabbitMQConstants.CHANNEL_REFERENCE);
+        Channel channel = (Channel) listenerBObject.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         @SuppressWarnings(RabbitMQConstants.UNCHECKED)
-        ArrayList<ObjectValue> services =
-                (ArrayList<ObjectValue>) listenerObjectValue.getNativeData(RabbitMQConstants.CONSUMER_SERVICES);
+        ArrayList<BObject> services =
+                (ArrayList<BObject>) listenerBObject.getNativeData(RabbitMQConstants.CONSUMER_SERVICES);
         @SuppressWarnings(RabbitMQConstants.UNCHECKED)
-        ArrayList<ObjectValue> startedServices =
-                (ArrayList<ObjectValue>) listenerObjectValue.getNativeData(RabbitMQConstants.STARTED_SERVICES);
+        ArrayList<BObject> startedServices =
+                (ArrayList<BObject>) listenerBObject.getNativeData(RabbitMQConstants.STARTED_SERVICES);
         if (services == null || services.isEmpty()) {
             return null;
         }
-        for (ObjectValue service : services) {
+        for (BObject service : services) {
             if (startedServices == null || !startedServices.contains(service)) {
-                MapValue serviceConfig = (MapValue) service.getType()
+                BMap serviceConfig = (BMap) service.getType()
                         .getAnnotation(RabbitMQConstants.PACKAGE_RABBITMQ_FQN,
                                        RabbitMQConstants.SERVICE_CONFIG);
                 @SuppressWarnings(RabbitMQConstants.UNCHECKED)
-                MapValue<BString, Object> queueConfig =
-                        (MapValue<BString, Object>) serviceConfig.getMapValue(RabbitMQConstants.ALIAS_QUEUE_CONFIG);
+                BMap<BString, Object> queueConfig =
+                        (BMap<BString, Object>) serviceConfig.getMapValue(RabbitMQConstants.ALIAS_QUEUE_CONFIG);
                 autoAck = getAckMode(service);
                 boolean isQosSet = channelObject.getNativeData(RabbitMQConstants.QOS_STATUS) != null;
                 if (!isQosSet) {
@@ -116,7 +119,7 @@ public class ListenerUtils {
                 }
                 MessageDispatcher messageDispatcher =
                         new MessageDispatcher(service, channel, autoAck, runtime, channelObject);
-                messageDispatcher.receiveMessages(listenerObjectValue);
+                messageDispatcher.receiveMessages(listenerBObject);
                 RabbitMQMetricsUtil.reportSubscription(channel, service);
             }
         }
@@ -124,14 +127,14 @@ public class ListenerUtils {
         return null;
     }
 
-    public static Object detach(ObjectValue listenerObjectValue, ObjectValue service) {
-        Channel channel = (Channel) listenerObjectValue.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
+    public static Object detach(BObject listenerBObject, BObject service) {
+        Channel channel = (Channel) listenerBObject.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         @SuppressWarnings(RabbitMQConstants.UNCHECKED)
-        ArrayList<ObjectValue> startedServices =
-                (ArrayList<ObjectValue>) listenerObjectValue.getNativeData(RabbitMQConstants.STARTED_SERVICES);
+        ArrayList<BObject> startedServices =
+                (ArrayList<BObject>) listenerBObject.getNativeData(RabbitMQConstants.STARTED_SERVICES);
         @SuppressWarnings(RabbitMQConstants.UNCHECKED)
-        ArrayList<ObjectValue> services =
-                (ArrayList<ObjectValue>) listenerObjectValue.getNativeData(RabbitMQConstants.CONSUMER_SERVICES);
+        ArrayList<BObject> services =
+                (ArrayList<BObject>) listenerBObject.getNativeData(RabbitMQConstants.CONSUMER_SERVICES);
         String serviceName = service.getType().getName();
         String queueName = (String) service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue());
         try {
@@ -141,17 +144,17 @@ public class ListenerUtils {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_DETACH);
             return RabbitMQUtils.returnErrorValue("Error occurred while detaching the service");
         }
-        listenerObjectValue.addNativeData(RabbitMQConstants.CONSUMER_SERVICES,
+        listenerBObject.addNativeData(RabbitMQConstants.CONSUMER_SERVICES,
                 RabbitMQUtils.removeFromList(services, service));
-        listenerObjectValue.addNativeData(RabbitMQConstants.STARTED_SERVICES,
+        listenerBObject.addNativeData(RabbitMQConstants.STARTED_SERVICES,
                 RabbitMQUtils.removeFromList(startedServices, service));
         RabbitMQMetricsUtil.reportUnsubscription(channel, service);
         RabbitMQTracingUtil.traceQueueResourceInvocation(channel, queueName);
         return null;
     }
 
-    public static Object getChannel(ObjectValue listenerObjectValue) {
-        ObjectValue channel = (ObjectValue) listenerObjectValue.get(RabbitMQConstants.CHANNEL_REFERENCE);
+    public static Object getChannel(BObject listenerBObject) {
+        BObject channel = (BObject) listenerBObject.get(RabbitMQConstants.CHANNEL_REFERENCE);
         if (channel != null) {
             return channel;
         } else {
@@ -161,12 +164,12 @@ public class ListenerUtils {
         }
     }
 
-    private static void declareQueueIfNotExists(ObjectValue service, Channel channel) throws IOException {
-        MapValue serviceConfig = (MapValue) service.getType()
+    private static void declareQueueIfNotExists(BObject service, Channel channel) throws IOException {
+        BMap serviceConfig = (BMap) service.getType()
                 .getAnnotation(RabbitMQConstants.PACKAGE_RABBITMQ_FQN, RabbitMQConstants.SERVICE_CONFIG);
         @SuppressWarnings(RabbitMQConstants.UNCHECKED)
-        MapValue<Strand, Object> queueConfig =
-                (MapValue) serviceConfig.getMapValue(RabbitMQConstants.ALIAS_QUEUE_CONFIG);
+        BMap<Strand, Object> queueConfig =
+                (BMap) serviceConfig.getMapValue(RabbitMQConstants.ALIAS_QUEUE_CONFIG);
         String queueName = queueConfig.getStringValue(RabbitMQConstants.QUEUE_NAME).getValue();
         boolean durable = queueConfig.getBooleanValue(RabbitMQConstants.QUEUE_DURABLE);
         boolean exclusive = queueConfig.getBooleanValue(RabbitMQConstants.QUEUE_EXCLUSIVE);
@@ -176,10 +179,10 @@ public class ListenerUtils {
     }
 
     public static Object setQosSettings(Object prefetchCount, Object prefetchSize,
-                                              ObjectValue listenerObjectValue) {
-        ObjectValue channelObject =
-                (ObjectValue) listenerObjectValue.get(RabbitMQConstants.CHANNEL_REFERENCE);
-        Channel channel = (Channel) listenerObjectValue.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
+                                              BObject listenerBObject) {
+        BObject channelObject =
+                (BObject) listenerBObject.get(RabbitMQConstants.CHANNEL_REFERENCE);
+        Channel channel = (Channel) listenerBObject.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         boolean isValidCount = prefetchCount != null &&
                 RabbitMQUtils.checkIfInt(prefetchCount);
         try {
@@ -197,21 +200,20 @@ public class ListenerUtils {
             }
         } catch (IOException exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_SET_QOS);
-            return BallerinaErrors.createError("An I/O error occurred while setting the global " +
-                    "quality of service settings for the listener");
+            return BErrorCreator.createError(IO_ERROR_MSG);
         }
         return null;
     }
 
-    private static void startReceivingMessages(ObjectValue service, Channel channel, ObjectValue listener,
-                                               ObjectValue channelObject) {
+    private static void startReceivingMessages(BObject service, Channel channel, BObject listener,
+                                               BObject channelObject) {
         MessageDispatcher messageDispatcher =
                 new MessageDispatcher(service, channel, getAckMode(service), runtime, channelObject);
         messageDispatcher.receiveMessages(listener);
 
     }
 
-    private static void handleBasicQos(Channel channel, MapValue<BString, Object> serviceConfig) {
+    private static void handleBasicQos(Channel channel, BMap<BString, Object> serviceConfig) {
         long prefetchCount = RabbitMQConstants.DEFAULT_PREFETCH;
 
         if (serviceConfig.getIntValue(RabbitMQConstants.ALIAS_PREFETCH_COUNT) != null) {
@@ -235,9 +237,9 @@ public class ListenerUtils {
         return started;
     }
 
-    private static boolean getAckMode(ObjectValue service) {
+    private static boolean getAckMode(BObject service) {
         boolean autoAck;
-        MapValue serviceConfig = (MapValue) service.getType()
+        BMap serviceConfig = (BMap) service.getType()
                 .getAnnotation(RabbitMQConstants.PACKAGE_RABBITMQ_FQN, RabbitMQConstants.SERVICE_CONFIG);
         @SuppressWarnings(RabbitMQConstants.UNCHECKED)
         String ackMode = serviceConfig.getStringValue(RabbitMQConstants.ALIAS_ACK_MODE).getValue();
@@ -255,15 +257,15 @@ public class ListenerUtils {
         return autoAck;
     }
 
-    public static Object stop(ObjectValue listenerObjectValue) {
-        Channel channel = (Channel) listenerObjectValue.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
+    public static Object stop(BObject listenerBObject) {
+        Channel channel = (Channel) listenerBObject.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         if (channel == null) {
             RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_STOP);
             return RabbitMQUtils.returnErrorValue("ChannelListener is not properly initialised.");
         } else {
             try {
                 Connection connection = channel.getConnection();
-                RabbitMQMetricsUtil.reportBulkUnsubscription(channel, listenerObjectValue);
+                RabbitMQMetricsUtil.reportBulkUnsubscription(channel, listenerBObject);
                 RabbitMQMetricsUtil.reportConsumerClose(channel);
                 RabbitMQMetricsUtil.reportChannelClose(channel);
                 RabbitMQMetricsUtil.reportConnectionClose(connection);
@@ -277,14 +279,14 @@ public class ListenerUtils {
         return null;
     }
 
-    public static Object abortConnection(ObjectValue listenerObjectValue) {
-        Channel channel = (Channel) listenerObjectValue.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
+    public static Object abortConnection(BObject listenerBObject) {
+        Channel channel = (Channel) listenerBObject.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         if (channel == null) {
             RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_CONNECTION_ABORT);
             return RabbitMQUtils.returnErrorValue("ChannelListener is not properly initialised.");
         } else {
             Connection connection = channel.getConnection();
-            RabbitMQMetricsUtil.reportBulkUnsubscription(channel, listenerObjectValue);
+            RabbitMQMetricsUtil.reportBulkUnsubscription(channel, listenerBObject);
             RabbitMQMetricsUtil.reportConsumerClose(channel);
             RabbitMQMetricsUtil.reportChannelClose(channel);
             RabbitMQMetricsUtil.reportConnectionClose(connection);
