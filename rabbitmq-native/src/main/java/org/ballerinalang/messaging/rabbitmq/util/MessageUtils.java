@@ -21,12 +21,12 @@ package org.ballerinalang.messaging.rabbitmq.util;
 import com.rabbitmq.client.AlreadyClosedException;
 import com.rabbitmq.client.Channel;
 import org.ballerinalang.jvm.JSONParser;
-import org.ballerinalang.jvm.StringUtils;
 import org.ballerinalang.jvm.XMLFactory;
+import org.ballerinalang.jvm.api.BStringUtils;
+import org.ballerinalang.jvm.api.values.BObject;
 import org.ballerinalang.jvm.scheduling.Scheduler;
 import org.ballerinalang.jvm.scheduling.Strand;
 import org.ballerinalang.jvm.values.ArrayValue;
-import org.ballerinalang.jvm.values.ObjectValue;
 import org.ballerinalang.messaging.rabbitmq.RabbitMQConstants;
 import org.ballerinalang.messaging.rabbitmq.RabbitMQUtils;
 import org.ballerinalang.messaging.rabbitmq.observability.RabbitMQMetricsUtil;
@@ -44,7 +44,7 @@ import java.nio.charset.StandardCharsets;
  */
 public class MessageUtils {
     public static Object basicAck(Channel channel, int deliveryTag, boolean multiple,
-                                  boolean ackMode, boolean ackStatus, ObjectValue messageObj) {
+                                  boolean ackMode, boolean ackStatus, BObject messageObj) {
         if (ackStatus) {
             return RabbitMQUtils.returnErrorValue(RabbitMQConstants.MULTIPLE_ACK_ERROR);
         } else if (ackMode) {
@@ -70,7 +70,7 @@ public class MessageUtils {
     }
 
     public static Object basicNack(Channel channel, int deliveryTag, boolean ackMode,
-                                   boolean ackStatus, boolean multiple, boolean requeue, ObjectValue messageObj) {
+                                   boolean ackStatus, boolean multiple, boolean requeue, BObject messageObj) {
         if (ackStatus) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_NACK);
             return RabbitMQUtils.returnErrorValue(RabbitMQConstants.MULTIPLE_ACK_ERROR);
@@ -101,7 +101,7 @@ public class MessageUtils {
     public static Object getTextContent(ArrayValue messageContent) {
         byte[] messageCont = messageContent.getBytes();
         try {
-            return StringUtils.fromString(new String(messageCont, StandardCharsets.UTF_8.name()));
+            return BStringUtils.fromString(new String(messageCont, StandardCharsets.UTF_8.name()));
         } catch (UnsupportedEncodingException exception) {
             RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_GET_MSG_CONTENT);
             return RabbitMQUtils.returnErrorValue(RabbitMQConstants.TEXT_CONTENT_ERROR
@@ -133,7 +133,7 @@ public class MessageUtils {
         try {
             Object json = JSONParser.parse(new String(messageContent.getBytes(), StandardCharsets.UTF_8.name()));
             if (json instanceof String) {
-                return StringUtils.fromString((String) json);
+                return BStringUtils.fromString((String) json);
             }
             return json;
         } catch (UnsupportedEncodingException exception) {

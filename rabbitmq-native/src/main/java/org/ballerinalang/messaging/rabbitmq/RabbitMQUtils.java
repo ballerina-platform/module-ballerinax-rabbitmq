@@ -18,12 +18,13 @@
 
 package org.ballerinalang.messaging.rabbitmq;
 
-import org.ballerinalang.jvm.BallerinaErrors;
 import org.ballerinalang.jvm.TypeChecker;
+import org.ballerinalang.jvm.api.BErrorCreator;
+import org.ballerinalang.jvm.api.BStringUtils;
+import org.ballerinalang.jvm.api.values.BError;
+import org.ballerinalang.jvm.api.values.BObject;
 import org.ballerinalang.jvm.scheduling.Strand;
 import org.ballerinalang.jvm.types.TypeTags;
-import org.ballerinalang.jvm.values.ErrorValue;
-import org.ballerinalang.jvm.values.ObjectValue;
 
 import java.util.ArrayList;
 
@@ -34,9 +35,10 @@ import java.util.ArrayList;
  */
 public class RabbitMQUtils {
 
-    public static ErrorValue returnErrorValue(String errorMessage) {
-        return BallerinaErrors.createDistinctError(RabbitMQConstants.RABBITMQ_ERROR,
-                                                   RabbitMQConstants.PACKAGE_ID_RABBITMQ, errorMessage);
+    public static BError returnErrorValue(String errorMessage) {
+        return BErrorCreator.createDistinctError(RabbitMQConstants.RABBITMQ_ERROR,
+                                                 RabbitMQConstants.PACKAGE_ID_RABBITMQ,
+                                                 BStringUtils.fromString(errorMessage));
     }
 
     public static boolean checkIfInt(Object object) {
@@ -47,7 +49,7 @@ public class RabbitMQUtils {
         return TypeChecker.getType(object).getTag() == TypeTags.STRING_TAG;
     }
 
-    static ArrayList<ObjectValue> addToList(ArrayList<ObjectValue> arrayList, ObjectValue objectValue) {
+    static ArrayList<BObject> addToList(ArrayList<BObject> arrayList, BObject objectValue) {
         if (arrayList == null) {
             arrayList = new ArrayList<>();
         }
@@ -62,14 +64,14 @@ public class RabbitMQUtils {
      * @param objectValue Element to be removed
      * @return Resulting list after removing the element
      */
-    public static ArrayList<ObjectValue> removeFromList(ArrayList<ObjectValue> arrayList, ObjectValue objectValue) {
+    public static ArrayList<BObject> removeFromList(ArrayList<BObject> arrayList, BObject objectValue) {
         if (arrayList != null) {
             arrayList.remove(objectValue);
         }
         return arrayList;
     }
 
-    public static void handleTransaction(ObjectValue objectValue, Strand strand) {
+    public static void handleTransaction(BObject objectValue, Strand strand) {
         RabbitMQTransactionContext transactionContext =
                 (RabbitMQTransactionContext) objectValue.getNativeData(RabbitMQConstants.RABBITMQ_TRANSACTION_CONTEXT);
         if (transactionContext != null) {

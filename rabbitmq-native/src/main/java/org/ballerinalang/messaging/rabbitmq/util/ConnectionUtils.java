@@ -20,8 +20,8 @@ package org.ballerinalang.messaging.rabbitmq.util;
 
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
-import org.ballerinalang.jvm.values.MapValue;
-import org.ballerinalang.jvm.values.api.BString;
+import org.ballerinalang.jvm.api.values.BMap;
+import org.ballerinalang.jvm.api.values.BString;
 import org.ballerinalang.messaging.rabbitmq.RabbitMQConnectorException;
 import org.ballerinalang.messaging.rabbitmq.RabbitMQConstants;
 import org.ballerinalang.messaging.rabbitmq.RabbitMQUtils;
@@ -59,12 +59,12 @@ public class ConnectionUtils {
      * @param connectionConfig Parameters used to initialize the connection.
      * @return RabbitMQ Connection object.
      */
-    public static Connection createConnection(MapValue<BString, Object> connectionConfig) {
+    public static Connection createConnection(BMap<BString, Object> connectionConfig) {
         try {
             ConnectionFactory connectionFactory = new ConnectionFactory();
 
             // Enable TLS for the connection.
-            MapValue<BString, Object> secureSocket = (MapValue<BString, Object>) connectionConfig.getMapValue(
+            BMap<BString, Object> secureSocket = (BMap<BString, Object>) connectionConfig.getMapValue(
                     RabbitMQConstants.RABBITMQ_CONNECTION_SECURE_SOCKET);
             if (secureSocket != null) {
                 SSLContext sslContext = getSSLContext(secureSocket);
@@ -115,10 +115,10 @@ public class ConnectionUtils {
         }
     }
 
-    private static SSLContext getSSLContext(MapValue secureSocket) {
+    private static SSLContext getSSLContext(BMap secureSocket) {
         try {
-            MapValue cryptoKeyStore = secureSocket.getMapValue(RabbitMQConstants.RABBITMQ_CONNECTION_KEYSTORE);
-            MapValue cryptoTrustStore = secureSocket.getMapValue(RabbitMQConstants.RABBITMQ_CONNECTION_TRUSTORE);
+            BMap cryptoKeyStore = secureSocket.getMapValue(RabbitMQConstants.RABBITMQ_CONNECTION_KEYSTORE);
+            BMap cryptoTrustStore = secureSocket.getMapValue(RabbitMQConstants.RABBITMQ_CONNECTION_TRUSTORE);
             char[] keyPassphrase = cryptoKeyStore.getStringValue(RabbitMQConstants.KEY_STORE_PASS).getValue()
                     .toCharArray();
             String keyFilePath = cryptoKeyStore.getStringValue(RabbitMQConstants.KEY_STORE_PATH).getValue();

@@ -23,17 +23,16 @@ import com.rabbitmq.client.AlreadyClosedException;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.GetResponse;
-import org.ballerinalang.jvm.BallerinaValues;
-import org.ballerinalang.jvm.StringUtils;
+import org.ballerinalang.jvm.api.BStringUtils;
+import org.ballerinalang.jvm.api.BValueCreator;
+import org.ballerinalang.jvm.api.values.BMap;
+import org.ballerinalang.jvm.api.values.BObject;
+import org.ballerinalang.jvm.api.values.BString;
 import org.ballerinalang.jvm.scheduling.Scheduler;
 import org.ballerinalang.jvm.scheduling.Strand;
 import org.ballerinalang.jvm.util.exceptions.BallerinaException;
 import org.ballerinalang.jvm.values.ArrayValue;
 import org.ballerinalang.jvm.values.HandleValue;
-import org.ballerinalang.jvm.values.MapValue;
-import org.ballerinalang.jvm.values.ObjectValue;
-import org.ballerinalang.jvm.values.api.BString;
-import org.ballerinalang.jvm.values.api.BValueCreator;
 import org.ballerinalang.messaging.rabbitmq.RabbitMQConnectorException;
 import org.ballerinalang.messaging.rabbitmq.RabbitMQConstants;
 import org.ballerinalang.messaging.rabbitmq.RabbitMQTransactionContext;
@@ -55,7 +54,7 @@ import java.util.concurrent.TimeoutException;
  * @since 0.995.0
  */
 public class ChannelUtils {
-    public static Channel createChannel(Connection connection, ObjectValue channelObj) {
+    public static Channel createChannel(Connection connection, BObject channelObj) {
         try {
             Channel channel = connection.createChannel();
             RabbitMQMetricsUtil.reportNewChannel(channel);
@@ -74,10 +73,10 @@ public class ChannelUtils {
         try {
             if (queueConfig == null) {
                 RabbitMQMetricsUtil.reportNewQueue(channel, RabbitMQObservabilityConstants.UNKNOWN);
-                return StringUtils.fromString(channel.queueDeclare().getQueue());
+                return BStringUtils.fromString(channel.queueDeclare().getQueue());
             }
             @SuppressWarnings(RabbitMQConstants.UNCHECKED)
-            MapValue<BString, Object> config = (MapValue<BString, Object>) queueConfig;
+            BMap<BString, Object> config = (BMap<BString, Object>) queueConfig;
             String queueName = config.getStringValue(RabbitMQConstants.QUEUE_NAME).getValue();
             boolean durable = config.getBooleanValue(RabbitMQConstants.QUEUE_DURABLE);
             boolean exclusive = config.getBooleanValue(RabbitMQConstants.QUEUE_EXCLUSIVE);
@@ -97,7 +96,7 @@ public class ChannelUtils {
         return null;
     }
 
-    public static Object exchangeDeclare(MapValue<BString, Object> exchangeConfig, Channel channel) {
+    public static Object exchangeDeclare(BMap<BString, Object> exchangeConfig, Channel channel) {
         RabbitMQTracingUtil.traceResourceInvocation(channel);
         try {
             String exchangeName = exchangeConfig.getStringValue(RabbitMQConstants.EXCHANGE_NAME).getValue();
@@ -135,7 +134,7 @@ public class ChannelUtils {
     }
 
     public static Object basicPublish(Object messageContent, BString routingKey, BString exchangeName,
-                                      Object properties, Channel channel, ObjectValue channelObj) {
+                                      Object properties, Channel channel, BObject channelObj) {
         Strand strand = Scheduler.getStrand();
         String defaultExchangeName = "";
         if (exchangeName != null) {
@@ -145,7 +144,7 @@ public class ChannelUtils {
             AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties.Builder();
             if (properties != null) {
                 @SuppressWarnings(RabbitMQConstants.UNCHECKED)
-                MapValue<BString, Object> basicPropsMap = (MapValue) properties;
+                BMap<BString, Object> basicPropsMap = (BMap) properties;
                 String replyTo = basicPropsMap.getStringValue(RabbitMQConstants.ALIAS_REPLY_TO).getValue();
                 String contentType = basicPropsMap.getStringValue(RabbitMQConstants.ALIAS_CONTENT_TYPE).getValue();
                 String contentEncoding = basicPropsMap.getStringValue(RabbitMQConstants.ALIAS_CONTENT_ENCODING)
@@ -260,8 +259,8 @@ public class ChannelUtils {
     public static Object getConnection(Channel channel) {
         try {
             Connection connection = channel.getConnection();
-            ObjectValue connectionObject = BallerinaValues.createObjectValue(RabbitMQConstants.PACKAGE_ID_RABBITMQ,
-                                                                             RabbitMQConstants.CONNECTION_OBJECT);
+            BObject connectionObject = BValueCreator.createObjectValue(RabbitMQConstants.PACKAGE_ID_RABBITMQ,
+                                                                       RabbitMQConstants.CONNECTION_OBJECT);
             connectionObject.addNativeData(RabbitMQConstants.CONNECTION_NATIVE_OBJECT, connection);
             RabbitMQTracingUtil.traceResourceInvocation(channel);
             return connectionObject;
@@ -278,12 +277,12 @@ public class ChannelUtils {
             if (Objects.isNull(response)) {
                 return RabbitMQUtils.returnErrorValue("No messages are found in the queue.");
             }
-            ObjectValue messageObjectValue = createAndPopulateMessageObjectValue(response, channel, ackMode);
-            ArrayValue messageContent = (ArrayValue) messageObjectValue.get(RabbitMQConstants.MESSAGE_CONTENT);
+            BObject messageBObject = createAndPopulateMessageBObject(response, channel, ackMode);
+            ArrayValue messageContent = (ArrayValue) messageBObject.get(RabbitMQConstants.MESSAGE_CONTENT);
             RabbitMQMetricsUtil.reportConsume(channel, queueName.getValue(), messageContent.getBytes().length,
                                               RabbitMQObservabilityConstants.CONSUME_TYPE_CHANNEL);
             RabbitMQTracingUtil.traceQueueResourceInvocation(channel, queueName.getValue());
-            return messageObjectValue;
+            return messageBObject;
         } catch (IOException e) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_BASIC_GET);
             return RabbitMQUtils.returnErrorValue("Error occurred while retrieving the message: " +
@@ -291,34 +290,34 @@ public class ChannelUtils {
         }
     }
 
-    private static ObjectValue createAndPopulateMessageObjectValue(GetResponse response, Channel channel,
+    private static BObject createAndPopulateMessageBObject(GetResponse response, Channel channel,
                                                                    boolean autoAck) {
-        ObjectValue messageObjectValue = BallerinaValues.createObjectValue(RabbitMQConstants.PACKAGE_ID_RABBITMQ,
+        BObject messageBObject = BValueCreator.createObjectValue(RabbitMQConstants.PACKAGE_ID_RABBITMQ,
                                                                            RabbitMQConstants.MESSAGE_OBJECT);
-        messageObjectValue.set(RabbitMQConstants.DELIVERY_TAG, response.getEnvelope().getDeliveryTag());
-        messageObjectValue.set(RabbitMQConstants.JAVA_CLIENT_CHANNEL, new HandleValue(channel));
-        messageObjectValue.set(RabbitMQConstants.MESSAGE_CONTENT,
+        messageBObject.set(RabbitMQConstants.DELIVERY_TAG, response.getEnvelope().getDeliveryTag());
+        messageBObject.set(RabbitMQConstants.JAVA_CLIENT_CHANNEL, new HandleValue(channel));
+        messageBObject.set(RabbitMQConstants.MESSAGE_CONTENT,
                                BValueCreator.createArrayValue(response.getBody()));
-        messageObjectValue.set(RabbitMQConstants.AUTO_ACK_STATUS, autoAck);
-        messageObjectValue.set(RabbitMQConstants.MESSAGE_ACK_STATUS, false);
+        messageBObject.set(RabbitMQConstants.AUTO_ACK_STATUS, autoAck);
+        messageBObject.set(RabbitMQConstants.MESSAGE_ACK_STATUS, false);
         AMQP.BasicProperties properties = response.getProps();
         if (properties != null) {
             String replyTo = properties.getReplyTo();
             String contentType = properties.getContentType();
             String contentEncoding = properties.getContentEncoding();
             String correlationId = properties.getCorrelationId();
-            MapValue<BString, Object> basicProperties =
-                    BallerinaValues.createRecordValue(RabbitMQConstants.PACKAGE_ID_RABBITMQ,
+            BMap<BString, Object> basicProperties =
+                    BValueCreator.createRecordValue(RabbitMQConstants.PACKAGE_ID_RABBITMQ,
                                                       RabbitMQConstants.RECORD_BASIC_PROPERTIES);
             Object[] values = new Object[4];
             values[0] = replyTo;
             values[1] = contentType;
             values[2] = contentEncoding;
             values[3] = correlationId;
-            messageObjectValue.set(RabbitMQConstants.BASIC_PROPERTIES,
-                                   BallerinaValues.createRecord(basicProperties, values));
+            messageBObject.set(RabbitMQConstants.BASIC_PROPERTIES,
+                                   BValueCreator.createRecordValue(basicProperties, values));
         }
-        return messageObjectValue;
+        return messageBObject;
     }
 
     private ChannelUtils() {

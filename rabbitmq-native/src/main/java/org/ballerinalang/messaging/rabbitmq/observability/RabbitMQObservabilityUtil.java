@@ -19,7 +19,7 @@
 package org.ballerinalang.messaging.rabbitmq.observability;
 
 import com.rabbitmq.client.Connection;
-import org.ballerinalang.jvm.values.ObjectValue;
+import org.ballerinalang.jvm.api.values.BObject;
 import org.ballerinalang.messaging.rabbitmq.RabbitMQConstants;
 
 /**
@@ -33,7 +33,7 @@ public class RabbitMQObservabilityUtil {
         return connection.toString();
     }
 
-    public static String getQueueName(ObjectValue service) {
+    public static String getQueueName(BObject service) {
         return (String) service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue());
     }
 }
