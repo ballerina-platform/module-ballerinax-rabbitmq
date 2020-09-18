@@ -24,7 +24,7 @@ public class Connection {
     # Initializes a Ballerina RabbitMQ Connection object.
     #
     # + connectionConfiguration - Configurations required to initialize the `rabbitmq:Connection`
-    public function init(ConnectionConfiguration connectionConfiguration) {
+    public isolated function init(ConnectionConfiguration connectionConfiguration) {
         self.amqpConnection = createConnection(connectionConfiguration);
     }
 
@@ -41,7 +41,8 @@ public class Connection {
     # + timeoutInMillis - Timeout (in milliseconds) for completing all the close-related operations.
     #                     Use -1 for infinity
     # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
-    public function close(int? closeCode = (), string? closeMessage = (), int? timeoutInMillis = ()) returns Error? {
+    public isolated function close(int? closeCode = (), string? closeMessage = (), int? timeoutInMillis = ())
+    returns Error? {
         return handleCloseConnection(closeCode, closeMessage, timeoutInMillis, self.amqpConnection);
     }
 
@@ -57,7 +58,8 @@ public class Connection {
     # + closeMessage - A message indicating the reason for closing the connection
     # + timeoutInMillis - Timeout (in milliseconds) for completing all the close-related operations.
     #                       Use -1 for infinity
-    public function abortConnection(int? closeCode = (), string? closeMessage = (), int? timeoutInMillis = ()) {
+    public isolated function abortConnection(int? closeCode = (), string? closeMessage = (),
+    int? timeoutInMillis = ()) {
         handleAbortConnection(closeCode, closeMessage, timeoutInMillis, self.amqpConnection);
     }
 
@@ -67,29 +69,29 @@ public class Connection {
     # ```
     #
     # + return - The value `true` if the `rabbitmq:Connection` is already closed or else `false`
-    public function isClosed() returns boolean {
+    public isolated function isClosed() returns boolean {
         return nativeIsClosed(self.amqpConnection);
     }
 }
 
-function createConnection(ConnectionConfiguration connectionConfiguration) returns handle =
+isolated function createConnection(ConnectionConfiguration connectionConfiguration) returns handle =
 @java:Method {
     'class: "org.ballerinalang.messaging.rabbitmq.util.ConnectionUtils"
 } external;
 
-function nativeIsClosed(handle amqpConnection) returns boolean =
+isolated function nativeIsClosed(handle amqpConnection) returns boolean =
 @java:Method {
     name: "isClosed",
     'class: "org.ballerinalang.messaging.rabbitmq.util.ConnectionUtils"
 } external;
 
-function handleCloseConnection(int? closeCode, string? closeMessage, int? timeout, handle amqpConnection)
+isolated function handleCloseConnection(int? closeCode, string? closeMessage, int? timeout, handle amqpConnection)
 returns Error? =
 @java:Method {
     'class: "org.ballerinalang.messaging.rabbitmq.util.ConnectionUtils"
 } external;
 
-function handleAbortConnection(int? closeCode, string? closeMessage, int? timeout, handle amqpConnection) =
+isolated function handleAbortConnection(int? closeCode, string? closeMessage, int? timeout, handle amqpConnection) =
 @java:Method {
     'class: "org.ballerinalang.messaging.rabbitmq.util.ConnectionUtils"
 } external;

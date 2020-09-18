@@ -33,7 +33,7 @@ public client class Message {
     # + multiple - `true` to acknowledge all messages up to and including the called on message and
     #              `false` to acknowledge just the called on message
     # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
-    public remote function basicAck(boolean multiple = false) returns Error? {
+    public isolated remote function basicAck(boolean multiple = false) returns Error? {
         var result = nativeBasicAck(self.amqpChannel, self.deliveryTag, multiple, self.autoAck, self.ackStatus, self);
         self.ackStatus = true;
         return result;
@@ -48,7 +48,7 @@ public client class Message {
     #              `false` to reject just the called on message
     # + requeue - `true` if the rejected message(s) should be re-queued rather than discarded/dead-lettered
     # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
-    public remote function basicNack(boolean multiple = false, boolean requeue = true)
+    public isolated remote function basicNack(boolean multiple = false, boolean requeue = true)
                             returns Error? {
         var result = nativeBasicNack(self.amqpChannel, self.deliveryTag, self.autoAck, self.ackStatus,
                                 multiple, requeue, self);
@@ -62,7 +62,7 @@ public client class Message {
     # ```
     #
     # + return - The delivery tag of the message
-    public function getDeliveryTag() returns @tainted int {
+    public isolated function getDeliveryTag() returns @tainted int {
         if (self.deliveryTag > -1) {
             return self.deliveryTag;
         } else {
@@ -77,7 +77,7 @@ public client class Message {
     # ```
     #
     # + return - Properties of the message or else a `rabbitmq:Error` if an error is encountered
-    public function getProperties() returns BasicProperties|Error {
+    public isolated function getProperties() returns BasicProperties|Error {
         var basicProperties = self.properties;
         if (basicProperties is BasicProperties) {
             return basicProperties;
@@ -86,13 +86,13 @@ public client class Message {
         return e;
     }
 
-# Retrieves the text content of the RabbitMQ message.
-# ```ballerina
-# string|rabbitmq:Error msgContent = message.getTextContent();
-# ```
-#
-# + return - Message data as string value or else a `rabbitmq:Error` if an error is encountered
-   public function getTextContent() returns @tainted string|Error {
+    # Retrieves the text content of the RabbitMQ message.
+    # ```ballerina
+    # string|rabbitmq:Error msgContent = message.getTextContent();
+    # ```
+    #
+    # + return - Message data as string value or else a `rabbitmq:Error` if an error is encountered
+   public isolated function getTextContent() returns @tainted string|Error {
         return nativeGetTextContent(self.messageContent);
    }
 
@@ -102,7 +102,7 @@ public client class Message {
     # ```
     #
     # + return - Message data as a float value or else a `rabbitmq:Error` if an error is encountered
-    public function getFloatContent() returns @tainted float|Error {
+    public isolated function getFloatContent() returns @tainted float|Error {
         return  nativeGetFloatContent(self.messageContent);
     }
 
@@ -112,7 +112,7 @@ public client class Message {
     # ```
     #
     # + return - Message data as an int value or else a `rabbitmq:Error` if an error is encountered
-    public function getIntContent() returns @tainted int|Error {
+    public isolated function getIntContent() returns @tainted int|Error {
        return nativeGetIntContent(self.messageContent);
     }
 
@@ -122,7 +122,7 @@ public client class Message {
     # ```
     #
     # + return - Message data as a byte array
-    public function getByteArrayContent() returns @tainted byte[] {
+    public isolated function getByteArrayContent() returns @tainted byte[] {
         return self.messageContent;
     }
 
@@ -132,7 +132,7 @@ public client class Message {
     # ```
     #
     # + return - Message data as a JSON value or else a `rabbitmq:Error` if an error is encountered
-    public function getJSONContent() returns @tainted json|Error {
+    public isolated function getJSONContent() returns @tainted json|Error {
         return nativeGetJSONContent(self.messageContent);
     }
 
@@ -142,51 +142,50 @@ public client class Message {
     # ```
     #
     # + return - Message data as an XML value or else a `rabbitmq:Error` if an error is encountered
-    public function getXMLContent() returns @tainted xml|Error {
+    public isolated function getXMLContent() returns @tainted xml|Error {
         return nativeGetXMLContent(self.messageContent);
     }
 }
 
-function nativeBasicAck(handle amqpChannel, int deliveryTag, boolean multiple, boolean ackMode, boolean ackStatus,
-Message messageObj)
-returns Error? =
+isolated function nativeBasicAck(handle amqpChannel, int deliveryTag, boolean multiple, boolean ackMode,
+boolean ackStatus, Message messageObj) returns Error? =
 @java:Method {
     name: "basicAck",
     'class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
 } external;
 
-function nativeBasicNack(handle amqpChannel, int deliveryTag, boolean ackMode, boolean ackStatus, boolean multiple,
-boolean requeue, Message messageObj) returns Error? =
+isolated function nativeBasicNack(handle amqpChannel, int deliveryTag, boolean ackMode, boolean ackStatus,
+boolean multiple, boolean requeue, Message messageObj) returns Error? =
 @java:Method {
     name: "basicNack",
     'class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
 } external;
 
-function nativeGetTextContent(byte[] messageContent) returns string|Error =
+isolated function nativeGetTextContent(byte[] messageContent) returns string|Error =
 @java:Method {
     name: "getTextContent",
     'class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
 } external;
 
-function nativeGetFloatContent(byte[] messageContent) returns float|Error  =
+isolated function nativeGetFloatContent(byte[] messageContent) returns float|Error  =
 @java:Method {
     name: "getFloatContent",
     'class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
 } external;
 
-function nativeGetIntContent(byte[] messageContent) returns int|Error  =
+isolated function nativeGetIntContent(byte[] messageContent) returns int|Error  =
 @java:Method {
     name: "getIntContent",
     'class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
 } external;
 
-function nativeGetXMLContent(byte[] messageContent) returns xml|Error  =
+isolated function nativeGetXMLContent(byte[] messageContent) returns xml|Error  =
 @java:Method {
     name: "getXMLContent",
     'class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
 } external;
 
-function nativeGetJSONContent(byte[] messageContent) returns json|Error  =
+isolated function nativeGetJSONContent(byte[] messageContent) returns json|Error  =
 @java:Method {
     name: "getJSONContent",
     'class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
