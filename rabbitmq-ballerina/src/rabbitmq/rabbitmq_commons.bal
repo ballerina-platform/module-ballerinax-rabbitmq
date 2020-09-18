@@ -17,7 +17,7 @@
 import ballerina/crypto;
 import ballerina/java;
 
-handle JAVA_NULL = java:createNull();
+final handle JAVA_NULL = java:createNull();
 
 # Types of message content that can be published.
 public type MessageContent int|float|byte|boolean|string|map<any>|xml|json|byte[];
