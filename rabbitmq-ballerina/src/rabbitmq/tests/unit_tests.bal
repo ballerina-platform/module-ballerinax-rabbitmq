@@ -16,7 +16,6 @@
 
 import ballerina/log;
 import ballerina/runtime;
-import ballerina/system;
 import ballerina/test;
 
 Connection? connection = ();
@@ -31,10 +30,6 @@ string dataBindingMessage = "";
 
 @test:BeforeSuite
 function setup() {
-    log:printInfo("Starting RabbitMQ Docker Container.");
-    var dockerStartResult = system:exec("docker", {}, "/", "run", "-d", "--name", "rabbit-tests", "-p", "15672:15672",
-    "-p", "5672:5672", "rabbitmq:3-management");
-    runtime:sleep(20000);
     log:printInfo("Creating a ballerina RabbitMQ connection.");
     Connection newConnection = new ({host: "0.0.0.0", port: 5672});
 
@@ -239,8 +234,6 @@ function cleanUp() {
         log:printInfo("Closing the active resources.");
         checkpanic con.close();
     }
-    var dockerStopResult = system:exec("docker", {}, "/", "stop", "rabbit-tests");
-    var dockerRmResult = system:exec("docker", {}, "/", "rm", "rabbit-tests");
 }
 
 function produceMessage(string message, string queueName) {
