@@ -31,7 +31,7 @@ string dataBindingMessage = "";
 @test:BeforeSuite
 function setup() {
     log:printInfo("Creating a ballerina RabbitMQ connection.");
-    Connection newConnection = new ({host: "0.0.0.0", port: 5672});
+    Connection newConnection = new ({host: "localhost", port: 5672});
 
     log:printInfo("Creating a ballerina RabbitMQ channel.");
     rabbitmqChannel = new (newConnection);

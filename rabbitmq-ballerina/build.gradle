@@ -181,7 +181,7 @@ task startRabbitmqServer() {
                     standardOutput = stdOut
                 }
                 println stdOut.toString()
-                sleep(5 * 1000)
+                sleep(10 * 1000)
             } else {
                 println "RabbitMQ server is already started."
             }
@@ -333,5 +333,5 @@ updateTomlVersions.dependsOn copyStdlibs
 ballerinaBuild.dependsOn updateTomlVersions
 ballerinaBuild.dependsOn startRabbitmqServer
 ballerinaBuild.dependsOn ":rabbitmq-native:build"
-ballerinaBuild.finalizedBy stopRabbitmqServer
+build.finalizedBy stopRabbitmqServer
 build.dependsOn ballerinaBuild
