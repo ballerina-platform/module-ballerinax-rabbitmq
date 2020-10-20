@@ -19,10 +19,10 @@
 package org.ballerinalang.messaging.rabbitmq;
 
 import com.rabbitmq.client.Channel;
-import org.ballerinalang.jvm.scheduling.Strand;
-import org.ballerinalang.jvm.transactions.BallerinaTransactionContext;
-import org.ballerinalang.jvm.transactions.TransactionLocalContext;
-import org.ballerinalang.jvm.transactions.TransactionResourceManager;
+import io.ballerina.runtime.scheduling.Strand;
+import io.ballerina.runtime.transactions.BallerinaTransactionContext;
+import io.ballerina.runtime.transactions.TransactionLocalContext;
+import io.ballerina.runtime.transactions.TransactionResourceManager;
 
 import java.io.IOException;
 import java.util.Objects;

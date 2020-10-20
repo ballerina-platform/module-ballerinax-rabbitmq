@@ -20,10 +20,10 @@ package org.ballerinalang.messaging.rabbitmq.observability;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
-import org.ballerinalang.jvm.observability.ObserveUtils;
-import org.ballerinalang.jvm.observability.ObserverContext;
-import org.ballerinalang.jvm.scheduling.Scheduler;
-import org.ballerinalang.jvm.scheduling.Strand;
+import io.ballerina.runtime.observability.ObserveUtils;
+import io.ballerina.runtime.observability.ObserverContext;
+import io.ballerina.runtime.scheduling.Scheduler;
+import io.ballerina.runtime.scheduling.Strand;
 
 import java.util.Optional;
 

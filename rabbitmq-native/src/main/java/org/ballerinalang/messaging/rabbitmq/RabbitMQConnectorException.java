@@ -18,7 +18,7 @@
 
 package org.ballerinalang.messaging.rabbitmq;
 
-import org.ballerinalang.jvm.util.exceptions.BallerinaException;
+import io.ballerina.runtime.util.exceptions.BallerinaException;
 
 /**
  * BallerinaException that could occur in RabbitMQ connector.

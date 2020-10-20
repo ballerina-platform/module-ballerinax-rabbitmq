@@ -21,7 +21,7 @@ package org.ballerinalang.messaging.rabbitmq;
 import org.ballerinalang.util.diagnostic.Diagnostic;
 import org.ballerinalang.util.diagnostic.DiagnosticLog;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BArrayType;
-import org.wso2.ballerinalang.compiler.semantics.model.types.BType;
+import org.wso2.ballerinalang.compiler.semantics.model.types.Type;
 import org.wso2.ballerinalang.compiler.tree.BLangFunction;
 import org.wso2.ballerinalang.compiler.tree.BLangSimpleVariable;
 import org.wso2.ballerinalang.compiler.util.TypeTags;
@@ -95,7 +95,7 @@ public class RabbitMQResourceValidator {
 
     private static void validateDataBindingParam(BLangFunction resource, List<BLangSimpleVariable> paramDetails,
                                                  DiagnosticLog dlog) {
-        BType paramType = paramDetails.get(1).type;
+        Type paramType = paramDetails.get(1).type;
         int paramTypeTag = paramType.tag;
         if (paramTypeTag != TypeTags.STRING && paramTypeTag != TypeTags.JSON &&
                 paramTypeTag != TypeTags.XML && paramTypeTag != TypeTags.RECORD &&
@@ -107,9 +107,9 @@ public class RabbitMQResourceValidator {
         }
     }
 
-    private static boolean validateArrayType(BType paramType) {
+    private static boolean validateArrayType(Type paramType) {
         return paramType.tag != TypeTags.ARRAY || (paramType instanceof BArrayType &&
-                ((BArrayType) paramType).getElementType().tag != org.ballerinalang.jvm.types.TypeTags.BYTE_TAG);
+                ((BArrayType) paramType).getElementType().tag != io.ballerina.runtime.api.TypeTags.BYTE_TAG);
     }
 
     private RabbitMQResourceValidator() {

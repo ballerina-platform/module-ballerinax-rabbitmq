@@ -18,9 +18,9 @@
 
 package org.ballerinalang.messaging.rabbitmq;
 
-import org.ballerinalang.jvm.api.connector.CallableUnitCallback;
-import org.ballerinalang.jvm.api.values.BError;
-import org.ballerinalang.jvm.services.ErrorHandlerUtils;
+import io.ballerina.runtime.api.async.Callback;
+import io.ballerina.runtime.api.values.BError;
+import io.ballerina.runtime.services.ErrorHandlerUtils;
 import org.ballerinalang.messaging.rabbitmq.observability.RabbitMQMetricsUtil;
 import org.ballerinalang.messaging.rabbitmq.observability.RabbitMQObservabilityConstants;
 
@@ -31,7 +31,7 @@ import java.util.concurrent.CountDownLatch;
  *
  * @since 1.2.0
  */
-public class RabbitMQErrorResourceCallback implements CallableUnitCallback {
+public class RabbitMQErrorResourceCallback implements Callback {
     private CountDownLatch countDownLatch;
 
     RabbitMQErrorResourceCallback(CountDownLatch countDownLatch) {
@@ -44,7 +44,7 @@ public class RabbitMQErrorResourceCallback implements CallableUnitCallback {
     }
 
     @Override
-    public void notifyFailure(org.ballerinalang.jvm.api.values.BError error) {
+    public void notifyFailure(io.ballerina.runtime.api.values.BError error) {
         countDownLatch.countDown();
         RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_ERROR_DISPATCH);
         ErrorHandlerUtils.printError("RabbitMQ Error: " + error.getPrintableStackTrace());
