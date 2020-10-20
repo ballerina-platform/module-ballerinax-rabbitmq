@@ -18,12 +18,12 @@
 
 package org.ballerinalang.messaging.rabbitmq;
 
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.values.BString;
-import org.ballerinalang.jvm.types.BPackage;
+import io.ballerina.runtime.api.Module;
+import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.values.BString;
 
-import static org.ballerinalang.jvm.util.BLangConstants.ORG_NAME_SEPARATOR;
-import static org.ballerinalang.jvm.util.BLangConstants.VERSION_SEPARATOR;
+import static io.ballerina.runtime.util.BLangConstants.ORG_NAME_SEPARATOR;
+import static io.ballerina.runtime.util.BLangConstants.VERSION_SEPARATOR;
 
 /**
  * RabbitMQ Connector Constants.
@@ -40,22 +40,22 @@ public class RabbitMQConstants {
             ORG_NAME + ORG_NAME_SEPARATOR + RABBITMQ + VERSION_SEPARATOR + RABBITMQ_VERSION;
     public static final String PACKAGE_RABBITMQ_FQN =
             ORG_NAME + ORG_NAME_SEPARATOR + RABBITMQ + VERSION_SEPARATOR + RABBITMQ_VERSION;
-    public static final BPackage PACKAGE_ID_RABBITMQ =
-            new BPackage(ORG_NAME, "rabbitmq", RABBITMQ_VERSION);
+    public static final Module PACKAGE_ID_RABBITMQ =
+            new Module(ORG_NAME, "rabbitmq", RABBITMQ_VERSION);
 
     // Queue configuration constant fields
-    public static final BString QUEUE_NAME = BStringUtils.fromString("queueName");
-    public static final BString QUEUE_DURABLE = BStringUtils.fromString("durable");
-    public static final BString QUEUE_EXCLUSIVE = BStringUtils.fromString("exclusive");
-    public static final BString QUEUE_AUTO_DELETE = BStringUtils.fromString("autoDelete");
-    public static final BString QUEUE_ARGUMENTS = BStringUtils.fromString("arguments");
+    public static final BString QUEUE_NAME = StringUtils.fromString("queueName");
+    public static final BString QUEUE_DURABLE = StringUtils.fromString("durable");
+    public static final BString QUEUE_EXCLUSIVE = StringUtils.fromString("exclusive");
+    public static final BString QUEUE_AUTO_DELETE = StringUtils.fromString("autoDelete");
+    public static final BString QUEUE_ARGUMENTS = StringUtils.fromString("arguments");
 
     // Exchange configuration constant fields
-    public static final BString EXCHANGE_NAME = BStringUtils.fromString("exchangeName");
-    public static final BString EXCHANGE_TYPE = BStringUtils.fromString("exchangeType");
-    public static final BString EXCHANGE_DURABLE = BStringUtils.fromString("durable");
-    public static final BString EXCHANGE_AUTO_DELETE = BStringUtils.fromString("autoDelete");
-    public static final BString EXCHANGE_ARGUMENTS = BStringUtils.fromString("arguments");
+    public static final BString EXCHANGE_NAME = StringUtils.fromString("exchangeName");
+    public static final BString EXCHANGE_TYPE = StringUtils.fromString("exchangeType");
+    public static final BString EXCHANGE_DURABLE = StringUtils.fromString("durable");
+    public static final BString EXCHANGE_AUTO_DELETE = StringUtils.fromString("autoDelete");
+    public static final BString EXCHANGE_ARGUMENTS = StringUtils.fromString("arguments");
 
     // Warning suppression
     public static final String UNCHECKED = "unchecked";
@@ -79,36 +79,36 @@ public class RabbitMQConstants {
     public static final String CONNECTION_NATIVE_OBJECT = "rabbitmq_connection_object";
 
     // Connection configuration constant fields
-    public static final BString RABBITMQ_CONNECTION_HOST = BStringUtils.fromString("host");
-    public static final BString RABBITMQ_CONNECTION_PORT = BStringUtils.fromString("port");
-    public static final BString RABBITMQ_CONNECTION_USER = BStringUtils.fromString("username");
-    public static final BString RABBITMQ_CONNECTION_PASS = BStringUtils.fromString("password");
-    public static final BString RABBITMQ_CONNECTION_TIMEOUT = BStringUtils.fromString("connectionTimeoutInMillis");
-    public static final BString RABBITMQ_CONNECTION_HANDSHAKE_TIMEOUT = BStringUtils.fromString(
+    public static final BString RABBITMQ_CONNECTION_HOST = StringUtils.fromString("host");
+    public static final BString RABBITMQ_CONNECTION_PORT = StringUtils.fromString("port");
+    public static final BString RABBITMQ_CONNECTION_USER = StringUtils.fromString("username");
+    public static final BString RABBITMQ_CONNECTION_PASS = StringUtils.fromString("password");
+    public static final BString RABBITMQ_CONNECTION_TIMEOUT = StringUtils.fromString("connectionTimeoutInMillis");
+    public static final BString RABBITMQ_CONNECTION_HANDSHAKE_TIMEOUT = StringUtils.fromString(
             "handshakeTimeoutMillis");
-    public static final BString RABBITMQ_CONNECTION_SHUTDOWN_TIMEOUT = BStringUtils.fromString(
+    public static final BString RABBITMQ_CONNECTION_SHUTDOWN_TIMEOUT = StringUtils.fromString(
             "shutdownTimeoutInMillis");
-    public static final BString RABBITMQ_CONNECTION_HEARTBEAT = BStringUtils.fromString("heartbeatInSeconds");
-    public static final BString RABBITMQ_CONNECTION_SECURE_SOCKET = BStringUtils.fromString("secureSocket");
-    public static final BString RABBITMQ_CONNECTION_KEYSTORE = BStringUtils.fromString("keyStore");
-    public static final BString RABBITMQ_CONNECTION_TRUSTORE = BStringUtils.fromString("trustStore");
-    public static final BString RABBITMQ_CONNECTION_VERIFY_HOST = BStringUtils.fromString("verifyHostname");
-    public static final BString RABBITMQ_CONNECTION_TLS_VERSION = BStringUtils.fromString("tlsVersion");
+    public static final BString RABBITMQ_CONNECTION_HEARTBEAT = StringUtils.fromString("heartbeatInSeconds");
+    public static final BString RABBITMQ_CONNECTION_SECURE_SOCKET = StringUtils.fromString("secureSocket");
+    public static final BString RABBITMQ_CONNECTION_KEYSTORE = StringUtils.fromString("keyStore");
+    public static final BString RABBITMQ_CONNECTION_TRUSTORE = StringUtils.fromString("trustStore");
+    public static final BString RABBITMQ_CONNECTION_VERIFY_HOST = StringUtils.fromString("verifyHostname");
+    public static final BString RABBITMQ_CONNECTION_TLS_VERSION = StringUtils.fromString("tlsVersion");
     public static final String KEY_STORE_TYPE = "PKCS12";
-    public static final BString KEY_STORE_PASS = BStringUtils.fromString("password");
-    public static final BString KEY_STORE_PATH = BStringUtils.fromString("path");
+    public static final BString KEY_STORE_PASS = StringUtils.fromString("password");
+    public static final BString KEY_STORE_PATH = StringUtils.fromString("path");
 
     // Channel listener constant fields
     public static final String CONSUMER_SERVICES = "consumer_services";
     public static final String STARTED_SERVICES = "started_services";
-    public static final BString CHANNEL_REFERENCE = BStringUtils.fromString("amqpChannel");
+    public static final BString CHANNEL_REFERENCE = StringUtils.fromString("amqpChannel");
     public static final String QOS_STATUS = "qos_status";
     static final String LISTENER_OBJECT = "Listener";
     public static final String SERVICE_CONFIG = "ServiceConfig";
-    public static final BString ALIAS_QUEUE_CONFIG = BStringUtils.fromString("queueConfig");
-    public static final BString ALIAS_ACK_MODE = BStringUtils.fromString("ackMode");
-    public static final BString ALIAS_PREFETCH_COUNT = BStringUtils.fromString("prefetchCount");
-    public static final BString ALIAS_PREFETCH_SIZE = BStringUtils.fromString("prefetchSize");
+    public static final BString ALIAS_QUEUE_CONFIG = StringUtils.fromString("queueConfig");
+    public static final BString ALIAS_ACK_MODE = StringUtils.fromString("ackMode");
+    public static final BString ALIAS_PREFETCH_COUNT = StringUtils.fromString("prefetchCount");
+    public static final BString ALIAS_PREFETCH_SIZE = StringUtils.fromString("prefetchSize");
     public static final String AUTO_ACKMODE = "auto";
     public static final String CLIENT_ACKMODE = "client";
     public static final int DEFAULT_PREFETCH = 10;
@@ -123,16 +123,16 @@ public class RabbitMQConstants {
 
     // Channel constant fields
     public static final String CHANNEL_NATIVE_OBJECT = "rabbitmq_channel_object";
-    public static final BString JAVA_CLIENT_CHANNEL = BStringUtils.fromString("amqpChannel");
+    public static final BString JAVA_CLIENT_CHANNEL = StringUtils.fromString("amqpChannel");
 
     // Message constant fields
     public static final String MESSAGE_OBJECT = "Message";
     static final String MESSAGE_OBJ_FULL_NAME = PACKAGE_RABBITMQ + ":" + MESSAGE_OBJECT;
-    public static final BString MESSAGE_CONTENT = BStringUtils.fromString("messageContent");
-    public static final BString DELIVERY_TAG = BStringUtils.fromString("deliveryTag");
-    public static final BString MESSAGE_ACK_STATUS = BStringUtils.fromString("ackStatus");
-    public static final BString AUTO_ACK_STATUS = BStringUtils.fromString("autoAck");
-    public static final BString BASIC_PROPERTIES = BStringUtils.fromString("properties");
+    public static final BString MESSAGE_CONTENT = StringUtils.fromString("messageContent");
+    public static final BString DELIVERY_TAG = StringUtils.fromString("deliveryTag");
+    public static final BString MESSAGE_ACK_STATUS = StringUtils.fromString("ackStatus");
+    public static final BString AUTO_ACK_STATUS = StringUtils.fromString("autoAck");
+    public static final BString BASIC_PROPERTIES = StringUtils.fromString("properties");
     public static final String XML_CONTENT_ERROR = "Error while retrieving the xml content of the message. ";
     public static final String JSON_CONTENT_ERROR = "Error while retrieving the json content of the message. ";
     public static final String TEXT_CONTENT_ERROR = "Error while retrieving the string content of the message. ";
@@ -142,16 +142,16 @@ public class RabbitMQConstants {
 
     // Transaction constant fields
     public static final String RABBITMQ_TRANSACTION_CONTEXT = "rabbitmq_transactional_context";
-    public static final BString CONNECTOR_ID = BStringUtils.fromString("connectorId");
+    public static final BString CONNECTOR_ID = StringUtils.fromString("connectorId");
     static final String COMMIT_FAILED = "Transaction commit failed: ";
     static final String ROLLBACK_FAILED = "Transaction rollback failed: ";
 
     // Basic Properties constant fields
     public static final String RECORD_BASIC_PROPERTIES = "BasicProperties";
-    public static final BString ALIAS_REPLY_TO = BStringUtils.fromString("replyTo");
-    public static final BString ALIAS_CONTENT_TYPE = BStringUtils.fromString("contentType");
-    public static final BString ALIAS_CONTENT_ENCODING = BStringUtils.fromString("contentEncoding");
-    public static final BString ALIAS_CORRELATION_ID = BStringUtils.fromString("correlationId");
+    public static final BString ALIAS_REPLY_TO = StringUtils.fromString("replyTo");
+    public static final BString ALIAS_CONTENT_TYPE = StringUtils.fromString("contentType");
+    public static final BString ALIAS_CONTENT_ENCODING = StringUtils.fromString("contentEncoding");
+    public static final BString ALIAS_CORRELATION_ID = StringUtils.fromString("correlationId");
 
     private RabbitMQConstants() {
     }

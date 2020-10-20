@@ -20,7 +20,7 @@ package org.ballerinalang.messaging.rabbitmq.observability;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
-import org.ballerinalang.jvm.observability.ObserverContext;
+import io.ballerina.runtime.observability.ObserverContext;
 
 /**
  * Extension of ObserverContext for RabbitMQ.

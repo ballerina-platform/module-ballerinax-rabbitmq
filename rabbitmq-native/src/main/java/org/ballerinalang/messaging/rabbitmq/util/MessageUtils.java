@@ -20,13 +20,13 @@ package org.ballerinalang.messaging.rabbitmq.util;
 
 import com.rabbitmq.client.AlreadyClosedException;
 import com.rabbitmq.client.Channel;
-import org.ballerinalang.jvm.JSONParser;
-import org.ballerinalang.jvm.XMLFactory;
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.scheduling.Scheduler;
-import org.ballerinalang.jvm.scheduling.Strand;
-import org.ballerinalang.jvm.values.ArrayValue;
+import io.ballerina.runtime.JSONParser;
+import io.ballerina.runtime.XMLFactory;
+import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.scheduling.Scheduler;
+import io.ballerina.runtime.scheduling.Strand;
+import io.ballerina.runtime.values.ArrayValue;
 import org.ballerinalang.messaging.rabbitmq.RabbitMQConstants;
 import org.ballerinalang.messaging.rabbitmq.RabbitMQUtils;
 import org.ballerinalang.messaging.rabbitmq.observability.RabbitMQMetricsUtil;
@@ -101,7 +101,7 @@ public class MessageUtils {
     public static Object getTextContent(ArrayValue messageContent) {
         byte[] messageCont = messageContent.getBytes();
         try {
-            return BStringUtils.fromString(new String(messageCont, StandardCharsets.UTF_8.name()));
+            return StringUtils.fromString(new String(messageCont, StandardCharsets.UTF_8.name()));
         } catch (UnsupportedEncodingException exception) {
             RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_GET_MSG_CONTENT);
             return RabbitMQUtils.returnErrorValue(RabbitMQConstants.TEXT_CONTENT_ERROR
@@ -133,7 +133,7 @@ public class MessageUtils {
         try {
             Object json = JSONParser.parse(new String(messageContent.getBytes(), StandardCharsets.UTF_8.name()));
             if (json instanceof String) {
-                return BStringUtils.fromString((String) json);
+                return StringUtils.fromString((String) json);
             }
             return json;
         } catch (UnsupportedEncodingException exception) {

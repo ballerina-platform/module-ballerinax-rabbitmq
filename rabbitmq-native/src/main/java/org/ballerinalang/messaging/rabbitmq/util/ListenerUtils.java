@@ -20,13 +20,14 @@ package org.ballerinalang.messaging.rabbitmq.util;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
-import org.ballerinalang.jvm.api.BErrorCreator;
-import org.ballerinalang.jvm.api.BRuntime;
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.values.BMap;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.api.values.BString;
-import org.ballerinalang.jvm.scheduling.Strand;
+import io.ballerina.runtime.api.ErrorCreator;
+import io.ballerina.runtime.api.Runtime;
+import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.values.BMap;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.scheduling.Strand;
+import io.ballerina.runtime.types.BAnnotatableType;
 import org.ballerinalang.messaging.rabbitmq.MessageDispatcher;
 import org.ballerinalang.messaging.rabbitmq.RabbitMQConnectorException;
 import org.ballerinalang.messaging.rabbitmq.RabbitMQConstants;
@@ -50,8 +51,8 @@ public class ListenerUtils {
     private static boolean started = false;
     private static ArrayList<BObject> services = new ArrayList<>();
     private static ArrayList<BObject> startedServices = new ArrayList<>();
-    private static BRuntime runtime;
-    private static final BString IO_ERROR_MSG = BStringUtils
+    private static Runtime runtime;
+    private static final BString IO_ERROR_MSG = StringUtils
             .fromString("An I/O error occurred while setting the global quality of service settings for the listener");
 
     public static void init(BObject listenerBObject, Channel channel) {
@@ -62,7 +63,7 @@ public class ListenerUtils {
     }
 
     public static Object registerListener(BObject listenerBObject, BObject service) {
-        runtime = BRuntime.getCurrentRuntime();
+        runtime = Runtime.getCurrentRuntime();
         Channel channel = (Channel) listenerBObject.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         if (service == null) {
             return null;
@@ -85,7 +86,7 @@ public class ListenerUtils {
     }
 
     public static Object start(BObject listenerBObject) {
-        runtime = BRuntime.getCurrentRuntime();
+        runtime = Runtime.getCurrentRuntime();
         boolean autoAck;
         BObject channelObject = (BObject) listenerBObject.get(RabbitMQConstants.CHANNEL_REFERENCE);
         Channel channel = (Channel) listenerBObject.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
@@ -100,7 +101,7 @@ public class ListenerUtils {
         }
         for (BObject service : services) {
             if (startedServices == null || !startedServices.contains(service)) {
-                BMap serviceConfig = (BMap) service.getType()
+                BMap serviceConfig = (BMap) ((BAnnotatableType) service.getType())
                         .getAnnotation(RabbitMQConstants.PACKAGE_RABBITMQ_FQN,
                                        RabbitMQConstants.SERVICE_CONFIG);
                 @SuppressWarnings(RabbitMQConstants.UNCHECKED)
@@ -165,7 +166,7 @@ public class ListenerUtils {
     }
 
     private static void declareQueueIfNotExists(BObject service, Channel channel) throws IOException {
-        BMap serviceConfig = (BMap) service.getType()
+        BMap serviceConfig = (BMap) ((BAnnotatableType) service.getType())
                 .getAnnotation(RabbitMQConstants.PACKAGE_RABBITMQ_FQN, RabbitMQConstants.SERVICE_CONFIG);
         @SuppressWarnings(RabbitMQConstants.UNCHECKED)
         BMap<Strand, Object> queueConfig =
@@ -200,7 +201,7 @@ public class ListenerUtils {
             }
         } catch (IOException exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_SET_QOS);
-            return BErrorCreator.createError(IO_ERROR_MSG);
+            return ErrorCreator.createError(IO_ERROR_MSG);
         }
         return null;
     }
@@ -239,7 +240,7 @@ public class ListenerUtils {
 
     private static boolean getAckMode(BObject service) {
         boolean autoAck;
-        BMap serviceConfig = (BMap) service.getType()
+        BMap serviceConfig = (BMap) ((BAnnotatableType) service.getType())
                 .getAnnotation(RabbitMQConstants.PACKAGE_RABBITMQ_FQN, RabbitMQConstants.SERVICE_CONFIG);
         @SuppressWarnings(RabbitMQConstants.UNCHECKED)
         String ackMode = serviceConfig.getStringValue(RabbitMQConstants.ALIAS_ACK_MODE).getValue();

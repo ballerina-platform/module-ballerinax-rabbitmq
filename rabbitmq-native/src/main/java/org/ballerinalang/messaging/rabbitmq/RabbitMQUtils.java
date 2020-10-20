@@ -18,13 +18,13 @@
 
 package org.ballerinalang.messaging.rabbitmq;
 
-import org.ballerinalang.jvm.TypeChecker;
-import org.ballerinalang.jvm.api.BErrorCreator;
-import org.ballerinalang.jvm.api.BStringUtils;
-import org.ballerinalang.jvm.api.values.BError;
-import org.ballerinalang.jvm.api.values.BObject;
-import org.ballerinalang.jvm.scheduling.Strand;
-import org.ballerinalang.jvm.types.TypeTags;
+import io.ballerina.runtime.TypeChecker;
+import io.ballerina.runtime.api.ErrorCreator;
+import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.TypeTags;
+import io.ballerina.runtime.api.values.BError;
+import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.scheduling.Strand;
 
 import java.util.ArrayList;
 
@@ -36,9 +36,9 @@ import java.util.ArrayList;
 public class RabbitMQUtils {
 
     public static BError returnErrorValue(String errorMessage) {
-        return BErrorCreator.createDistinctError(RabbitMQConstants.RABBITMQ_ERROR,
+        return ErrorCreator.createDistinctError(RabbitMQConstants.RABBITMQ_ERROR,
                                                  RabbitMQConstants.PACKAGE_ID_RABBITMQ,
-                                                 BStringUtils.fromString(errorMessage));
+                                                 StringUtils.fromString(errorMessage));
     }
 
     public static boolean checkIfInt(Object object) {
