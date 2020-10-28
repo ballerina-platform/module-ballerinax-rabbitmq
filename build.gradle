@@ -27,7 +27,6 @@ ext.ballerinaLangVersion = project.ballerinaLangVersion
 ext.puppycrawlCheckstyleVersion = "8.18"
 ext.slf4jVersion = "1.7.30"
 ext.amqpVersion = "5.7.3"
-ext.ballerinaTomlParserVersion = project.ballerinaTomlParserVersion
 ext.stdlibCryptoVersion = project.stdlibCryptoVersion
 ext.stdlibLogVersion = project.stdlibLogVersion
 ext.stdlibTimeVersion = project.stdlibTimeVersion
