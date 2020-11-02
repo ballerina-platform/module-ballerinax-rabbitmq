@@ -20,7 +20,6 @@ package org.ballerinalang.messaging.rabbitmq;
 
 import com.rabbitmq.client.Channel;
 import io.ballerina.runtime.api.async.Callback;
-import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.services.ErrorHandlerUtils;
 import org.ballerinalang.messaging.rabbitmq.observability.RabbitMQMetricsUtil;
 import org.ballerinalang.messaging.rabbitmq.observability.RabbitMQObservabilityConstants;
