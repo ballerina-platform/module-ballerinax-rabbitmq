@@ -17,9 +17,28 @@
   -->
 <FindBugsFilter>
     <Match>
-        <Bug pattern="BC_UNCONFIRMED_CAST" />
+        <Class name="org.ballerinalang.messaging.rabbitmq.MessageDispatcher" />
+        <Method name="getQueueNameFromConfig"/>
+        <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE" />
     </Match>
     <Match>
-        <Bug pattern="SIC_INNER_SHOULD_BE_STATIC_ANON"/>
+        <Class name="org.ballerinalang.messaging.rabbitmq.util.ListenerUtils" />
+        <Method name="declareQueueIfNotExists"/>
+        <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE" />
+    </Match>
+    <Match>
+        <Class name="org.ballerinalang.messaging.rabbitmq.util.ListenerUtils" />
+        <Method name="getAckMode"/>
+        <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE" />
+    </Match>
+    <Match>
+        <Class name="org.ballerinalang.messaging.rabbitmq.util.ListenerUtils" />
+        <Method name="start"/>
+        <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE" />
+    </Match>
+    <Match>
+        <Class name="org.ballerinalang.messaging.rabbitmq.MessageDispatcher" />
+        <Method name="handleDispatch"/>
+        <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD" />
     </Match>
 </FindBugsFilter>
