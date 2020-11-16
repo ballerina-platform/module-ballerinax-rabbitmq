@@ -19,11 +19,11 @@
 package org.ballerinalang.messaging.rabbitmq;
 
 import io.ballerina.runtime.api.Module;
-import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BString;
 
-import static io.ballerina.runtime.util.BLangConstants.ORG_NAME_SEPARATOR;
-import static io.ballerina.runtime.util.BLangConstants.VERSION_SEPARATOR;
+import static io.ballerina.runtime.api.constants.RuntimeConstants.ORG_NAME_SEPARATOR;
+import static io.ballerina.runtime.api.constants.RuntimeConstants.VERSION_SEPARATOR;
 
 /**
  * RabbitMQ Connector Constants.

@@ -20,13 +20,13 @@ package org.ballerinalang.messaging.rabbitmq.util;
 
 import com.rabbitmq.client.AlreadyClosedException;
 import com.rabbitmq.client.Channel;
-import io.ballerina.runtime.JSONParser;
-import io.ballerina.runtime.XMLFactory;
-import io.ballerina.runtime.api.StringUtils;
+import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.utils.JsonUtils;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.XmlUtils;
+import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BObject;
-import io.ballerina.runtime.scheduling.Scheduler;
-import io.ballerina.runtime.scheduling.Strand;
-import io.ballerina.runtime.values.ArrayValue;
+import io.ballerina.runtime.transactions.TransactionResourceManager;
 import org.ballerinalang.messaging.rabbitmq.RabbitMQConstants;
 import org.ballerinalang.messaging.rabbitmq.RabbitMQUtils;
 import org.ballerinalang.messaging.rabbitmq.observability.RabbitMQMetricsUtil;
@@ -43,7 +43,7 @@ import java.nio.charset.StandardCharsets;
  * @since 1.1.0
  */
 public class MessageUtils {
-    public static Object basicAck(Channel channel, int deliveryTag, boolean multiple,
+    public static Object basicAck(Environment environment, Channel channel, int deliveryTag, boolean multiple,
                                   boolean ackMode, boolean ackStatus, BObject messageObj) {
         if (ackStatus) {
             return RabbitMQUtils.returnErrorValue(RabbitMQConstants.MULTIPLE_ACK_ERROR);
@@ -51,12 +51,11 @@ public class MessageUtils {
             return RabbitMQUtils.returnErrorValue(RabbitMQConstants.ACK_MODE_ERROR);
         } else {
             try {
-                Strand strand = Scheduler.getStrand();
                 channel.basicAck(deliveryTag, multiple);
                 RabbitMQMetricsUtil.reportAcknowledgement(channel, RabbitMQObservabilityConstants.ACK);
-                RabbitMQTracingUtil.traceResourceInvocation(channel);
-                if (strand.isInTransaction()) {
-                    RabbitMQUtils.handleTransaction(messageObj, strand);
+                RabbitMQTracingUtil.traceResourceInvocation(channel, environment);
+                if (TransactionResourceManager.getInstance().isInTransaction()) {
+                    RabbitMQUtils.handleTransaction(messageObj);
                 }
             } catch (IOException exception) {
                 RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_ACK);
@@ -69,7 +68,7 @@ public class MessageUtils {
         return null;
     }
 
-    public static Object basicNack(Channel channel, int deliveryTag, boolean ackMode,
+    public static Object basicNack(Environment environment, Channel channel, int deliveryTag, boolean ackMode,
                                    boolean ackStatus, boolean multiple, boolean requeue, BObject messageObj) {
         if (ackStatus) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_NACK);
@@ -79,12 +78,11 @@ public class MessageUtils {
             return RabbitMQUtils.returnErrorValue(RabbitMQConstants.ACK_MODE_ERROR);
         } else {
             try {
-                Strand strand = Scheduler.getStrand();
                 channel.basicNack(deliveryTag, multiple, requeue);
                 RabbitMQMetricsUtil.reportAcknowledgement(channel, RabbitMQObservabilityConstants.NACK);
-                RabbitMQTracingUtil.traceResourceInvocation(channel);
-                if (strand.isInTransaction()) {
-                    RabbitMQUtils.handleTransaction(messageObj, strand);
+                RabbitMQTracingUtil.traceResourceInvocation(channel, environment);
+                if (TransactionResourceManager.getInstance().isInTransaction()) {
+                    RabbitMQUtils.handleTransaction(messageObj);
                 }
             } catch (IOException exception) {
                 RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_NACK);
@@ -98,7 +96,7 @@ public class MessageUtils {
         return null;
     }
 
-    public static Object getTextContent(ArrayValue messageContent) {
+    public static Object getTextContent(BArray messageContent) {
         byte[] messageCont = messageContent.getBytes();
         try {
             return StringUtils.fromString(new String(messageCont, StandardCharsets.UTF_8.name()));
@@ -109,7 +107,7 @@ public class MessageUtils {
         }
     }
 
-    public static Object getFloatContent(ArrayValue messageContent) {
+    public static Object getFloatContent(BArray messageContent) {
         try {
             return Double.parseDouble(new String(messageContent.getBytes(), StandardCharsets.UTF_8.name()));
         } catch (UnsupportedEncodingException exception) {
@@ -119,7 +117,7 @@ public class MessageUtils {
         }
     }
 
-    public static Object getIntContent(ArrayValue messageContent) {
+    public static Object getIntContent(BArray messageContent) {
         try {
             return Integer.parseInt(new String(messageContent.getBytes(), StandardCharsets.UTF_8.name()));
         } catch (UnsupportedEncodingException exception) {
@@ -129,9 +127,9 @@ public class MessageUtils {
         }
     }
 
-    public static Object getJSONContent(ArrayValue messageContent) {
+    public static Object getJSONContent(BArray messageContent) {
         try {
-            Object json = JSONParser.parse(new String(messageContent.getBytes(), StandardCharsets.UTF_8.name()));
+            Object json = JsonUtils.parse(new String(messageContent.getBytes(), StandardCharsets.UTF_8.name()));
             if (json instanceof String) {
                 return StringUtils.fromString((String) json);
             }
@@ -143,9 +141,9 @@ public class MessageUtils {
         }
     }
 
-    public static Object getXMLContent(ArrayValue messageContent) {
+    public static Object getXMLContent(BArray messageContent) {
         try {
-            return XMLFactory.parse(new String(messageContent.getBytes(), StandardCharsets.UTF_8.name()));
+            return XmlUtils.parse(new String(messageContent.getBytes(), StandardCharsets.UTF_8.name()));
         } catch (UnsupportedEncodingException exception) {
             RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_GET_MSG_CONTENT);
             return RabbitMQUtils.returnErrorValue(RabbitMQConstants.XML_CONTENT_ERROR

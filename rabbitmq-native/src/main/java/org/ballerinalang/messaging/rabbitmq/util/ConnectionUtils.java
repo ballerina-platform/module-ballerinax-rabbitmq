@@ -22,7 +22,6 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
-import org.ballerinalang.messaging.rabbitmq.RabbitMQConnectorException;
 import org.ballerinalang.messaging.rabbitmq.RabbitMQConstants;
 import org.ballerinalang.messaging.rabbitmq.RabbitMQUtils;
 import org.ballerinalang.messaging.rabbitmq.observability.RabbitMQMetricsUtil;
@@ -110,8 +109,8 @@ public class ConnectionUtils {
             return connection;
         } catch (IOException | TimeoutException exception) {
             RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_CONNECTION);
-            throw new RabbitMQConnectorException(RabbitMQConstants.CREATE_CONNECTION_ERROR
-                    + exception.getMessage(), exception);
+            throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.CREATE_CONNECTION_ERROR
+                    + exception.getMessage());
         }
     }
 
@@ -135,7 +134,7 @@ public class ConnectionUtils {
                 }
             } else {
                 RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_CONNECTION);
-                throw new RabbitMQConnectorException(RabbitMQConstants.CREATE_SECURE_CONNECTION_ERROR +
+                throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.CREATE_SECURE_CONNECTION_ERROR +
                                                              "Path for the keystore is not found.");
             }
             KeyManagerFactory keyManagerFactory =
@@ -149,7 +148,7 @@ public class ConnectionUtils {
                 }
             } else {
                 RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_CONNECTION);
-                throw new RabbitMQConnectorException("Path for the truststore is not found.");
+                throw RabbitMQUtils.returnErrorValue("Path for the truststore is not found.");
             }
             TrustManagerFactory trustManagerFactory =
                     TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
@@ -159,32 +158,32 @@ public class ConnectionUtils {
             sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
             return sslContext;
         } catch (FileNotFoundException exception) {
-            throw new RabbitMQConnectorException(RabbitMQConstants.CREATE_SECURE_CONNECTION_ERROR +
+            throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.CREATE_SECURE_CONNECTION_ERROR +
                     exception.getLocalizedMessage());
         } catch (IOException exception) {
             RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_CONNECTION);
-            throw new RabbitMQConnectorException(RabbitMQConstants.CREATE_SECURE_CONNECTION_ERROR +
+            throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.CREATE_SECURE_CONNECTION_ERROR +
                     "I/O error occurred.");
         } catch (CertificateException exception) {
             RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_CONNECTION);
-            throw new RabbitMQConnectorException(RabbitMQConstants.CREATE_SECURE_CONNECTION_ERROR +
+            throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.CREATE_SECURE_CONNECTION_ERROR +
                     "Certification error occurred.");
         } catch (UnrecoverableKeyException exception) {
             RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_CONNECTION);
-            throw new RabbitMQConnectorException(RabbitMQConstants.CREATE_SECURE_CONNECTION_ERROR +
+            throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.CREATE_SECURE_CONNECTION_ERROR +
                     "A key in the keystore cannot be recovered.");
         } catch (NoSuchAlgorithmException exception) {
             RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_CONNECTION);
-            throw new RabbitMQConnectorException(RabbitMQConstants.CREATE_SECURE_CONNECTION_ERROR +
+            throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.CREATE_SECURE_CONNECTION_ERROR +
                     "The particular cryptographic algorithm requested is not available in the environment.");
         } catch (KeyStoreException exception) {
             RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_CONNECTION);
-            throw new RabbitMQConnectorException(RabbitMQConstants.CREATE_SECURE_CONNECTION_ERROR +
+            throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.CREATE_SECURE_CONNECTION_ERROR +
                     "No provider supports a KeyStoreSpi implementation for this keystore type." +
                     exception.getLocalizedMessage());
         } catch (KeyManagementException exception) {
             RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_CONNECTION);
-            throw new RabbitMQConnectorException(RabbitMQConstants.CREATE_SECURE_CONNECTION_ERROR +
+            throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.CREATE_SECURE_CONNECTION_ERROR +
                     "Error occurred in an operation with key management." +
                     exception.getLocalizedMessage());
         }

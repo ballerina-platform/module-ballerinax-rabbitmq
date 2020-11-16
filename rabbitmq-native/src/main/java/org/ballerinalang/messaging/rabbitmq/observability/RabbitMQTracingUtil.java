@@ -20,12 +20,9 @@ package org.ballerinalang.messaging.rabbitmq.observability;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
+import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.observability.ObserveUtils;
 import io.ballerina.runtime.observability.ObserverContext;
-import io.ballerina.runtime.scheduling.Scheduler;
-import io.ballerina.runtime.scheduling.Strand;
-
-import java.util.Optional;
 
 /**
  * Providing tracing functionality to RabbitMQ.
@@ -34,69 +31,66 @@ import java.util.Optional;
  */
 public class RabbitMQTracingUtil {
 
-    public static void traceResourceInvocation(Connection connection) {
+    public static void traceResourceInvocation(Connection connection, Environment environment) {
         if (!ObserveUtils.isTracingEnabled()) {
             return;
         }
-        setTags(getObserverContext(), connection);
+        setTags(getObserverContext(environment), connection);
     }
 
-    public static void traceResourceInvocation(Channel channel) {
+    public static void traceResourceInvocation(Channel channel, Environment environment) {
         if (!ObserveUtils.isTracingEnabled()) {
             return;
         }
-        setTags(getObserverContext(), channel);
+        setTags(getObserverContext(environment), channel);
     }
 
-    public static void traceQueueResourceInvocation(Channel channel, String queueName) {
+    public static void traceQueueResourceInvocation(Channel channel, String queueName, Environment environment) {
         if (!ObserveUtils.isTracingEnabled()) {
             return;
         }
-        ObserverContext observerContext = getObserverContext();
+        ObserverContext observerContext = getObserverContext(environment);
         observerContext.addTag(RabbitMQObservabilityConstants.TAG_QUEUE, queueName);
         setTags(observerContext, channel);
     }
 
-    public static void traceExchangeResourceInvocation(Channel channel, String exchangeName) {
+    public static void traceExchangeResourceInvocation(Channel channel, String exchangeName,
+                                                       Environment environment) {
         if (!ObserveUtils.isTracingEnabled()) {
             return;
         }
-        ObserverContext observerContext = getObserverContext();
+        ObserverContext observerContext = getObserverContext(environment);
         observerContext.addTag(RabbitMQObservabilityConstants.TAG_EXCHANGE, exchangeName);
         setTags(observerContext, channel);
     }
 
     public static void traceQueueBindResourceInvocation(Channel channel, String queueName, String exchangeName,
-                                                        String routingKey) {
+                                                        String routingKey, Environment environment) {
         if (!ObserveUtils.isTracingEnabled()) {
             return;
         }
-        ObserverContext observerContext = getObserverContext();
+        ObserverContext observerContext = getObserverContext(environment);
         observerContext.addTag(RabbitMQObservabilityConstants.TAG_QUEUE, queueName);
         observerContext.addTag(RabbitMQObservabilityConstants.TAG_EXCHANGE, exchangeName);
         observerContext.addTag(RabbitMQObservabilityConstants.TAG_ROUTING_KEY, routingKey);
         setTags(observerContext, channel);
     }
 
-    public static void tracePublishResourceInvocation(Channel channel, String exchangeName, String routingKey) {
+    public static void tracePublishResourceInvocation(Channel channel, String exchangeName, String routingKey,
+                                                      Environment environment) {
         if (!ObserveUtils.isTracingEnabled()) {
             return;
         }
-        ObserverContext observerContext = getObserverContext();
+        ObserverContext observerContext = getObserverContext(environment);
         observerContext.addTag(RabbitMQObservabilityConstants.TAG_EXCHANGE, exchangeName);
         observerContext.addTag(RabbitMQObservabilityConstants.TAG_ROUTING_KEY, routingKey);
         setTags(observerContext, channel);
     }
 
-    private static ObserverContext getObserverContext() {
-        Strand strand = Scheduler.getStrand();
-        ObserverContext observerContext;
-        Optional<ObserverContext> observerContextOptional = ObserveUtils.getObserverContextOfCurrentFrame(strand);
-        if (observerContextOptional.isPresent()) {
-            observerContext = observerContextOptional.get();
-        } else {
-            observerContext = new ObserverContext();
-            ObserveUtils.setObserverContextToCurrentFrame(strand, observerContext);
+    private static ObserverContext getObserverContext(Environment environment) {
+        ObserverContext observerContext = ObserveUtils.getObserverContextOfCurrentFrame(environment);
+        if (observerContext != null) {
+            ObserveUtils.setObserverContextToCurrentFrame(environment, observerContext);
         }
         return observerContext;
     }

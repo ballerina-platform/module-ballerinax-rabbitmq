@@ -20,7 +20,6 @@ package org.ballerinalang.messaging.rabbitmq;
 
 import com.rabbitmq.client.Channel;
 import io.ballerina.runtime.api.async.Callback;
-import io.ballerina.runtime.services.ErrorHandlerUtils;
 import org.ballerinalang.messaging.rabbitmq.observability.RabbitMQMetricsUtil;
 import org.ballerinalang.messaging.rabbitmq.observability.RabbitMQObservabilityConstants;
 
@@ -55,6 +54,6 @@ public class RabbitMQResourceCallback implements Callback {
     public void notifyFailure(io.ballerina.runtime.api.values.BError error) {
         countDownLatch.countDown();
         RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_DISPATCH);
-        ErrorHandlerUtils.printError("RabbitMQ Error: " + error.getPrintableStackTrace());
+        error.printStackTrace();
     }
 }

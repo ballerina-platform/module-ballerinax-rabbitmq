@@ -217,7 +217,7 @@ public class RabbitMQMetricsUtil {
     /**
      * Reports a bulk unsubscription.
      *
-     * @param channel             RabbitMQ channel.
+     * @param channel         RabbitMQ channel.
      * @param listenerBObject Listener BObject.
      */
     public static void reportBulkUnsubscription(Channel channel, BObject listenerBObject) {

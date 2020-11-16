@@ -18,13 +18,12 @@
 
 package org.ballerinalang.messaging.rabbitmq;
 
-import io.ballerina.runtime.TypeChecker;
-import io.ballerina.runtime.api.ErrorCreator;
-import io.ballerina.runtime.api.StringUtils;
 import io.ballerina.runtime.api.TypeTags;
+import io.ballerina.runtime.api.creators.ErrorCreator;
+import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
-import io.ballerina.runtime.scheduling.Strand;
 
 import java.util.ArrayList;
 
@@ -37,16 +36,16 @@ public class RabbitMQUtils {
 
     public static BError returnErrorValue(String errorMessage) {
         return ErrorCreator.createDistinctError(RabbitMQConstants.RABBITMQ_ERROR,
-                                                 RabbitMQConstants.PACKAGE_ID_RABBITMQ,
-                                                 StringUtils.fromString(errorMessage));
+                                                RabbitMQConstants.PACKAGE_ID_RABBITMQ,
+                                                StringUtils.fromString(errorMessage));
     }
 
     public static boolean checkIfInt(Object object) {
-        return TypeChecker.getType(object).getTag() == TypeTags.INT_TAG;
+        return TypeUtils.getType(object).getTag() == TypeTags.INT_TAG;
     }
 
     public static boolean checkIfString(Object object) {
-        return TypeChecker.getType(object).getTag() == TypeTags.STRING_TAG;
+        return TypeUtils.getType(object).getTag() == TypeTags.STRING_TAG;
     }
 
     static ArrayList<BObject> addToList(ArrayList<BObject> arrayList, BObject objectValue) {
@@ -71,11 +70,11 @@ public class RabbitMQUtils {
         return arrayList;
     }
 
-    public static void handleTransaction(BObject objectValue, Strand strand) {
+    public static void handleTransaction(BObject objectValue) {
         RabbitMQTransactionContext transactionContext =
                 (RabbitMQTransactionContext) objectValue.getNativeData(RabbitMQConstants.RABBITMQ_TRANSACTION_CONTEXT);
         if (transactionContext != null) {
-            transactionContext.handleTransactionBlock(strand);
+            transactionContext.handleTransactionBlock();
         }
     }
 
