@@ -24,10 +24,10 @@ name = "system"
 version = "@stdlib.system.version@"
 
 [[platform.java11.dependency]]
-path = "./lib/amqp-client-@amqp.client.version@.jar"
+path = "./lib/amqp-client-5.7.3.jar"
 groupId = "com.rabbitmq"
 artifactId = "amqp-client"
-version = "@amqp.client.version@"
+version = "5.7.3"
 
 [[platform.java11.dependency]]
 path = "../rabbitmq-native/build/libs/rabbitmq-native-@project.version@.jar"
