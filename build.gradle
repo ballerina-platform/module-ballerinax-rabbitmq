@@ -33,6 +33,7 @@ ext.stdlibTimeVersion = project.stdlibTimeVersion
 ext.stdlibRuntimeVersion = project.stdlibRuntimeVersion
 ext.stdlibSystemVersion = project.stdlibSystemVersion
 ext.stdlibIoVersion = project.stdlibIoVersion
+ext.amqpClientVersion = project.amqpClientVersion
 
 allprojects {
     group = 'org.ballerinalang'

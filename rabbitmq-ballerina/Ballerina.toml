@@ -1,28 +1,36 @@
-[project]
-org-name = "ballerinax"
+[package]
+org = "ballerinax"
+name = "rabbitmq"
 version = "@toml.version@"
 
-[dependencies]
-"ballerina/crypto" = "@stdlib.crypto.version@"
-"ballerina/log" = "@stdlib.log.version@"
-"ballerina/time" = "@stdlib.time.version@"
-"ballerina/system" = "@stdlib.system.version@"
-"ballerina/runtime" = "@stdlib.runtime.version@"
-"ballerina/io" = "@stdlib.io.version@"
+[[dependency]]
+org = "ballerina"
+name = "runtime"
+version = "@stdlib.runtime.version@"
 
-[platform]
-target = "java11"
+[[dependency]]
+org = "ballerina"
+name = "log"
+version = "@stdlib.log.version@"
 
-    [[platform.libraries]]
-    artifactId = "amqp-client"
-    version = "5.7.3"
-    path = "./lib/amqp-client-5.7.3.jar"
-    groupId = "com.rabbitmq"
-    modules = ["rabbitmq"]
+[[dependency]]
+org = "ballerina"
+name = "crypto"
+version = "@stdlib.crypto.version@"
 
-    [[platform.libraries]]
-    artifactId = "rabbitmq"
-    version = "@project.version@"
-    path = "../rabbitmq-native/build/libs/rabbitmq-native-@project.version@.jar"
-    groupId = "ballerina"
-    modules = ["rabbitmq"]
+[[dependency]]
+org = "ballerina"
+name = "system"
+version = "@stdlib.system.version@"
+
+[[platform.java11.dependency]]
+path = "./lib/amqp-client-5.7.3.jar"
+groupId = "com.rabbitmq"
+artifactId = "amqp-client"
+version = "5.7.3"
+
+[[platform.java11.dependency]]
+path = "../rabbitmq-native/build/libs/rabbitmq-native-@project.version@.jar"
+groupId = "ballerina"
+artifactId = "rabbitmq"
+version = "@project.version@"
