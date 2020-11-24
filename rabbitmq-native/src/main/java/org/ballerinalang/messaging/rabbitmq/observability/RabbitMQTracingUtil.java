@@ -89,7 +89,8 @@ public class RabbitMQTracingUtil {
 
     private static ObserverContext getObserverContext(Environment environment) {
         ObserverContext observerContext = ObserveUtils.getObserverContextOfCurrentFrame(environment);
-        if (observerContext != null) {
+        if (observerContext == null) {
+            observerContext = new ObserverContext();
             ObserveUtils.setObserverContextToCurrentFrame(environment, observerContext);
         }
         return observerContext;
