@@ -150,7 +150,7 @@ public class MessageDispatcher {
             values[1] = true;
             values[2] = getCallerBObject(deliveryTag);
             values[3] = true;
-            executeResourceOnMessage(callback, values, true);
+            executeResourceOnMessage(callback, values);
             countDownLatch.await();
         } catch (InterruptedException e) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);

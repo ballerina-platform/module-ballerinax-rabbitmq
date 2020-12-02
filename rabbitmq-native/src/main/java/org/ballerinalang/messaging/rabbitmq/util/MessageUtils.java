@@ -46,7 +46,8 @@ public class MessageUtils {
     public static Object basicAck(Environment environment, boolean multiple,
                                   boolean ackMode, boolean ackStatus, BObject callerObj) {
         Channel channel = (Channel) callerObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
-        int deliveryTag = (int) callerObj.getNativeData(RabbitMQConstants.DELIVERY_TAG.getValue());
+        int deliveryTag =
+                Integer.parseInt(callerObj.getNativeData(RabbitMQConstants.DELIVERY_TAG.getValue()).toString());
         if (ackStatus) {
             return RabbitMQUtils.returnErrorValue(RabbitMQConstants.MULTIPLE_ACK_ERROR);
         } else if (ackMode) {
@@ -73,7 +74,8 @@ public class MessageUtils {
     public static Object basicNack(Environment environment, boolean ackMode,
                                    boolean ackStatus, boolean multiple, boolean requeue, BObject callerObj) {
         Channel channel = (Channel) callerObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
-        int deliveryTag = (int) callerObj.getNativeData(RabbitMQConstants.DELIVERY_TAG.getValue());
+        int deliveryTag =
+                Integer.parseInt(callerObj.getNativeData(RabbitMQConstants.DELIVERY_TAG.getValue()).toString());
         if (ackStatus) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_NACK);
             return RabbitMQUtils.returnErrorValue(RabbitMQConstants.MULTIPLE_ACK_ERROR);
