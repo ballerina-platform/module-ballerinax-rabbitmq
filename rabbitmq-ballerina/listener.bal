@@ -16,30 +16,27 @@
 
 import ballerina/lang.'object as lang;
 import ballerina/java;
+import ballerina/system;
 
 # Ballerina RabbitMQ Message Listener.
 # Provides a listener to consume messages from the RabbitMQ server.
 public class Listener {
 
     *lang:Listener;
-
-    private Channel amqpChannel;
+    string connectorId = system:uuid();
 
     # Initializes a Listener object with the given `rabbitmq:Connection` object or connection configurations.
     # Creates a `rabbitmq:Connection` object if only the connection configuration is given. Sets the global QoS settings,
     # which will be applied to the entire `rabbitmq:Channel`.
     #
-    # + connectionOrConnectionConfig - A `rabbitmq:Connection` object or the connection configurations.
-    # + prefetchCount - Maximum number of messages that the server will deliver. Give the value as 0 if unlimited.
-    #                   Unless explicitly given, this value is 10 by default.
-    # + prefetchSize - Maximum amount of content (measured in octets) that the server will deliver and 0 if unlimited
-    public isolated function init(ConnectionConfiguration|Connection connectionOrConnectionConfig,
-    int? prefetchCount = (), int? prefetchSize = ()) {
-        self.amqpChannel = new Channel(connectionOrConnectionConfig);
-        var result = self.setQosSettings(prefetchCount, prefetchSize);
-        externInit(self, self.amqpChannel.getChannel());
-        if (result is error) {
-            panic result;
+    # + connectionData - A connection configuration or the connection uri
+    # + qosSettings - Consumer prefetch settings
+    public isolated function init(ConnectionConfig connectionData = {},
+                                     QosSettings? qosSettings = ()) {
+        externInit(self, connectionData);
+        if (qosSettings is QosSettings) {
+            checkpanic nativeSetQosSettings(qosSettings.prefetchCount, qosSettings?.prefetchSize,
+                qosSettings.global, self);
         }
     }
 
@@ -81,37 +78,21 @@ public class Listener {
     public isolated function __immediateStop() returns error? {
         return abortConnection(self);
     }
-
-    # Retrieve the `rabbitmq:Channel`, which initializes this `rabbitmq:Listener`.
-    #
-    # + return - A `rabbitmq:Channel` object or else  a `rabbitmq:Error` if an I/O problem is encountered.
-    public isolated function getChannel() returns Channel {
-        return self.amqpChannel;
-    }
-
-    private isolated function setQosSettings(int? prefetchCount, int? prefetchSize) returns error? {
-        return nativeSetQosSettings(prefetchCount, prefetchSize, self);
-    }
 }
 
 # Configurations required to create a subscription.
 #
-# + queueConfig - Configurations of the queue to be subscribed
-# + ackMode - Type of the acknowledgement mode
-# + prefetchCount - Maximum number of messages that the server will deliver and 0 if unlimited.
-#                   Unless explicitly given, this value is 10 by default.
-# + prefetchSize - Maximum amount of content (measured in octets) that the server will deliver and 0 if unlimited
+# + queueName - Name of the queue to be subscribed
+# + autoAck - If false, should manually acknowledge
 public type RabbitMQServiceConfig record {|
-    QueueConfiguration queueConfig;
-    AcknowledgementMode ackMode = AUTO_ACK;
-    int prefetchCount?;
-    int prefetchSize?;
+    string queueName;
+    boolean autoAck = true;
 |};
 
 # The annotation, which is used to configure the subscription.
 public annotation RabbitMQServiceConfig ServiceConfig on service;
 
-isolated function externInit(Listener lis, handle amqpChannel) =
+isolated function externInit(Listener lis, ConnectionConfig connectionData) =
 @java:Method {
     name: "init",
     'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
@@ -142,7 +123,7 @@ isolated function abortConnection(Listener lis) returns Error? =
     'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
 } external;
 
-isolated function nativeSetQosSettings(int? prefetchCount, int? prefetchSize, Listener lis) returns Error? =
+isolated function nativeSetQosSettings(int count, int? size, boolean global, Listener lis) returns Error? =
 @java:Method {
     name: "setQosSettings",
     'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"

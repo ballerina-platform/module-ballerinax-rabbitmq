@@ -43,8 +43,10 @@ import java.nio.charset.StandardCharsets;
  * @since 1.1.0
  */
 public class MessageUtils {
-    public static Object basicAck(Environment environment, Channel channel, int deliveryTag, boolean multiple,
-                                  boolean ackMode, boolean ackStatus, BObject messageObj) {
+    public static Object basicAck(Environment environment, boolean multiple,
+                                  boolean ackMode, boolean ackStatus, BObject callerObj) {
+        Channel channel = (Channel) callerObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
+        int deliveryTag = (int) callerObj.getNativeData(RabbitMQConstants.DELIVERY_TAG.getValue());
         if (ackStatus) {
             return RabbitMQUtils.returnErrorValue(RabbitMQConstants.MULTIPLE_ACK_ERROR);
         } else if (ackMode) {
@@ -55,7 +57,7 @@ public class MessageUtils {
                 RabbitMQMetricsUtil.reportAcknowledgement(channel, RabbitMQObservabilityConstants.ACK);
                 RabbitMQTracingUtil.traceResourceInvocation(channel, environment);
                 if (TransactionResourceManager.getInstance().isInTransaction()) {
-                    RabbitMQUtils.handleTransaction(messageObj);
+                    RabbitMQUtils.handleTransaction(callerObj);
                 }
             } catch (IOException exception) {
                 RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_ACK);
@@ -68,8 +70,10 @@ public class MessageUtils {
         return null;
     }
 
-    public static Object basicNack(Environment environment, Channel channel, int deliveryTag, boolean ackMode,
-                                   boolean ackStatus, boolean multiple, boolean requeue, BObject messageObj) {
+    public static Object basicNack(Environment environment, boolean ackMode,
+                                   boolean ackStatus, boolean multiple, boolean requeue, BObject callerObj) {
+        Channel channel = (Channel) callerObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
+        int deliveryTag = (int) callerObj.getNativeData(RabbitMQConstants.DELIVERY_TAG.getValue());
         if (ackStatus) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_NACK);
             return RabbitMQUtils.returnErrorValue(RabbitMQConstants.MULTIPLE_ACK_ERROR);
@@ -82,7 +86,7 @@ public class MessageUtils {
                 RabbitMQMetricsUtil.reportAcknowledgement(channel, RabbitMQObservabilityConstants.NACK);
                 RabbitMQTracingUtil.traceResourceInvocation(channel, environment);
                 if (TransactionResourceManager.getInstance().isInTransaction()) {
-                    RabbitMQUtils.handleTransaction(messageObj);
+                    RabbitMQUtils.handleTransaction(callerObj);
                 }
             } catch (IOException exception) {
                 RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_NACK);
