@@ -35,7 +35,7 @@ public class RabbitMQConstants {
     // RabbitMQ package name constant fields
     public static final String ORG_NAME = "ballerinax";
     static final String RABBITMQ = "rabbitmq";
-    static final String RABBITMQ_VERSION = "1.0.5";
+    static final String RABBITMQ_VERSION = "1.0.6";
     public static final String PACKAGE_RABBITMQ =
             ORG_NAME + ORG_NAME_SEPARATOR + RABBITMQ + VERSION_SEPARATOR + RABBITMQ_VERSION;
     public static final String PACKAGE_RABBITMQ_FQN =
