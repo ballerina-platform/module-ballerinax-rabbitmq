@@ -14,12 +14,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/lang.'string;
 import ballerina/log;
 import ballerina/runtime;
 import ballerina/test;
 
-Connection? connection = ();
-Channel? rabbitmqChannel = ();
+Client? rabbitmqChannel = ();
 Listener? rabbitmqListener = ();
 const QUEUE = "MyQueue";
 const ACK_QUEUE = "MyAckQueue";
@@ -30,45 +30,30 @@ string dataBindingMessage = "";
 
 @test:BeforeSuite
 function setup() {
-    log:printInfo("Creating a ballerina RabbitMQ connection.");
-    Connection newConnection = new ({host: "localhost", port: 5672});
-
     log:printInfo("Creating a ballerina RabbitMQ channel.");
-    rabbitmqChannel = new (newConnection);
-    connection = newConnection;
-    Channel? channelObj = rabbitmqChannel;
-    if (channelObj is Channel) {
-        string? queue = checkpanic channelObj->queueDeclare({queueName: QUEUE});
-        string? dataBindingQueue = checkpanic channelObj->queueDeclare({queueName: DATA_BINDING_QUEUE});
-        string? syncNegativeQueue = checkpanic channelObj->queueDeclare({queueName: SYNC_NEGATIVE_QUEUE});
-        string? ackQueue = checkpanic channelObj->queueDeclare({queueName: ACK_QUEUE});
+    Client newClient = new;
+    rabbitmqChannel = newClient;
+    Client? clientObj = rabbitmqChannel;
+    if (clientObj is Client) {
+        string? queue = checkpanic clientObj->queueDeclare(QUEUE);
+        string? dataBindingQueue = checkpanic clientObj->queueDeclare(DATA_BINDING_QUEUE);
+        string? syncNegativeQueue = checkpanic clientObj->queueDeclare(SYNC_NEGATIVE_QUEUE);
+        string? ackQueue = checkpanic clientObj->queueDeclare(ACK_QUEUE);
     }
-    rabbitmqListener = new (newConnection);
+    Listener lis = new;
+    rabbitmqListener = lis;
 }
 
 @test:Config {
-    groups: ["rabbitmq"]
-}
-public function testConnection() {
-    boolean flag = false;
-    Connection? con = connection;
-    if (con is Connection) {
-        flag = true;
-    }
-    test:assertTrue(flag, msg = "RabbitMQ Connection creation failed.");
-}
-
-@test:Config {
-    dependsOn: ["testConnection"],
     groups: ["rabbitmq"]
 }
 public function testChannel() {
     boolean flag = false;
-    Channel? channelObj = rabbitmqChannel;
-    if (channelObj is Channel) {
+    Client? con = rabbitmqChannel;
+    if (con is Client) {
         flag = true;
     }
-    test:assertTrue(flag, msg = "RabbitMQ Channel creation failed.");
+    test:assertTrue(flag, msg = "RabbitMQ Connection creation failed.");
 }
 
 @test:Config {
@@ -76,9 +61,10 @@ public function testChannel() {
     groups: ["rabbitmq"]
 }
 public function testProducer() {
-    Channel? channelObj = rabbitmqChannel;
-    if (channelObj is Channel) {
-        Error? producerResult = channelObj->basicPublish("Hello from Ballerina", QUEUE);
+    Client? channelObj = rabbitmqChannel;
+    if (channelObj is Client) {
+        string message = "Hello from Ballerina";
+        Error? producerResult = channelObj->basicPublish(message.toBytes(), QUEUE);
         if (producerResult is Error) {
             test:assertFail("Producing a message to the broker caused an error.");
         }
@@ -87,41 +73,6 @@ public function testProducer() {
 }
 
 @test:Config {
-    dependsOn: ["testChannel", "testProducer"],
-    groups: ["rabbitmq"]
-}
-public function testSyncConsumer() {
-    string message = "Testing Sync Consumer";
-    Channel? channelObj = rabbitmqChannel;
-    if (channelObj is Channel) {
-        produceMessage(message, QUEUE);
-        Message|Error getResult = channelObj->basicGet(QUEUE, AUTO_ACK);
-        if (getResult is Error) {
-            test:assertFail("Pulling a message from the broker caused an error.");
-        } else {
-            string messageReceived = checkpanic getResult.getTextContent();
-            test:assertEquals(messageReceived, message, msg = "Message received does not match.");
-        }
-    }
-}
-
-@test:Config {
-    dependsOn: ["testChannel", "testProducer"],
-    groups: ["rabbitmq"]
-}
-public function testNegativeSyncConsumer() {
-    Channel? channelObj = rabbitmqChannel;
-    if (channelObj is Channel) {
-        Message|Error getResult = channelObj->basicGet(SYNC_NEGATIVE_QUEUE, AUTO_ACK);
-        if (getResult is Error) {
-            test:assertEquals(getResult.message(), "No messages are found in the queue.",
-             msg = "Error message does not match.");
-        }
-    }
-}
-
-@test:Config {
-    dependsOn: ["testConnection"],
     groups: ["rabbitmq"]
 }
 public function testListener() {
@@ -134,7 +85,7 @@ public function testListener() {
 }
 
 @test:Config {
-    dependsOn: ["testListener", "testSyncConsumer"],
+    dependsOn: ["testListener"],
     groups: ["rabbitmq"]
 }
 public function testAsyncConsumer() {
@@ -163,30 +114,13 @@ public function testAcknowledgements() {
     }
 }
 
-@test:Config {
-    dependsOn: ["testListener", "testAsyncConsumer"],
-    groups: ["rabbitmq"]
-}
-public function testAsyncConsumerWithDataBinding() {
-    string message = "Testing Async Consumer with Data Binding";
-    produceMessage(message, DATA_BINDING_QUEUE);
-    Listener? channelListener = rabbitmqListener;
-    if (channelListener is Listener) {
-        checkpanic channelListener.__attach(dataBindingTestService);
-        runtime:sleep(2000);
-        test:assertEquals(dataBindingMessage, message, msg = "Message received does not match.");
-    }
-}
-
 service asyncTestService =
 @ServiceConfig {
-    queueConfig: {
-        queueName: QUEUE
-    }
+    queueName: QUEUE
 }
 service {
-    resource function onMessage(Message message) {
-        var messageContent = message.getTextContent();
+    resource function onMessage(Message message, Caller caller) {
+        string|error messageContent = 'string:fromBytes(message.content);
         if (messageContent is string) {
             asyncConsumerMessage = <@untainted> messageContent;
             log:printInfo("The message received: " + messageContent);
@@ -198,47 +132,18 @@ service {
 
 service ackTestService =
 @ServiceConfig {
-    queueConfig: {
-        queueName: ACK_QUEUE
-    },
-    ackMode: CLIENT_ACK
+    queueName: ACK_QUEUE,
+    autoAck: false
 }
 service {
-    resource function onMessage(Message message) {
-        checkpanic message->basicAck();
+    resource function onMessage(Message message, Caller caller) {
+        checkpanic caller->basicAck();
     }
 };
-
-service dataBindingTestService =
-@ServiceConfig {
-    queueConfig: {
-        queueName: DATA_BINDING_QUEUE
-    }
-}
-service {
-    resource function onMessage(Message message, string data) {
-        dataBindingMessage = <@untainted> data;
-        log:printInfo("The message received from data binding: " + data);
-    }
-};
-
-@test:AfterSuite {}
-function cleanUp() {
-    Channel? channelObj = rabbitmqChannel;
-    if (channelObj is Channel) {
-        checkpanic channelObj->queuePurge(QUEUE);
-        checkpanic channelObj->queuePurge(DATA_BINDING_QUEUE);
-    }
-    Connection? con = connection;
-    if (con is Connection) {
-        log:printInfo("Closing the active resources.");
-        checkpanic con.close();
-    }
-}
 
 function produceMessage(string message, string queueName) {
-    Channel? channelObj = rabbitmqChannel;
-    if (channelObj is Channel) {
-        checkpanic channelObj->basicPublish(message, queueName);
+    Client? clientObj = rabbitmqChannel;
+    if (clientObj is Client) {
+        checkpanic clientObj->basicPublish(message.toBytes(), queueName);
     }
 }
