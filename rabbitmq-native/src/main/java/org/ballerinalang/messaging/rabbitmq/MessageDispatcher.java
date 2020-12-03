@@ -28,7 +28,7 @@ import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.async.StrandMetadata;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.AnnotatableType;
-import io.ballerina.runtime.api.types.AttachedFunctionType;
+import io.ballerina.runtime.api.types.MemberFunctionType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
@@ -121,8 +121,8 @@ public class MessageDispatcher {
     }
 
     private void handleDispatch(byte[] message, long deliveryTag, AMQP.BasicProperties properties) {
-        AttachedFunctionType[] attachedFunctions = service.getType().getAttachedFunctions();
-        AttachedFunctionType onMessageFunction;
+        MemberFunctionType[] attachedFunctions = service.getType().getAttachedFunctions();
+        MemberFunctionType onMessageFunction;
         if (FUNC_ON_MESSAGE.equals(attachedFunctions[0].getName())) {
             onMessageFunction = attachedFunctions[0];
         } else if (FUNC_ON_MESSAGE.equals(attachedFunctions[1].getName())) {
@@ -133,14 +133,37 @@ public class MessageDispatcher {
         Type[] paramTypes = onMessageFunction.getParameterTypes();
         int paramSize = paramTypes.length;
         if (paramSize == 2) {
-            // todo: handle one param - message only
+            dispatchMessage(message, getCallerBObject(deliveryTag), deliveryTag, properties);
+        } else if (paramSize == 1) {
             dispatchMessage(message, deliveryTag, properties);
         } else {
-            throw RabbitMQUtils.returnErrorValue("Invalid remote function signature");
+                throw RabbitMQUtils.returnErrorValue("Invalid remote function signature");
         }
     }
 
+    // dispatch only Message
     private void dispatchMessage(byte[] message, long deliveryTag, AMQP.BasicProperties properties) {
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        try {
+            Callback callback = new RabbitMQResourceCallback(countDownLatch, channel, queueName,
+                                                             message.length);
+            Object[] values = new Object[2];
+            values[0] = createAndPopulateMessageRecord(message, deliveryTag, properties);
+            values[1] = true;
+            executeResourceOnMessage(callback, values);
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
+            Thread.currentThread().interrupt();
+            throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.THREAD_INTERRUPTED);
+        } catch (AlreadyClosedException | BError exception) {
+            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
+            handleError(message, deliveryTag, properties);
+        }
+    }
+
+    // dispatch Message and Caller
+    private void dispatchMessage(byte[] message, BObject caller, long deliveryTag, AMQP.BasicProperties properties) {
         CountDownLatch countDownLatch = new CountDownLatch(1);
         try {
             Callback callback = new RabbitMQResourceCallback(countDownLatch, channel, queueName,
@@ -148,7 +171,7 @@ public class MessageDispatcher {
             Object[] values = new Object[4];
             values[0] = createAndPopulateMessageRecord(message, deliveryTag, properties);
             values[1] = true;
-            values[2] = getCallerBObject(deliveryTag);
+            values[2] = caller;
             values[3] = true;
             executeResourceOnMessage(callback, values);
             countDownLatch.await();

@@ -93,8 +93,8 @@ public function testAsyncConsumer() {
     produceMessage(message, QUEUE);
     Listener? channelListener = rabbitmqListener;
     if (channelListener is Listener) {
-        checkpanic channelListener.__attach(asyncTestService);
-        checkpanic channelListener.__start();
+        checkpanic channelListener.attach(asyncTestService);
+        checkpanic channelListener.'start();
         runtime:sleep(2000);
         test:assertEquals(asyncConsumerMessage, message, msg = "Message received does not match.");
     }
@@ -109,17 +109,17 @@ public function testAcknowledgements() {
     produceMessage(message, ACK_QUEUE);
     Listener? channelListener = rabbitmqListener;
     if (channelListener is Listener) {
-        checkpanic channelListener.__attach(ackTestService);
+        checkpanic channelListener.attach(ackTestService);
         runtime:sleep(2000);
     }
 }
 
-service asyncTestService =
+RabbitmqService asyncTestService =
 @ServiceConfig {
     queueName: QUEUE
 }
-service {
-    resource function onMessage(Message message, Caller caller) {
+service object {
+    remote function onMessage(Message message) {
         string|error messageContent = 'string:fromBytes(message.content);
         if (messageContent is string) {
             asyncConsumerMessage = <@untainted> messageContent;
@@ -130,13 +130,13 @@ service {
     }
 };
 
-service ackTestService =
+RabbitmqService ackTestService =
 @ServiceConfig {
     queueName: ACK_QUEUE,
     autoAck: false
 }
-service {
-    resource function onMessage(Message message, Caller caller) {
+service object {
+    remote function onMessage(Message message, Caller caller) {
         checkpanic caller->basicAck();
     }
 };

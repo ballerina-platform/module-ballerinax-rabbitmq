@@ -29,7 +29,7 @@ public client class Caller {
     # + multiple - `true` to acknowledge all messages up to and including the called on message and
     #              `false` to acknowledge just the called on message
     # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
-    public isolated remote function basicAck(boolean multiple = false) returns Error? {
+    isolated remote function basicAck(boolean multiple = false) returns Error? {
         var result = nativeBasicAck(multiple, self.autoAck, self.ackStatus, self);
         self.ackStatus = true;
         return result;
@@ -44,7 +44,7 @@ public client class Caller {
     #              `false` to reject just the called on message
     # + requeue - `true` if the rejected message(s) should be re-queued rather than discarded/dead-lettered
     # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
-    public isolated remote function basicNack(boolean multiple = false, boolean requeue = true)
+    isolated remote function basicNack(boolean multiple = false, boolean requeue = true)
                             returns Error? {
         var result = nativeBasicNack(self.autoAck, self.ackStatus,
                                 multiple, requeue, self);

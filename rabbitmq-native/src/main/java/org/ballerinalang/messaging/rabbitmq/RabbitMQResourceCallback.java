@@ -44,7 +44,7 @@ public class RabbitMQResourceCallback implements Callback {
     }
 
     @Override
-    public void notifySuccess() {
+    public void notifySuccess(Object obj) {
         RabbitMQMetricsUtil.reportConsume(channel, queueName, size,
                                           RabbitMQObservabilityConstants.CONSUME_TYPE_SERVICE);
         countDownLatch.countDown();

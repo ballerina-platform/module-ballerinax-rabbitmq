@@ -14,7 +14,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/lang.'object as lang;
 import ballerina/java;
 import ballerina/system;
 
@@ -22,7 +21,6 @@ import ballerina/system;
 # Provides a listener to consume messages from the RabbitMQ server.
 public class Listener {
 
-    *lang:Listener;
     string connectorId = system:uuid();
 
     # Initializes a Listener object with the given `rabbitmq:Connection` object or connection configurations.
@@ -45,14 +43,14 @@ public class Listener {
     # + s - Type descriptor of the service
     # + name - Name of the service
     # + return - `()` or else a `rabbitmq:Error` upon failure to register the service
-    public isolated function __attach(service s, string? name = ()) returns error? {
+    public isolated function attach(RabbitmqService s, string[]|string? name = ()) returns error? {
         return registerListener(self, s);
     }
 
     # Starts consuming the messages on all the attached services.
     #
     # + return - `()` or else a `rabbitmq:Error` upon failure to start
-    public isolated function __start() returns error? {
+    public isolated function 'start() returns error? {
         return 'start(self);
     }
 
@@ -60,14 +58,14 @@ public class Listener {
     #
     # + s - Type descriptor of the service
     # + return - `()` or else  a `rabbitmq:Error` upon failure to detach the service
-    public isolated function __detach(service s) returns error? {
+    public isolated function detach(RabbitmqService s) returns error? {
         return detach(self, s);
     }
 
     # Stops consuming messages through all consumer services by terminating the connection and all its channels.
     #
     # + return - `()` or else  a `rabbitmq:Error` upon failure to close the `ChannelListener`
-    public isolated function __gracefulStop() returns error? {
+    public isolated function gracefulStop() returns error? {
         return stop(self);
     }
 
@@ -75,7 +73,7 @@ public class Listener {
     # with the server.
     #
     # + return - `()` or else  a `rabbitmq:Error` upon failure to close ChannelListener.
-    public isolated function __immediateStop() returns error? {
+    public isolated function immediateStop() returns error? {
         return abortConnection(self);
     }
 }
@@ -90,7 +88,7 @@ public type RabbitMQServiceConfig record {|
 |};
 
 # The annotation, which is used to configure the subscription.
-public annotation RabbitMQServiceConfig ServiceConfig on service;
+public annotation RabbitMQServiceConfig ServiceConfig on service, class;
 
 isolated function externInit(Listener lis, ConnectionConfig connectionData) =
 @java:Method {
@@ -98,7 +96,7 @@ isolated function externInit(Listener lis, ConnectionConfig connectionData) =
     'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
 } external;
 
-isolated function registerListener(Listener lis, service serviceType) returns Error? =
+isolated function registerListener(Listener lis, RabbitmqService serviceType) returns Error? =
 @java:Method {
     'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
 } external;
@@ -108,7 +106,7 @@ isolated function 'start(Listener lis) returns Error? =
     'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
 } external;
 
-isolated function detach(Listener lis, service serviceType) returns Error? =
+isolated function detach(Listener lis, RabbitmqService serviceType) returns Error? =
 @java:Method {
     'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
 } external;
