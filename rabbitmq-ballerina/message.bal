@@ -14,8 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# Represents the message, which a RabbitMQ server sends
-# to its subscribed services.
+# Represents the message, which a RabbitMQ server sends to its subscribed services.
 #
 # + content - Content of the message
 # + deliveryTag - The delivery tag of the message

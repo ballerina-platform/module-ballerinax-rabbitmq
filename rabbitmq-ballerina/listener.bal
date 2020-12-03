@@ -23,11 +23,10 @@ public class Listener {
 
     string connectorId = system:uuid();
 
-    # Initializes a Listener object with the given `rabbitmq:Connection` object or connection configurations.
-    # Creates a `rabbitmq:Connection` object if only the connection configuration is given. Sets the global QoS settings,
-    # which will be applied to the entire `rabbitmq:Channel`.
+    # Initializes a Listener object with the given connection configuration. Sets the global QoS settings,
+    # which will be applied to the entire `rabbitmq:Listener`.
     #
-    # + connectionData - A connection configuration or the connection uri
+    # + connectionData - The connection configuration
     # + qosSettings - Consumer prefetch settings
     public isolated function init(ConnectionConfig connectionData = {},
                                      QosSettings? qosSettings = ()) {
