@@ -47,17 +47,19 @@ function setup() {
 @test:Config {
     groups: ["rabbitmq"]
 }
-public function testChannel() {
+public function testClient() {
     boolean flag = false;
     Client? con = rabbitmqChannel;
     if (con is Client) {
         flag = true;
     }
+    Client newClient = new;
+    checkpanic newClient.close();
     test:assertTrue(flag, msg = "RabbitMQ Connection creation failed.");
 }
 
 @test:Config {
-    dependsOn: ["testChannel"],
+    dependsOn: ["testClient"],
     groups: ["rabbitmq"]
 }
 public function testProducer() {
