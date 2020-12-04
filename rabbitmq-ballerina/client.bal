@@ -85,7 +85,7 @@ public client class Client {
     # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
     isolated remote function basicPublish(@untainted byte[] data, string routingKey,
                         string exchangeName = "", BasicProperties? properties = ()) returns Error? {
-        return nativeBasicPublish(messageContent, routingKey, exchangeName, properties, self.amqpChannel, self);
+        return nativeBasicPublish(data, routingKey, exchangeName, properties, self.amqpChannel, self);
     }
 
     # Deletes the queue with the given name although it is in use or has messages in it.
