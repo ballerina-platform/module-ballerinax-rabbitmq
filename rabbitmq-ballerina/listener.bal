@@ -42,7 +42,7 @@ public class Listener {
     # + s - Type descriptor of the service
     # + name - Name of the service
     # + return - `()` or else a `rabbitmq:Error` upon failure to register the service
-    public isolated function attach(RabbitmqService s, string[]|string? name = ()) returns error? {
+    public isolated function attach(Service s, string[]|string? name = ()) returns error? {
         return registerListener(self, s);
     }
 
@@ -57,7 +57,7 @@ public class Listener {
     #
     # + s - Type descriptor of the service
     # + return - `()` or else  a `rabbitmq:Error` upon failure to detach the service
-    public isolated function detach(RabbitmqService s) returns error? {
+    public isolated function detach(Service s) returns error? {
         return detach(self, s);
     }
 
@@ -95,7 +95,7 @@ isolated function externInit(Listener lis, ConnectionConfig connectionData) =
     'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
 } external;
 
-isolated function registerListener(Listener lis, RabbitmqService serviceType) returns Error? =
+isolated function registerListener(Listener lis, Service serviceType) returns Error? =
 @java:Method {
     'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
 } external;
@@ -105,7 +105,7 @@ isolated function 'start(Listener lis) returns Error? =
     'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
 } external;
 
-isolated function detach(Listener lis, RabbitmqService serviceType) returns Error? =
+isolated function detach(Listener lis, Service serviceType) returns Error? =
 @java:Method {
     'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
 } external;

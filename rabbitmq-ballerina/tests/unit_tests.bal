@@ -116,7 +116,7 @@ public function testAcknowledgements() {
     }
 }
 
-RabbitmqService asyncTestService =
+Service asyncTestService =
 @ServiceConfig {
     queueName: QUEUE
 }
@@ -132,7 +132,7 @@ service object {
     }
 };
 
-RabbitmqService ackTestService =
+Service ackTestService =
 @ServiceConfig {
     queueName: ACK_QUEUE,
     autoAck: false
