@@ -1,4 +1,4 @@
-// Copyright (c) 2019 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+// Copyright (c) 2020 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 //
 // WSO2 Inc. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -14,14 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# Represents the message, which a RabbitMQ server sends to its subscribed services.
-#
-# + content - Content of the message
-# + deliveryTag - The delivery tag of the message
-# + properties - Basic properties of the message - routing headers etc.
-public type Message record {|
-   byte[] content;
-   int deliveryTag;
-   BasicProperties properties?;
-|};
-
+# The RabbitMQ service type
+public type Service service object {
+    // TBD when support for optional params in remote functions is available in lang
+};

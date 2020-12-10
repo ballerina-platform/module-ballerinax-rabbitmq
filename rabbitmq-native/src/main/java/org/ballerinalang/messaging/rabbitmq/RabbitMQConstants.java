@@ -101,16 +101,12 @@ public class RabbitMQConstants {
     // Channel listener constant fields
     public static final String CONSUMER_SERVICES = "consumer_services";
     public static final String STARTED_SERVICES = "started_services";
-    public static final BString CHANNEL_REFERENCE = StringUtils.fromString("amqpChannel");
-    public static final String QOS_STATUS = "qos_status";
     static final String LISTENER_OBJECT = "Listener";
     public static final String SERVICE_CONFIG = "ServiceConfig";
-    public static final BString ALIAS_QUEUE_CONFIG = StringUtils.fromString("queueConfig");
-    public static final BString ALIAS_ACK_MODE = StringUtils.fromString("ackMode");
+    public static final BString ALIAS_QUEUE_NAME = StringUtils.fromString("queueName");
+    public static final BString AUTO_ACK = StringUtils.fromString("autoAck");
     public static final BString ALIAS_PREFETCH_COUNT = StringUtils.fromString("prefetchCount");
     public static final BString ALIAS_PREFETCH_SIZE = StringUtils.fromString("prefetchSize");
-    public static final String AUTO_ACKMODE = "auto";
-    public static final String CLIENT_ACKMODE = "client";
     public static final int DEFAULT_PREFETCH = 10;
     public static final String MULTIPLE_ACK_ERROR = "Trying to acknowledge the same message multiple times";
     public static final String ACK_MODE_ERROR = "Trying to acknowledge messages in auto-ack mode";
@@ -123,11 +119,11 @@ public class RabbitMQConstants {
 
     // Channel constant fields
     public static final String CHANNEL_NATIVE_OBJECT = "rabbitmq_channel_object";
-    public static final BString JAVA_CLIENT_CHANNEL = StringUtils.fromString("amqpChannel");
 
     // Message constant fields
-    public static final String MESSAGE_OBJECT = "Message";
-    static final String MESSAGE_OBJ_FULL_NAME = PACKAGE_RABBITMQ + ":" + MESSAGE_OBJECT;
+    public static final String MESSAGE_RECORD = "Message";
+    public static final String CALLER_OBJECT = "Caller";
+    static final String MESSAGE_RECORD_FULL_NAME = PACKAGE_RABBITMQ + ":" + MESSAGE_RECORD;
     public static final BString MESSAGE_CONTENT = StringUtils.fromString("messageContent");
     public static final BString DELIVERY_TAG = StringUtils.fromString("deliveryTag");
     public static final BString MESSAGE_ACK_STATUS = StringUtils.fromString("ackStatus");

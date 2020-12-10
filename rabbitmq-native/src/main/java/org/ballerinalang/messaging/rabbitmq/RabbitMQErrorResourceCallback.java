@@ -37,7 +37,7 @@ public class RabbitMQErrorResourceCallback implements Callback {
     }
 
     @Override
-    public void notifySuccess() {
+    public void notifySuccess(Object obj) {
         countDownLatch.countDown();
     }
 

@@ -25,7 +25,7 @@ plugins {
 
 ext.ballerinaLangVersion = project.ballerinaLangVersion
 ext.slf4jVersion = "1.7.30"
-ext.amqpVersion = "5.7.3"
+ext.amqpVersion = project.amqpClientVersion
 ext.stdlibCryptoVersion = project.stdlibCryptoVersion
 ext.puppycrawlCheckstyleVersion = project.puppycrawlCheckstyleVersion
 ext.stdlibLogVersion = project.stdlibLogVersion
