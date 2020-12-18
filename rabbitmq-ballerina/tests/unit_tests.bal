@@ -30,7 +30,7 @@ string dataBindingMessage = "";
 
 @test:BeforeSuite
 function setup() {
-    log:printInfo("Creating a ballerina RabbitMQ channel.");
+    log:print("Creating a ballerina RabbitMQ channel.");
     Client newClient = new;
     rabbitmqChannel = newClient;
     Client? clientObj = rabbitmqChannel;
@@ -125,9 +125,9 @@ service object {
         string|error messageContent = 'string:fromBytes(message.content);
         if (messageContent is string) {
             asyncConsumerMessage = <@untainted> messageContent;
-            log:printInfo("The message received: " + messageContent);
+            log:print("The message received: " + messageContent);
         } else {
-            log:printError("Error occurred while retrieving the message content.");
+            log:printError("Error occurred while retrieving the message content.", err = messageContent);
         }
     }
 };
