@@ -196,8 +196,9 @@ task stopRabbitmqServer() {
 }
 
 task ballerinaBuild {
-    inputs.dir file(project.projectDir)
+    dependsOn(test)
     finalizedBy(revertTomlFile)
+    inputs.dir file(project.projectDir)
     def additionalBuildParams = ""
 
     if (project.hasProperty("debug")) {
@@ -289,7 +290,7 @@ unpackStdLibs.dependsOn unpackJballerinaTools
 copyStdlibs.dependsOn unpackStdLibs
 updateTomlVersions.dependsOn copyStdlibs
 ballerinaBuild.dependsOn updateTomlVersions
-ballerinaBuild.dependsOn startRabbitmqServer
+ballerinaTest.dependsOn startRabbitmqServer
 ballerinaBuild.dependsOn ":rabbitmq-native:build"
-build.finalizedBy stopRabbitmqServer
+ballerinaTest.finalizedBy stopRabbitmqServer
 build.dependsOn ballerinaBuild
