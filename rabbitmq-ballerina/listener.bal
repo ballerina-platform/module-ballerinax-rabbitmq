@@ -15,13 +15,13 @@
 // under the License.
 
 import ballerina/java;
-import ballerina/system;
+import ballerina/uuid;
 
 # Ballerina RabbitMQ Message Listener.
 # Provides a listener to consume messages from the RabbitMQ server.
 public class Listener {
 
-    string connectorId = system:uuid();
+    string connectorId = uuid:createType4AsString();
 
     # Initializes a Listener object with the given connection configuration. Sets the global QoS settings,
     # which will be applied to the entire `rabbitmq:Listener`.

@@ -20,8 +20,8 @@ version = "@stdlib.crypto.version@"
 
 [[dependency]]
 org = "ballerina"
-name = "system"
-version = "@stdlib.system.version@"
+name = "uuid"
+version = "@stdlib.uuid.version@"
 
 [[platform.java11.dependency]]
 path = "./lib/amqp-client-@amqp.client.version@.jar"

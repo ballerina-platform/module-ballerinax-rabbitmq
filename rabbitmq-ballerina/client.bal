@@ -15,13 +15,13 @@
 // under the License.
 
 import ballerina/java;
-import ballerina/system;
+import ballerina/uuid;
 
 # The Ballerina interface to provide AMQP Channel related functionality.
 public client class Client {
 
     handle amqpChannel = JAVA_NULL;
-    string connectorId = system:uuid();
+    string connectorId = uuid:createType4AsString();
 
     # Initializes a `rabbitmq:Client` object.
     #
