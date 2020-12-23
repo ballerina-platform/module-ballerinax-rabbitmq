@@ -18,12 +18,8 @@
 
 package org.ballerinalang.messaging.rabbitmq;
 
-import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BString;
-
-import static io.ballerina.runtime.api.constants.RuntimeConstants.ORG_NAME_SEPARATOR;
-import static io.ballerina.runtime.api.constants.RuntimeConstants.VERSION_SEPARATOR;
 
 /**
  * RabbitMQ Connector Constants.
@@ -35,13 +31,6 @@ public class RabbitMQConstants {
     // RabbitMQ package name constant fields
     public static final String ORG_NAME = "ballerinax";
     static final String RABBITMQ = "rabbitmq";
-    static final String RABBITMQ_VERSION = "1.0.7";
-    public static final String PACKAGE_RABBITMQ =
-            ORG_NAME + ORG_NAME_SEPARATOR + RABBITMQ + VERSION_SEPARATOR + RABBITMQ_VERSION;
-    public static final String PACKAGE_RABBITMQ_FQN =
-            ORG_NAME + ORG_NAME_SEPARATOR + RABBITMQ + VERSION_SEPARATOR + RABBITMQ_VERSION;
-    public static final Module PACKAGE_ID_RABBITMQ =
-            new Module(ORG_NAME, "rabbitmq", RABBITMQ_VERSION);
 
     // Queue configuration constant fields
     public static final BString QUEUE_NAME = StringUtils.fromString("queueName");
@@ -123,7 +112,6 @@ public class RabbitMQConstants {
     // Message constant fields
     public static final String MESSAGE_RECORD = "Message";
     public static final String CALLER_OBJECT = "Caller";
-    static final String MESSAGE_RECORD_FULL_NAME = PACKAGE_RABBITMQ + ":" + MESSAGE_RECORD;
     public static final BString MESSAGE_CONTENT = StringUtils.fromString("messageContent");
     public static final BString DELIVERY_TAG = StringUtils.fromString("deliveryTag");
     public static final BString MESSAGE_ACK_STATUS = StringUtils.fromString("ackStatus");

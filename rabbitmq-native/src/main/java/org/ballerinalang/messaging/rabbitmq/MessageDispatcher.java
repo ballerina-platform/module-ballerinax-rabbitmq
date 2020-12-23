@@ -40,6 +40,7 @@ import io.ballerina.runtime.observability.ObserveUtils;
 import org.ballerinalang.messaging.rabbitmq.observability.RabbitMQMetricsUtil;
 import org.ballerinalang.messaging.rabbitmq.observability.RabbitMQObservabilityConstants;
 import org.ballerinalang.messaging.rabbitmq.observability.RabbitMQObserverContext;
+import org.ballerinalang.messaging.rabbitmq.util.ModuleUtils;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -48,11 +49,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
+import static io.ballerina.runtime.api.constants.RuntimeConstants.ORG_NAME_SEPARATOR;
+import static io.ballerina.runtime.api.constants.RuntimeConstants.VERSION_SEPARATOR;
 import static org.ballerinalang.messaging.rabbitmq.RabbitMQConstants.FUNC_ON_ERROR;
 import static org.ballerinalang.messaging.rabbitmq.RabbitMQConstants.FUNC_ON_MESSAGE;
 import static org.ballerinalang.messaging.rabbitmq.RabbitMQConstants.ORG_NAME;
 import static org.ballerinalang.messaging.rabbitmq.RabbitMQConstants.RABBITMQ;
-import static org.ballerinalang.messaging.rabbitmq.RabbitMQConstants.RABBITMQ_VERSION;
 
 /**
  * Handles and dispatched messages with data binding.
@@ -68,10 +70,6 @@ public class MessageDispatcher {
     private String queueName;
     private BObject listenerObj;
     private Runtime runtime;
-    private static final StrandMetadata ON_MESSAGE_METADATA = new StrandMetadata(ORG_NAME, RABBITMQ,
-                                                                                 RABBITMQ_VERSION, FUNC_ON_MESSAGE);
-    private static final StrandMetadata ON_ERROR_METADATA = new StrandMetadata(ORG_NAME, RABBITMQ, RABBITMQ_VERSION,
-                                                                               FUNC_ON_ERROR);
 
     public MessageDispatcher(BObject service, Channel channel, boolean autoAck, Runtime runtime,
                              BObject listener) {
@@ -86,7 +84,9 @@ public class MessageDispatcher {
 
     private String getQueueNameFromConfig(BObject service) {
         BMap serviceConfig = (BMap) ((AnnotatableType) service.getType())
-                .getAnnotation(StringUtils.fromString(RabbitMQConstants.PACKAGE_RABBITMQ_FQN + ":"
+                .getAnnotation(StringUtils.fromString(ModuleUtils.getModule().getOrg() + ORG_NAME_SEPARATOR
+                                                              + ModuleUtils.getModule().getName() + VERSION_SEPARATOR
+                                                              + ModuleUtils.getModule().getVersion() + ":"
                                                               + RabbitMQConstants.SERVICE_CONFIG));
         return serviceConfig.getStringValue(RabbitMQConstants.ALIAS_QUEUE_NAME).getValue();
     }
@@ -196,7 +196,7 @@ public class MessageDispatcher {
             String contentEncoding = properties.getContentEncoding();
             String correlationId = properties.getCorrelationId();
             BMap<BString, Object> basicProperties =
-                    ValueCreator.createRecordValue(RabbitMQConstants.PACKAGE_ID_RABBITMQ,
+                    ValueCreator.createRecordValue(ModuleUtils.getModule(),
                                                    RabbitMQConstants.RECORD_BASIC_PROPERTIES);
             Object[] propValues = new Object[4];
             propValues[0] = replyTo;
@@ -205,14 +205,14 @@ public class MessageDispatcher {
             propValues[3] = correlationId;
             values[2] = ValueCreator.createRecordValue(basicProperties, propValues);
         }
-        BMap<BString, Object> messageRecord = ValueCreator.createRecordValue(RabbitMQConstants.PACKAGE_ID_RABBITMQ,
+        BMap<BString, Object> messageRecord = ValueCreator.createRecordValue(ModuleUtils.getModule(),
                                                                              RabbitMQConstants.MESSAGE_RECORD);
         return ValueCreator.createRecordValue(messageRecord, values);
     }
 
     private BObject getCallerBObject(long deliveryTag) {
-        BObject callerObj = ValueCreator.createObjectValue(RabbitMQConstants.PACKAGE_ID_RABBITMQ,
-                                                                RabbitMQConstants.CALLER_OBJECT);
+        BObject callerObj = ValueCreator.createObjectValue(ModuleUtils.getModule(),
+                                                           RabbitMQConstants.CALLER_OBJECT);
         RabbitMQTransactionContext transactionContext =
                 (RabbitMQTransactionContext) listenerObj.getNativeData(RabbitMQConstants.RABBITMQ_TRANSACTION_CONTEXT);
         callerObj.addNativeData(RabbitMQConstants.DELIVERY_TAG.getValue(), deliveryTag);
@@ -243,11 +243,15 @@ public class MessageDispatcher {
     }
 
     private void executeResourceOnMessage(Callback callback, Object... args) {
-        executeResource(RabbitMQConstants.FUNC_ON_MESSAGE, callback, ON_MESSAGE_METADATA, args);
+        StrandMetadata metadata = new StrandMetadata(ORG_NAME, RABBITMQ,
+                                                     ModuleUtils.getModule().getVersion(), FUNC_ON_MESSAGE);
+        executeResource(RabbitMQConstants.FUNC_ON_MESSAGE, callback, metadata, args);
     }
 
     private void executeResourceOnError(Callback callback, Object... args) {
-        executeResource(RabbitMQConstants.FUNC_ON_ERROR, callback, ON_ERROR_METADATA, args);
+        StrandMetadata metadata = new StrandMetadata(ORG_NAME, RABBITMQ,
+                                                      ModuleUtils.getModule().getVersion(), FUNC_ON_ERROR);
+        executeResource(RabbitMQConstants.FUNC_ON_ERROR, callback, metadata, args);
     }
 
     private void executeResource(String function, Callback callback, StrandMetadata metaData,
