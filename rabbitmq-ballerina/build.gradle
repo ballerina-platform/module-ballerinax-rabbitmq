@@ -100,7 +100,7 @@ task updateTomlVersions {
         def stdlibDependentCryptoVersion = project.stdlibCryptoVersion.split("-")[0]
         def stdlibDependentLogVersion = project.stdlibLogVersion.split("-")[0]
         def stdlibDependentRuntimeVersion = project.stdlibRuntimeVersion.split("-")[0]
-        def stdlibDependentSystemVersion = project.stdlibSystemVersion.split("-")[0]
+        def stdlibDependentUuidVersion = project.stdlibUuidVersion.split("-")[0]
         def amqpClientVersion = project.amqpClientVersion
 
         def newConfig = ballerinaConfigFile.text.replace("@project.version@", project.version)
@@ -108,7 +108,7 @@ task updateTomlVersions {
         newConfig = newConfig.replace("@stdlib.log.version@", stdlibDependentLogVersion)
         newConfig = newConfig.replace("@stdlib.crypto.version@", stdlibDependentCryptoVersion)
         newConfig = newConfig.replace("@stdlib.runtime.version@", stdlibDependentRuntimeVersion)
-        newConfig = newConfig.replace("@stdlib.system.version@", stdlibDependentSystemVersion)
+        newConfig = newConfig.replace("@stdlib.uuid.version@", stdlibDependentUuidVersion)
         newConfig = newConfig.replace("@amqp.client.version@", amqpClientVersion)
 
         ballerinaConfigFile.text = newConfig

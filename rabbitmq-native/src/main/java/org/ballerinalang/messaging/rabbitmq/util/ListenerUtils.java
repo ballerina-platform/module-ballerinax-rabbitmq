@@ -41,6 +41,9 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.concurrent.TimeoutException;
 
+import static io.ballerina.runtime.api.constants.RuntimeConstants.ORG_NAME_SEPARATOR;
+import static io.ballerina.runtime.api.constants.RuntimeConstants.VERSION_SEPARATOR;
+
 /**
  * Util class for RabbitMQ Listener actions handling.
  *
@@ -150,7 +153,9 @@ public class ListenerUtils {
 
     private static void declareQueueIfNotExists(BObject service, Channel channel) throws IOException {
         BMap serviceConfig = (BMap) ((AnnotatableType) service.getType())
-                .getAnnotation(StringUtils.fromString(RabbitMQConstants.PACKAGE_RABBITMQ_FQN + ":"
+                .getAnnotation(StringUtils.fromString(ModuleUtils.getModule().getOrg() + ORG_NAME_SEPARATOR
+                                                              + ModuleUtils.getModule().getName() + VERSION_SEPARATOR
+                                                              + ModuleUtils.getModule().getVersion() + ":"
                                                               + RabbitMQConstants.SERVICE_CONFIG));
         @SuppressWarnings(RabbitMQConstants.UNCHECKED)
         String queueName = serviceConfig.getStringValue(RabbitMQConstants.QUEUE_NAME).getValue();
@@ -190,7 +195,9 @@ public class ListenerUtils {
 
     private static boolean getAckMode(BObject service) {
         BMap serviceConfig = (BMap) ((AnnotatableType) service.getType())
-                .getAnnotation(StringUtils.fromString(RabbitMQConstants.PACKAGE_RABBITMQ_FQN + ":"
+                .getAnnotation(StringUtils.fromString(ModuleUtils.getModule().getOrg() + ORG_NAME_SEPARATOR
+                                                              + ModuleUtils.getModule().getName() + VERSION_SEPARATOR
+                                                              + ModuleUtils.getModule().getVersion() + ":"
                                                               + RabbitMQConstants.SERVICE_CONFIG));
         @SuppressWarnings(RabbitMQConstants.UNCHECKED)
         boolean autoAck = serviceConfig.getBooleanValue(RabbitMQConstants.AUTO_ACK);

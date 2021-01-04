@@ -24,6 +24,7 @@ import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
+import org.ballerinalang.messaging.rabbitmq.util.ModuleUtils;
 
 import java.util.ArrayList;
 
@@ -36,7 +37,7 @@ public class RabbitMQUtils {
 
     public static BError returnErrorValue(String errorMessage) {
         return ErrorCreator.createDistinctError(RabbitMQConstants.RABBITMQ_ERROR,
-                                                RabbitMQConstants.PACKAGE_ID_RABBITMQ,
+                                                ModuleUtils.getModule(),
                                                 StringUtils.fromString(errorMessage));
     }
 

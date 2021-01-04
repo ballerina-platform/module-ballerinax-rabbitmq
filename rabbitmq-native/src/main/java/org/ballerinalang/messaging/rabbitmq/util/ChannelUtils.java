@@ -262,7 +262,7 @@ public class ChannelUtils {
     public static Object getConnection(Environment environment, Channel channel) {
         try {
             Connection connection = channel.getConnection();
-            BObject connectionObject = ValueCreator.createObjectValue(RabbitMQConstants.PACKAGE_ID_RABBITMQ,
+            BObject connectionObject = ValueCreator.createObjectValue(ModuleUtils.getModule(),
                                                                       RabbitMQConstants.CONNECTION_OBJECT);
             connectionObject.addNativeData(RabbitMQConstants.CONNECTION_NATIVE_OBJECT, connection);
             RabbitMQTracingUtil.traceResourceInvocation(channel, environment);
