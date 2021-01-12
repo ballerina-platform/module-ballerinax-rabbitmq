@@ -28,7 +28,7 @@ import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.async.StrandMetadata;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.AnnotatableType;
-import io.ballerina.runtime.api.types.MemberFunctionType;
+import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
@@ -121,8 +121,8 @@ public class MessageDispatcher {
     }
 
     private void handleDispatch(byte[] message, long deliveryTag, AMQP.BasicProperties properties) {
-        MemberFunctionType[] attachedFunctions = service.getType().getAttachedFunctions();
-        MemberFunctionType onMessageFunction;
+        MethodType[] attachedFunctions = service.getType().getMethods();
+        MethodType onMessageFunction;
         if (FUNC_ON_MESSAGE.equals(attachedFunctions[0].getName())) {
             onMessageFunction = attachedFunctions[0];
         } else if (FUNC_ON_MESSAGE.equals(attachedFunctions[1].getName())) {
