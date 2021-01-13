@@ -90,11 +90,11 @@ This sample code will declare,
 
 ### Publishing messages
 
-To publish a message to an exchange, use the `basicPublish()` function as follows:
+To publish a message to an exchange, use the `publishMessage()` function as follows:
 
 ```ballerina
     string message = "Hello from Ballerina";
-   rabbitmq:Error? sendResult = newClient->basicPublish(message.toBytes(), "MyQueue");
+   rabbitmq:Error? sendResult = newClient->publishMessage({ content: message.toBytes(), routingKey: queueName });
 ``` 
 Setting other properties of the message such as routing headers can be done by using the `BasicProperties` record with the appropriate values. 
 

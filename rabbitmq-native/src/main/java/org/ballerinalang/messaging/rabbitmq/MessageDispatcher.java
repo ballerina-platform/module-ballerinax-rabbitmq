@@ -132,9 +132,9 @@ public class MessageDispatcher {
             Type[] paramTypes = onRequestFunction.getParameterTypes();
             int paramSize = paramTypes.length;
             if (paramSize == 2) {
-                dispatchReply(message, getCallerBObject(envelope.getDeliveryTag()), envelope, properties);
+                dispatchMessageToOnRequest(message, getCallerBObject(envelope.getDeliveryTag()), envelope, properties);
             } else if (paramSize == 1) {
-                dispatchReply(message, envelope, properties);
+                dispatchMessageToOnRequest(message, envelope, properties);
             } else {
                 throw RabbitMQUtils.returnErrorValue("Invalid remote function signature");
             }
@@ -153,7 +153,7 @@ public class MessageDispatcher {
     }
 
     // dispatch only Message
-    private void dispatchReply(byte[] message, Envelope envelope, AMQP.BasicProperties properties) {
+    private void dispatchMessageToOnRequest(byte[] message, Envelope envelope, AMQP.BasicProperties properties) {
         CountDownLatch countDownLatch = new CountDownLatch(1);
         try {
             Callback callback = new RabbitMQResourceCallback(countDownLatch, channel, queueName,
@@ -175,7 +175,8 @@ public class MessageDispatcher {
     }
 
     // dispatch Message and Caller
-    private void dispatchReply(byte[] message, BObject caller, Envelope envelope, AMQP.BasicProperties properties) {
+    private void dispatchMessageToOnRequest(byte[] message, BObject caller, Envelope envelope,
+                                            AMQP.BasicProperties properties) {
         CountDownLatch countDownLatch = new CountDownLatch(1);
         try {
             Callback callback = new RabbitMQResourceCallback(countDownLatch, channel, queueName,
