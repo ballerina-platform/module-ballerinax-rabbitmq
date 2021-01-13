@@ -48,7 +48,7 @@ import java.util.concurrent.TimeoutException;
  * @since 0.995.0
  */
 public class ChannelUtils {
-    public static Channel createChannel(BMap<BString, Object> connectionConfig, BObject channelObj) {
+    public static Object createChannel(BMap<BString, Object> connectionConfig, BObject channelObj) {
         Connection connection = ConnectionUtils.createConnection(connectionConfig);
         try {
             Channel channel = connection.createChannel();
@@ -59,7 +59,7 @@ public class ChannelUtils {
             return channel;
         } catch (IOException exception) {
             RabbitMQMetricsUtil.reportError(connection, RabbitMQObservabilityConstants.ERROR_TYPE_CHANNEL_CREATE);
-            throw RabbitMQUtils.returnErrorValue("Error occurred while initializing the channel: "
+            return RabbitMQUtils.returnErrorValue("Error occurred while initializing the channel: "
                                                          + exception.getMessage());
         }
     }

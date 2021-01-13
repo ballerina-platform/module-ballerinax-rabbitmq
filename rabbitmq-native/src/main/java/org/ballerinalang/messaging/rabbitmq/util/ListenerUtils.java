@@ -58,14 +58,14 @@ public class ListenerUtils {
     private static final BString IO_ERROR_MSG = StringUtils
             .fromString("An I/O error occurred while setting the global quality of service settings for the listener");
 
-    public static void init(BObject listenerBObject, BMap<BString, Object> connectionConfig) {
+    public static Object init(BObject listenerBObject, BMap<BString, Object> connectionConfig) {
         Connection connection = ConnectionUtils.createConnection(connectionConfig);
-        Channel channel = null;
+        Channel channel;
         try {
             channel = connection.createChannel();
         } catch (IOException e) {
             RabbitMQMetricsUtil.reportError(connection, RabbitMQObservabilityConstants.ERROR_TYPE_CHANNEL_CREATE);
-            throw RabbitMQUtils.returnErrorValue("Error occurred while initializing the listener: "
+            return RabbitMQUtils.returnErrorValue("Error occurred while initializing the listener: "
                                                          + e.getMessage());
         }
         String connectorId = listenerBObject.getStringValue(RabbitMQConstants.CONNECTOR_ID).getValue();
@@ -75,6 +75,7 @@ public class ListenerUtils {
         listenerBObject.addNativeData(RabbitMQConstants.CONSUMER_SERVICES, services);
         listenerBObject.addNativeData(RabbitMQConstants.STARTED_SERVICES, startedServices);
         RabbitMQMetricsUtil.reportNewConsumer(channel);
+        return null;
     }
 
     public static Object registerListener(Environment environment, BObject listenerBObject, BObject service) {

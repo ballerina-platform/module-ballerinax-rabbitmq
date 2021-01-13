@@ -31,7 +31,7 @@ string dataBindingMessage = "";
 @test:BeforeSuite
 function setup() {
     log:print("Creating a ballerina RabbitMQ channel.");
-    Client newClient = new;
+    Client newClient = checkpanic new;
     rabbitmqChannel = newClient;
     Client? clientObj = rabbitmqChannel;
     if (clientObj is Client) {
@@ -40,7 +40,7 @@ function setup() {
         string? syncNegativeQueue = checkpanic clientObj->queueDeclare(SYNC_NEGATIVE_QUEUE);
         string? ackQueue = checkpanic clientObj->queueDeclare(ACK_QUEUE);
     }
-    Listener lis = new;
+    Listener lis = checkpanic new;
     rabbitmqListener = lis;
 }
 
@@ -53,7 +53,7 @@ public function testClient() {
     if (con is Client) {
         flag = true;
     }
-    Client newClient = new;
+    Client newClient = checkpanic new;
     checkpanic newClient.close();
     test:assertTrue(flag, msg = "RabbitMQ Connection creation failed.");
 }
@@ -97,7 +97,7 @@ public function testAsyncConsumer() {
     if (channelListener is Listener) {
         checkpanic channelListener.attach(asyncTestService);
         checkpanic channelListener.'start();
-        runtime:sleep(2000);
+        runtime:sleep(5000);
         test:assertEquals(asyncConsumerMessage, message, msg = "Message received does not match.");
     }
 }

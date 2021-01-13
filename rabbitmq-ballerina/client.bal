@@ -26,8 +26,14 @@ public client class Client {
     # Initializes a `rabbitmq:Client` object.
     #
     # + connectionData - A connection configuration
-    public isolated function init(ConnectionConfig connectionData = {}) {
-        self.amqpChannel = createChannel(connectionData, self);
+    public isolated function init(ConnectionConfig connectionData = {}) returns Error? {
+        handle|Error channelResult = createChannel(connectionData, self);
+        if (channelResult is handle) {
+            self.amqpChannel = channelResult;
+            return;
+        } else {
+            return channelResult;
+        }
     }
 
     # Declares a non-exclusive, auto-delete, or non-durable queue with the given configurations.
@@ -157,7 +163,7 @@ public client class Client {
     }
 }
 
-isolated function createChannel(ConnectionConfig config, Client channelObj) returns handle =
+isolated function createChannel(ConnectionConfig config, Client channelObj) returns handle|Error =
 @java:Method {
     'class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
 } external;
