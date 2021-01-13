@@ -87,7 +87,30 @@ public function testListener() {
 }
 
 @test:Config {
-    dependsOn: ["testListener"],
+    dependsOn: ["testProducer"],
+    groups: ["rabbitmq"]
+}
+public function testSyncConsumer() {
+    string message = "Testing Sync Consumer";
+    produceMessage(message, QUEUE);
+    Client? channelObj = rabbitmqChannel;
+    if (channelObj is Client) {
+        Message|Error getResult = channelObj->consumeMessage(QUEUE);
+        if (getResult is Error) {
+            test:assertFail("Pulling a message from the broker caused an error.");
+        } else {
+            string|error messageContent = 'string:fromBytes(getResult.content);
+            if (messageContent is string) {
+                test:assertEquals(messageContent, message, msg = "Message received does not match.");
+            } else {
+                test:assertFail("Pulling a message from the broker caused an error.");
+            }
+        }
+    }
+}
+
+@test:Config {
+    dependsOn: ["testListener", "testSyncConsumer"],
     groups: ["rabbitmq"]
 }
 public function testAsyncConsumer() {
