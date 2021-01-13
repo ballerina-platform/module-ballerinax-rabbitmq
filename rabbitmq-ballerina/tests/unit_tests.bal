@@ -66,7 +66,7 @@ public function testProducer() {
     Client? channelObj = rabbitmqChannel;
     if (channelObj is Client) {
         string message = "Hello from Ballerina";
-        Error? producerResult = channelObj->basicPublish(message.toBytes(), QUEUE);
+        Error? producerResult = channelObj->publishMessage({ content: message.toBytes(), routingKey: QUEUE });
         if (producerResult is Error) {
             test:assertFail("Producing a message to the broker caused an error.");
         }
@@ -146,6 +146,6 @@ service object {
 function produceMessage(string message, string queueName) {
     Client? clientObj = rabbitmqChannel;
     if (clientObj is Client) {
-        checkpanic clientObj->basicPublish(message.toBytes(), queueName);
+        checkpanic clientObj->publishMessage({ content: message.toBytes(), routingKey: queueName });
     }
 }

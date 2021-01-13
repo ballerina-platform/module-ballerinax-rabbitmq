@@ -81,17 +81,14 @@ public client class Client {
     # Publishes a message. Publishing to a non-existent exchange will result in a channel-level
     # protocol error, which closes the channel.
     # ```ballerina
-    # rabbitmq:Error? sendResult = newChannel->basicPublish(messageInBytes, "MyQueue");
+    # rabbitmq:Error? sendResult = newChannel->publishMessage(messageInBytes, "MyQueue");
     # ```
     #
-    # + data - The message body
-    # + routingKey - The routing key
-    # + exchangeName - The name of the exchange to which the message is published
-    # + properties - Other properties for the message (routing headers, etc.)
+    # + message - Message to be published 
     # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
-    isolated remote function basicPublish(@untainted byte[] data, string routingKey,
-                        string exchangeName = "", BasicProperties? properties = ()) returns Error? {
-        return nativeBasicPublish(data, routingKey, exchangeName, properties, self.amqpChannel, self);
+    isolated remote function publishMessage(Message message) returns Error? {
+        return nativeBasicPublish(message.content, message.routingKey,
+                message.exchange, message?.properties, self.amqpChannel, self);
     }
 
     # Deletes the queue with the given name although it is in use or has messages in it.

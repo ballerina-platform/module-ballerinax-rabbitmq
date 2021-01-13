@@ -104,7 +104,7 @@ public class MessageDispatcher {
                                        Envelope envelope,
                                        AMQP.BasicProperties properties,
                                        byte[] body) {
-                handleDispatch(body, envelope.getDeliveryTag(), properties);
+                handleDispatch(body, envelope, properties);
             }
         };
         try {
@@ -120,7 +120,7 @@ public class MessageDispatcher {
         service.addNativeData(RabbitMQConstants.QUEUE_NAME.getValue(), queueName);
     }
 
-    private void handleDispatch(byte[] message, long deliveryTag, AMQP.BasicProperties properties) {
+    private void handleDispatch(byte[] message, Envelope envelope, AMQP.BasicProperties properties) {
         MethodType[] attachedFunctions = service.getType().getMethods();
         MethodType onMessageFunction;
         if (FUNC_ON_MESSAGE.equals(attachedFunctions[0].getName())) {
@@ -133,22 +133,22 @@ public class MessageDispatcher {
         Type[] paramTypes = onMessageFunction.getParameterTypes();
         int paramSize = paramTypes.length;
         if (paramSize == 2) {
-            dispatchMessage(message, getCallerBObject(deliveryTag), deliveryTag, properties);
+            dispatchMessage(message, getCallerBObject(envelope.getDeliveryTag()), envelope, properties);
         } else if (paramSize == 1) {
-            dispatchMessage(message, deliveryTag, properties);
+            dispatchMessage(message, envelope, properties);
         } else {
                 throw RabbitMQUtils.returnErrorValue("Invalid remote function signature");
         }
     }
 
     // dispatch only Message
-    private void dispatchMessage(byte[] message, long deliveryTag, AMQP.BasicProperties properties) {
+    private void dispatchMessage(byte[] message, Envelope envelope, AMQP.BasicProperties properties) {
         CountDownLatch countDownLatch = new CountDownLatch(1);
         try {
             Callback callback = new RabbitMQResourceCallback(countDownLatch, channel, queueName,
                                                              message.length);
             Object[] values = new Object[2];
-            values[0] = createAndPopulateMessageRecord(message, deliveryTag, properties);
+            values[0] = createAndPopulateMessageRecord(message, envelope, properties);
             values[1] = true;
             executeResourceOnMessage(callback, values);
             countDownLatch.await();
@@ -158,18 +158,18 @@ public class MessageDispatcher {
             throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.THREAD_INTERRUPTED);
         } catch (AlreadyClosedException | BError exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
-            handleError(message, deliveryTag, properties);
+            handleError(message, envelope, properties);
         }
     }
 
     // dispatch Message and Caller
-    private void dispatchMessage(byte[] message, BObject caller, long deliveryTag, AMQP.BasicProperties properties) {
+    private void dispatchMessage(byte[] message, BObject caller, Envelope envelope, AMQP.BasicProperties properties) {
         CountDownLatch countDownLatch = new CountDownLatch(1);
         try {
             Callback callback = new RabbitMQResourceCallback(countDownLatch, channel, queueName,
                                                              message.length);
             Object[] values = new Object[4];
-            values[0] = createAndPopulateMessageRecord(message, deliveryTag, properties);
+            values[0] = createAndPopulateMessageRecord(message, envelope, properties);
             values[1] = true;
             values[2] = caller;
             values[3] = true;
@@ -181,15 +181,17 @@ public class MessageDispatcher {
             throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.THREAD_INTERRUPTED);
         } catch (AlreadyClosedException | BError exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
-            handleError(message, deliveryTag, properties);
+            handleError(message, envelope, properties);
         }
     }
 
-    private static BMap<BString, Object> createAndPopulateMessageRecord(byte[] message, long deliveryTag,
+    private static BMap<BString, Object> createAndPopulateMessageRecord(byte[] message, Envelope envelope,
                                                                         AMQP.BasicProperties properties) {
-        Object[] values = new Object[3];
+        Object[] values = new Object[5];
         values[0] = ValueCreator.createArrayValue(message);
-        values[1] = deliveryTag;
+        values[1] = envelope.getRoutingKey();
+        values[2] = envelope.getExchange();
+        values[3] = envelope.getDeliveryTag();
         if (properties != null) {
             String replyTo = properties.getReplyTo();
             String contentType = properties.getContentType();
@@ -203,7 +205,7 @@ public class MessageDispatcher {
             propValues[1] = contentType;
             propValues[2] = contentEncoding;
             propValues[3] = correlationId;
-            values[2] = ValueCreator.createRecordValue(basicProperties, propValues);
+            values[4] = ValueCreator.createRecordValue(basicProperties, propValues);
         }
         BMap<BString, Object> messageRecord = ValueCreator.createRecordValue(ModuleUtils.getModule(),
                                                                              RabbitMQConstants.MESSAGE_RECORD);
@@ -224,9 +226,9 @@ public class MessageDispatcher {
     }
 
 
-    private void handleError(byte[] message, long deliveryTag, AMQP.BasicProperties properties) {
+    private void handleError(byte[] message, Envelope envelope, AMQP.BasicProperties properties) {
         BError error = RabbitMQUtils.returnErrorValue(RabbitMQConstants.DISPATCH_ERROR);
-        BMap<BString, Object> messageBObject = createAndPopulateMessageRecord(message, deliveryTag, properties);
+        BMap<BString, Object> messageBObject = createAndPopulateMessageRecord(message, envelope, properties);
         CountDownLatch countDownLatch = new CountDownLatch(1);
         try {
             Callback callback = new RabbitMQErrorResourceCallback(countDownLatch);
