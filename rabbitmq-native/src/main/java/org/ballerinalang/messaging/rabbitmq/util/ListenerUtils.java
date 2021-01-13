@@ -22,9 +22,11 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Runtime;
+import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.types.AnnotatableType;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
@@ -78,11 +80,15 @@ public class ListenerUtils {
         return null;
     }
 
-    public static Object registerListener(Environment environment, BObject listenerBObject, BObject service) {
+    public static Object registerListener(Environment environment, BObject listenerBObject, BObject service,
+                                          Object queueName) {
         runtime = environment.getRuntime();
         Channel channel = (Channel) listenerBObject.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         if (service == null) {
             return null;
+        }
+        if (queueName != null && TypeUtils.getType(queueName).getTag() == TypeTags.STRING_TAG) {
+            service.addNativeData(RabbitMQConstants.QUEUE_NAME.getValue(), ((BString) queueName).getValue());
         }
         try {
             declareQueueIfNotExists(service, channel);
@@ -158,8 +164,12 @@ public class ListenerUtils {
                                                               + ModuleUtils.getModule().getName() + VERSION_SEPARATOR
                                                               + ModuleUtils.getModule().getVersion() + ":"
                                                               + RabbitMQConstants.SERVICE_CONFIG));
-        @SuppressWarnings(RabbitMQConstants.UNCHECKED)
-        String queueName = serviceConfig.getStringValue(RabbitMQConstants.QUEUE_NAME).getValue();
+        String queueName;
+        if (service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue()) != null) {
+            queueName = (String) service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue());
+        } else {
+            queueName = serviceConfig.getStringValue(RabbitMQConstants.QUEUE_NAME).getValue();
+        }
         channel.queueDeclare(queueName, false, false, true, null);
         RabbitMQMetricsUtil.reportNewQueue(channel, queueName);
     }

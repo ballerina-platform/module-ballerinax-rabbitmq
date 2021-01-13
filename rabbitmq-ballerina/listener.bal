@@ -48,7 +48,7 @@ public class Listener {
     # + name - Name of the service
     # + return - `()` or else a `rabbitmq:Error` upon failure to register the service
     public isolated function attach(Service s, string[]|string? name = ()) returns error? {
-        return registerListener(self, s);
+        return registerListener(self, s, name);
     }
 
     # Starts consuming the messages on all the attached services.
@@ -100,7 +100,7 @@ isolated function externInit(Listener lis, ConnectionConfig connectionData) retu
     'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
 } external;
 
-isolated function registerListener(Listener lis, Service serviceType) returns Error? =
+isolated function registerListener(Listener lis, Service serviceType, string[]|string? name = ()) returns Error? =
 @java:Method {
     'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
 } external;

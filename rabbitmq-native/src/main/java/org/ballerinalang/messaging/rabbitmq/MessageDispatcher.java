@@ -53,6 +53,7 @@ import static io.ballerina.runtime.api.constants.RuntimeConstants.ORG_NAME_SEPAR
 import static io.ballerina.runtime.api.constants.RuntimeConstants.VERSION_SEPARATOR;
 import static org.ballerinalang.messaging.rabbitmq.RabbitMQConstants.FUNC_ON_ERROR;
 import static org.ballerinalang.messaging.rabbitmq.RabbitMQConstants.FUNC_ON_MESSAGE;
+import static org.ballerinalang.messaging.rabbitmq.RabbitMQConstants.FUNC_ON_REQUEST;
 import static org.ballerinalang.messaging.rabbitmq.RabbitMQConstants.ORG_NAME;
 import static org.ballerinalang.messaging.rabbitmq.RabbitMQConstants.RABBITMQ;
 
@@ -83,12 +84,17 @@ public class MessageDispatcher {
     }
 
     private String getQueueNameFromConfig(BObject service) {
-        BMap serviceConfig = (BMap) ((AnnotatableType) service.getType())
-                .getAnnotation(StringUtils.fromString(ModuleUtils.getModule().getOrg() + ORG_NAME_SEPARATOR
-                                                              + ModuleUtils.getModule().getName() + VERSION_SEPARATOR
-                                                              + ModuleUtils.getModule().getVersion() + ":"
-                                                              + RabbitMQConstants.SERVICE_CONFIG));
-        return serviceConfig.getStringValue(RabbitMQConstants.ALIAS_QUEUE_NAME).getValue();
+        if (service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue()) != null) {
+            return (String) service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue());
+        } else {
+            BMap serviceConfig = (BMap) ((AnnotatableType) service.getType())
+                    .getAnnotation(StringUtils.fromString(ModuleUtils.getModule().getOrg() + ORG_NAME_SEPARATOR
+                                                                  + ModuleUtils.getModule().getName() +
+                                                                  VERSION_SEPARATOR
+                                                                  + ModuleUtils.getModule().getVersion() + ":"
+                                                                  + RabbitMQConstants.SERVICE_CONFIG));
+            return serviceConfig.getStringValue(RabbitMQConstants.ALIAS_QUEUE_NAME).getValue();
+        }
     }
 
     /**
@@ -121,23 +127,74 @@ public class MessageDispatcher {
     }
 
     private void handleDispatch(byte[] message, Envelope envelope, AMQP.BasicProperties properties) {
-        MethodType[] attachedFunctions = service.getType().getMethods();
-        MethodType onMessageFunction;
-        if (FUNC_ON_MESSAGE.equals(attachedFunctions[0].getName())) {
-            onMessageFunction = attachedFunctions[0];
-        } else if (FUNC_ON_MESSAGE.equals(attachedFunctions[1].getName())) {
-            onMessageFunction = attachedFunctions[1];
-        } else {
-            return;
-        }
-        Type[] paramTypes = onMessageFunction.getParameterTypes();
-        int paramSize = paramTypes.length;
-        if (paramSize == 2) {
-            dispatchMessage(message, getCallerBObject(envelope.getDeliveryTag()), envelope, properties);
-        } else if (paramSize == 1) {
-            dispatchMessage(message, envelope, properties);
-        } else {
+        if (properties.getReplyTo() != null && getAttachedFunctionType(service, FUNC_ON_REQUEST) != null) {
+            MethodType onRequestFunction = getAttachedFunctionType(service, FUNC_ON_REQUEST);
+            Type[] paramTypes = onRequestFunction.getParameterTypes();
+            int paramSize = paramTypes.length;
+            if (paramSize == 2) {
+                dispatchReply(message, getCallerBObject(envelope.getDeliveryTag()), envelope, properties);
+            } else if (paramSize == 1) {
+                dispatchReply(message, envelope, properties);
+            } else {
                 throw RabbitMQUtils.returnErrorValue("Invalid remote function signature");
+            }
+        } else {
+            MethodType onMessageFunction = getAttachedFunctionType(service, FUNC_ON_MESSAGE);
+            Type[] paramTypes = onMessageFunction.getParameterTypes();
+            int paramSize = paramTypes.length;
+            if (paramSize == 2) {
+                dispatchMessage(message, getCallerBObject(envelope.getDeliveryTag()), envelope, properties);
+            } else if (paramSize == 1) {
+                dispatchMessage(message, envelope, properties);
+            } else {
+                throw RabbitMQUtils.returnErrorValue("Invalid remote function signature");
+            }
+        }
+    }
+
+    // dispatch only Message
+    private void dispatchReply(byte[] message, Envelope envelope, AMQP.BasicProperties properties) {
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        try {
+            Callback callback = new RabbitMQResourceCallback(countDownLatch, channel, queueName,
+                                                             message.length, properties.getReplyTo(),
+                                                             envelope.getExchange());
+            Object[] values = new Object[2];
+            values[0] = createAndPopulateMessageRecord(message, envelope, properties);
+            values[1] = true;
+            executeResourceOnRequest(callback, values);
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
+            Thread.currentThread().interrupt();
+            throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.THREAD_INTERRUPTED);
+        } catch (AlreadyClosedException | BError exception) {
+            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
+            handleError(message, envelope, properties);
+        }
+    }
+
+    // dispatch Message and Caller
+    private void dispatchReply(byte[] message, BObject caller, Envelope envelope, AMQP.BasicProperties properties) {
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        try {
+            Callback callback = new RabbitMQResourceCallback(countDownLatch, channel, queueName,
+                                                             message.length, properties.getReplyTo(),
+                                                             envelope.getExchange());
+            Object[] values = new Object[4];
+            values[0] = createAndPopulateMessageRecord(message, envelope, properties);
+            values[1] = true;
+            values[2] = caller;
+            values[3] = true;
+            executeResourceOnRequest(callback, values);
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
+            Thread.currentThread().interrupt();
+            throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.THREAD_INTERRUPTED);
+        } catch (AlreadyClosedException | BError exception) {
+            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
+            handleError(message, envelope, properties);
         }
     }
 
@@ -250,6 +307,12 @@ public class MessageDispatcher {
         executeResource(RabbitMQConstants.FUNC_ON_MESSAGE, callback, metadata, args);
     }
 
+    private void executeResourceOnRequest(Callback callback, Object... args) {
+        StrandMetadata metadata = new StrandMetadata(ORG_NAME, RABBITMQ,
+                                                     ModuleUtils.getModule().getVersion(), FUNC_ON_REQUEST);
+        executeResource(FUNC_ON_REQUEST, callback, metadata, args);
+    }
+
     private void executeResourceOnError(Callback callback, Object... args) {
         StrandMetadata metadata = new StrandMetadata(ORG_NAME, RABBITMQ,
                                                       ModuleUtils.getModule().getVersion(), FUNC_ON_ERROR);
@@ -272,6 +335,18 @@ public class MessageDispatcher {
         observerContext.addTag(RabbitMQObservabilityConstants.TAG_QUEUE, queueName);
         properties.put(ObservabilityConstants.KEY_OBSERVER_CONTEXT, observerContext);
         return properties;
+    }
+
+    public static MethodType getAttachedFunctionType(BObject serviceObject, String functionName) {
+        MethodType function = null;
+        MethodType[] resourceFunctions = serviceObject.getType().getMethods();
+        for (MethodType resourceFunction : resourceFunctions) {
+            if (functionName.equals(resourceFunction.getName())) {
+                function = resourceFunction;
+                break;
+            }
+        }
+        return function;
     }
 
     static {

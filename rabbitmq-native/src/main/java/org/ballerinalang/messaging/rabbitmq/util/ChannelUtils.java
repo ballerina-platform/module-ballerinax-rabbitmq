@@ -240,11 +240,23 @@ public class ChannelUtils {
             if (properties != null) {
                 @SuppressWarnings(RabbitMQConstants.UNCHECKED)
                 BMap<BString, Object> basicPropsMap = (BMap) properties;
-                String replyTo = basicPropsMap.getStringValue(RabbitMQConstants.ALIAS_REPLY_TO).getValue();
-                String contentType = basicPropsMap.getStringValue(RabbitMQConstants.ALIAS_CONTENT_TYPE).getValue();
-                String contentEncoding = basicPropsMap.getStringValue(RabbitMQConstants.ALIAS_CONTENT_ENCODING)
-                        .getValue();
-                String correlationId = basicPropsMap.getStringValue(RabbitMQConstants.ALIAS_CORRELATION_ID).getValue();
+                String replyTo = null;
+                String contentType = null;
+                String contentEncoding = null;
+                String correlationId = null;
+                if (basicPropsMap.containsKey(RabbitMQConstants.ALIAS_REPLY_TO)) {
+                    replyTo = basicPropsMap.getStringValue(RabbitMQConstants.ALIAS_REPLY_TO).getValue();
+                }
+                if (basicPropsMap.containsKey(RabbitMQConstants.ALIAS_CONTENT_TYPE)) {
+                    contentType = basicPropsMap.getStringValue(RabbitMQConstants.ALIAS_CONTENT_TYPE).getValue();
+                }
+                if (basicPropsMap.containsKey(RabbitMQConstants.ALIAS_CONTENT_ENCODING)) {
+                    contentEncoding = basicPropsMap.getStringValue(RabbitMQConstants.ALIAS_CONTENT_ENCODING)
+                            .getValue();
+                }
+                if (basicPropsMap.containsKey(RabbitMQConstants.ALIAS_CORRELATION_ID)) {
+                    correlationId = basicPropsMap.getStringValue(RabbitMQConstants.ALIAS_CORRELATION_ID).getValue();
+                }
                 if (replyTo != null) {
                     builder.replyTo(replyTo);
                 }
