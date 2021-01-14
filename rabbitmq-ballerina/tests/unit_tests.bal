@@ -16,7 +16,7 @@
 
 import ballerina/lang.'string;
 import ballerina/log;
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 
 Client? rabbitmqChannel = ();
@@ -124,7 +124,7 @@ public function testAsyncConsumer() {
         checkpanic channelListener.attach(asyncTestService);
         checkpanic channelListener.attach(replyService);
         checkpanic channelListener.'start();
-        runtime:sleep(5000);
+        runtime:sleep(5);
         test:assertEquals(asyncConsumerMessage, message, msg = "Message received does not match.");
     }
 }
@@ -139,7 +139,7 @@ public function testAcknowledgements() {
     Listener? channelListener = rabbitmqListener;
     if (channelListener is Listener) {
         checkpanic channelListener.attach(ackTestService);
-        runtime:sleep(2000);
+        runtime:sleep(2);
     }
 }
 
@@ -152,7 +152,7 @@ public function testOnRequest() {
     produceMessage(message, QUEUE, REPLYTO);
     Listener? channelListener = rabbitmqListener;
     if (channelListener is Listener) {
-        runtime:sleep(5000);
+        runtime:sleep(5);
         test:assertEquals(asyncConsumerMessage, message, msg = "Message received does not match.");
         test:assertEquals(replyMessage, "Hello Back!!", msg = "Reply message received does not match.");
 
