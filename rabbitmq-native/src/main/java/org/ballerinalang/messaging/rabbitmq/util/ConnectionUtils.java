@@ -132,7 +132,7 @@ public class ConnectionUtils {
             char[] trustPassphrase = cryptoTrustStore.getStringValue(RabbitMQConstants.KEY_STORE_PASS).getValue()
                     .toCharArray();
             String trustFilePath = cryptoTrustStore.getStringValue(RabbitMQConstants.KEY_STORE_PATH).getValue();
-            String tlsVersion = secureSocket.getStringValue(RabbitMQConstants.RABBITMQ_CONNECTION_TLS_VERSION)
+            String tlsProtocol = secureSocket.getStringValue(RabbitMQConstants.RABBITMQ_CONNECTION_TLS_PROTOCOL)
                     .getValue();
 
             KeyStore keyStore = KeyStore.getInstance(RabbitMQConstants.KEY_STORE_TYPE);
@@ -162,7 +162,7 @@ public class ConnectionUtils {
                     TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
             trustManagerFactory.init(trustStore);
 
-            SSLContext sslContext = SSLContext.getInstance(tlsVersion);
+            SSLContext sslContext = SSLContext.getInstance(tlsProtocol);
             sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
             return sslContext;
         } catch (FileNotFoundException exception) {
