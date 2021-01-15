@@ -115,7 +115,7 @@ public type QosSettings record {|
 # + protocol - TLS protocol
 # + verifyHostname - True if hostname verification should be enabled
 public type SecureSocket record {|
-    crypto:TrustStore trustStore;
+    crypto:TrustStore trustStore?;
     crypto:KeyStore keyStore?;
     string protocol = "TLS";
     boolean verifyHostname = true;
