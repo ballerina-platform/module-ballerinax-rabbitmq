@@ -14,6 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/crypto;
 import ballerina/java;
 
 final handle JAVA_NULL = java:createNull();
@@ -78,6 +79,8 @@ public type ExchangeConfig record {|
 # + shutdownTimeoutInMillis - Shutdown timeout in milliseconds, zero for infinite, and the default value is 10000. If the consumers exceed
 #                     this timeout, then any remaining queued deliveries (and other Consumer callbacks) will be lost
 # + heartbeatInSeconds - The initially-requested heartbeat timeout in seconds and zero for none
+# + secureSocket - Configurations for facilitating secure connections
+# + auth - Configurations releated to authentication
 public type ConnectionConfig record {|
     string host = "localhost";
     int port = 5672;
@@ -87,6 +90,8 @@ public type ConnectionConfig record {|
     int handshakeTimeoutMillis?;
     int shutdownTimeoutInMillis?;
     int heartbeatInSeconds?;
+    SecureSocket? secureSocket = ();
+    Credentials auth?;
 |};
 
 # QoS settings to limit the number of unacknowledged
@@ -103,3 +108,24 @@ public type QosSettings record {|
    boolean global = false;
 |};
 
+# Configurations for facilitating secure connections.
+#
+# + trustStore - Configurations associated with the TrustStore
+# + keyStore - Configurations associated with the KeyStore
+# + tlsVersion - TLS version
+# + verifyHostname - True if hostname verification should be enabled
+public type SecureSocket record {|
+    crypto:TrustStore? trustStore = ();
+    crypto:KeyStore? keyStore = ();
+    string tlsVersion = "TLS";
+    boolean verifyHostname = true;
+|};
+
+# Configurations related to authentication.
+#
+# + username - Username to use for authentication
+# + password - Password/secret/token to use for authentication
+public type Credentials record {|
+    string username;
+    string password;
+|};

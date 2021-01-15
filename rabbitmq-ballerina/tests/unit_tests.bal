@@ -16,7 +16,7 @@
 
 import ballerina/lang.'string;
 import ballerina/log;
-import ballerina/runtime;
+import ballerina/lang.runtime as runtime;
 import ballerina/test;
 
 Client? rabbitmqChannel = ();
@@ -26,12 +26,14 @@ const ACK_QUEUE = "MyAckQueue";
 const SYNC_NEGATIVE_QUEUE = "MySyncNegativeQueue";
 const DATA_BINDING_QUEUE = "MyDataQueue";
 string asyncConsumerMessage = "";
+string replyMessage = "";
 string dataBindingMessage = "";
+string REPLYTO = "replyHere";
 
 @test:BeforeSuite
 function setup() {
     log:print("Creating a ballerina RabbitMQ channel.");
-    Client newClient = new;
+    Client newClient = checkpanic new;
     rabbitmqChannel = newClient;
     Client? clientObj = rabbitmqChannel;
     if (clientObj is Client) {
@@ -39,8 +41,9 @@ function setup() {
         string? dataBindingQueue = checkpanic clientObj->queueDeclare(DATA_BINDING_QUEUE);
         string? syncNegativeQueue = checkpanic clientObj->queueDeclare(SYNC_NEGATIVE_QUEUE);
         string? ackQueue = checkpanic clientObj->queueDeclare(ACK_QUEUE);
+        string? replyQueue = checkpanic clientObj->queueDeclare(REPLYTO);
     }
-    Listener lis = new;
+    Listener lis = checkpanic new;
     rabbitmqListener = lis;
 }
 
@@ -53,7 +56,7 @@ public function testClient() {
     if (con is Client) {
         flag = true;
     }
-    Client newClient = new;
+    Client newClient = checkpanic new;
     checkpanic newClient.close();
     test:assertTrue(flag, msg = "RabbitMQ Connection creation failed.");
 }
@@ -62,15 +65,12 @@ public function testClient() {
     dependsOn: ["testClient"],
     groups: ["rabbitmq"]
 }
-public function testProducer() {
+public function testProducer() returns error? {
     Client? channelObj = rabbitmqChannel;
     if (channelObj is Client) {
         string message = "Hello from Ballerina";
-        Error? producerResult = channelObj->basicPublish(message.toBytes(), QUEUE);
-        if (producerResult is Error) {
-            test:assertFail("Producing a message to the broker caused an error.");
-        }
-        checkpanic channelObj->queuePurge(QUEUE);
+        check channelObj->publishMessage({ content: message.toBytes(), routingKey: QUEUE });
+        check channelObj->queuePurge(QUEUE);
     }
 }
 
@@ -87,7 +87,22 @@ public function testListener() {
 }
 
 @test:Config {
-    dependsOn: ["testListener"],
+    dependsOn: ["testProducer"],
+    groups: ["rabbitmq"]
+}
+public function testSyncConsumer() returns error? {
+    string message = "Testing Sync Consumer";
+    produceMessage(message, QUEUE);
+    Client? channelObj = rabbitmqChannel;
+    if (channelObj is Client) {
+        Message getResult = check channelObj->consumeMessage(QUEUE);
+        string messageContent = check 'string:fromBytes(getResult.content);
+        test:assertEquals(messageContent, message, msg = "Message received does not match.");
+    }
+}
+
+@test:Config {
+    dependsOn: ["testListener", "testSyncConsumer"],
     groups: ["rabbitmq"]
 }
 public function testAsyncConsumer() {
@@ -96,8 +111,9 @@ public function testAsyncConsumer() {
     Listener? channelListener = rabbitmqListener;
     if (channelListener is Listener) {
         checkpanic channelListener.attach(asyncTestService);
+        checkpanic channelListener.attach(replyService);
         checkpanic channelListener.'start();
-        runtime:sleep(2000);
+        runtime:sleep(5);
         test:assertEquals(asyncConsumerMessage, message, msg = "Message received does not match.");
     }
 }
@@ -112,7 +128,23 @@ public function testAcknowledgements() {
     Listener? channelListener = rabbitmqListener;
     if (channelListener is Listener) {
         checkpanic channelListener.attach(ackTestService);
-        runtime:sleep(2000);
+        runtime:sleep(2);
+    }
+}
+
+@test:Config {
+    dependsOn: ["testAsyncConsumer", "testAcknowledgements"],
+    groups: ["rabbitmq"]
+}
+public function testOnRequest() {
+    string message = "Hello from the other side!";
+    produceMessage(message, QUEUE, REPLYTO);
+    Listener? channelListener = rabbitmqListener;
+    if (channelListener is Listener) {
+        runtime:sleep(5);
+        test:assertEquals(asyncConsumerMessage, message, msg = "Message received does not match.");
+        test:assertEquals(replyMessage, "Hello Back!!", msg = "Reply message received does not match.");
+
     }
 }
 
@@ -130,6 +162,17 @@ service object {
             log:printError("Error occurred while retrieving the message content.", err = messageContent);
         }
     }
+
+    remote function onRequest(Message message) returns string {
+        string|error messageContent = 'string:fromBytes(message.content);
+        if (messageContent is string) {
+            asyncConsumerMessage = <@untainted> messageContent;
+            log:print("The message received in onRequest: " + messageContent);
+        } else {
+            log:printError("Error occurred while retrieving the message content.", err = messageContent);
+        }
+        return "Hello Back!!";
+    }
 };
 
 Service ackTestService =
@@ -143,9 +186,30 @@ service object {
     }
 };
 
-function produceMessage(string message, string queueName) {
+Service replyService =
+@ServiceConfig {
+    queueName: REPLYTO
+}
+service object {
+    remote function onMessage(Message message) {
+        string|error messageContent = 'string:fromBytes(message.content);
+        if (messageContent is string) {
+            replyMessage = <@untainted> messageContent;
+            log:print("The reply message received: " + messageContent);
+        } else {
+            log:printError("Error occurred while retrieving the message content.", err = messageContent);
+        }
+    }
+};
+
+function produceMessage(string message, string queueName, string? replyToQueue = ()) {
     Client? clientObj = rabbitmqChannel;
     if (clientObj is Client) {
-        checkpanic clientObj->basicPublish(message.toBytes(), queueName);
+        if (replyToQueue is string) {
+            checkpanic clientObj->publishMessage({ content: message.toBytes(), routingKey: queueName,
+                    properties: { replyTo: replyToQueue }});
+        } else {
+            checkpanic clientObj->publishMessage({ content: message.toBytes(), routingKey: queueName });
+        }
     }
 }

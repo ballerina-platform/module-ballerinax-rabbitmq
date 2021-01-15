@@ -46,6 +46,10 @@ public class RabbitMQConstants {
     public static final BString EXCHANGE_AUTO_DELETE = StringUtils.fromString("autoDelete");
     public static final BString EXCHANGE_ARGUMENTS = StringUtils.fromString("arguments");
 
+    public static final BString AUTH_CONFIG = StringUtils.fromString("auth");
+    public static final BString AUTH_USERNAME = StringUtils.fromString("username");
+    public static final BString AUTH_PASSWORD = StringUtils.fromString("password");
+
     // Warning suppression
     public static final String UNCHECKED = "unchecked";
 
@@ -104,6 +108,7 @@ public class RabbitMQConstants {
     public static final String ACK_ERROR = "Error occurred while positively acknowledging the message: ";
     public static final String NACK_ERROR = "Error occurred while negatively acknowledging the message: ";
     static final String FUNC_ON_MESSAGE = "onMessage";
+    static final String FUNC_ON_REQUEST = "onRequest";
     static final String FUNC_ON_ERROR = "onError";
 
     // Channel constant fields

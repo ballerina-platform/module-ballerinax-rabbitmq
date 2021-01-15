@@ -22,9 +22,11 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Runtime;
+import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.types.AnnotatableType;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
@@ -58,14 +60,14 @@ public class ListenerUtils {
     private static final BString IO_ERROR_MSG = StringUtils
             .fromString("An I/O error occurred while setting the global quality of service settings for the listener");
 
-    public static void init(BObject listenerBObject, BMap<BString, Object> connectionConfig) {
+    public static Object init(BObject listenerBObject, BMap<BString, Object> connectionConfig) {
         Connection connection = ConnectionUtils.createConnection(connectionConfig);
-        Channel channel = null;
+        Channel channel;
         try {
             channel = connection.createChannel();
         } catch (IOException e) {
             RabbitMQMetricsUtil.reportError(connection, RabbitMQObservabilityConstants.ERROR_TYPE_CHANNEL_CREATE);
-            throw RabbitMQUtils.returnErrorValue("Error occurred while initializing the listener: "
+            return RabbitMQUtils.returnErrorValue("Error occurred while initializing the listener: "
                                                          + e.getMessage());
         }
         String connectorId = listenerBObject.getStringValue(RabbitMQConstants.CONNECTOR_ID).getValue();
@@ -75,13 +77,18 @@ public class ListenerUtils {
         listenerBObject.addNativeData(RabbitMQConstants.CONSUMER_SERVICES, services);
         listenerBObject.addNativeData(RabbitMQConstants.STARTED_SERVICES, startedServices);
         RabbitMQMetricsUtil.reportNewConsumer(channel);
+        return null;
     }
 
-    public static Object registerListener(Environment environment, BObject listenerBObject, BObject service) {
+    public static Object registerListener(Environment environment, BObject listenerBObject, BObject service,
+                                          Object queueName) {
         runtime = environment.getRuntime();
         Channel channel = (Channel) listenerBObject.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         if (service == null) {
             return null;
+        }
+        if (queueName != null && TypeUtils.getType(queueName).getTag() == TypeTags.STRING_TAG) {
+            service.addNativeData(RabbitMQConstants.QUEUE_NAME.getValue(), ((BString) queueName).getValue());
         }
         try {
             declareQueueIfNotExists(service, channel);
@@ -157,8 +164,12 @@ public class ListenerUtils {
                                                               + ModuleUtils.getModule().getName() + VERSION_SEPARATOR
                                                               + ModuleUtils.getModule().getVersion() + ":"
                                                               + RabbitMQConstants.SERVICE_CONFIG));
-        @SuppressWarnings(RabbitMQConstants.UNCHECKED)
-        String queueName = serviceConfig.getStringValue(RabbitMQConstants.QUEUE_NAME).getValue();
+        String queueName;
+        if (service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue()) != null) {
+            queueName = (String) service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue());
+        } else {
+            queueName = serviceConfig.getStringValue(RabbitMQConstants.QUEUE_NAME).getValue();
+        }
         channel.queueDeclare(queueName, false, false, true, null);
         RabbitMQMetricsUtil.reportNewQueue(channel, queueName);
     }

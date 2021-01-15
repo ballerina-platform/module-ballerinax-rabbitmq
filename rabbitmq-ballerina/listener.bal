@@ -29,11 +29,16 @@ public class Listener {
     # + connectionData - The connection configuration
     # + qosSettings - Consumer prefetch settings
     public isolated function init(ConnectionConfig connectionData = {},
-                                     QosSettings? qosSettings = ()) {
-        externInit(self, connectionData);
-        if (qosSettings is QosSettings) {
-            checkpanic nativeSetQosSettings(qosSettings.prefetchCount, qosSettings?.prefetchSize,
-                qosSettings.global, self);
+                                     QosSettings? qosSettings = ()) returns Error? {
+        Error? initResult = externInit(self, connectionData);
+        if (initResult is Error) {
+            return initResult;
+        } else {
+            if (qosSettings is QosSettings) {
+                checkpanic nativeSetQosSettings(qosSettings.prefetchCount, qosSettings?.prefetchSize,
+                    qosSettings.global, self);
+            }
+            return;
         }
     }
 
@@ -43,7 +48,7 @@ public class Listener {
     # + name - Name of the service
     # + return - `()` or else a `rabbitmq:Error` upon failure to register the service
     public isolated function attach(Service s, string[]|string? name = ()) returns error? {
-        return registerListener(self, s);
+        return registerListener(self, s, name);
     }
 
     # Starts consuming the messages on all the attached services.
@@ -89,13 +94,13 @@ public type RabbitMQServiceConfig record {|
 # The annotation, which is used to configure the subscription.
 public annotation RabbitMQServiceConfig ServiceConfig on service, class;
 
-isolated function externInit(Listener lis, ConnectionConfig connectionData) =
+isolated function externInit(Listener lis, ConnectionConfig connectionData) returns Error? =
 @java:Method {
     name: "init",
     'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
 } external;
 
-isolated function registerListener(Listener lis, Service serviceType) returns Error? =
+isolated function registerListener(Listener lis, Service serviceType, string[]|string? name = ()) returns Error? =
 @java:Method {
     'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
 } external;

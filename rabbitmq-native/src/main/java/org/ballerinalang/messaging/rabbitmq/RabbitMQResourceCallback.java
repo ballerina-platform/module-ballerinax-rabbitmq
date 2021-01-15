@@ -22,7 +22,9 @@ import com.rabbitmq.client.Channel;
 import io.ballerina.runtime.api.async.Callback;
 import org.ballerinalang.messaging.rabbitmq.observability.RabbitMQMetricsUtil;
 import org.ballerinalang.messaging.rabbitmq.observability.RabbitMQObservabilityConstants;
+import org.ballerinalang.messaging.rabbitmq.util.MessageUtils;
 
+import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -35,6 +37,8 @@ public class RabbitMQResourceCallback implements Callback {
     private Channel channel;
     private String queueName;
     private int size;
+    private String replyTo = null;
+    private String exchange = null;
 
     RabbitMQResourceCallback(CountDownLatch countDownLatch, Channel channel, String queueName, int size) {
         this.countDownLatch = countDownLatch;
@@ -43,8 +47,26 @@ public class RabbitMQResourceCallback implements Callback {
         this.size = size;
     }
 
+    RabbitMQResourceCallback(CountDownLatch countDownLatch, Channel channel, String queueName, int size,
+                             String replyTo, String exchange) {
+        this.countDownLatch = countDownLatch;
+        this.channel = channel;
+        this.queueName = queueName;
+        this.size = size;
+        this.replyTo = replyTo;
+        this.exchange = exchange;
+
+    }
+
     @Override
     public void notifySuccess(Object obj) {
+        if (replyTo != null) {
+            try {
+                channel.basicPublish(exchange, replyTo, null, MessageUtils.convertDataIntoByteArray(obj));
+            } catch (IOException e) {
+                throw RabbitMQUtils.returnErrorValue("error occurred while replying to the message");
+            }
+        }
         RabbitMQMetricsUtil.reportConsume(channel, queueName, size,
                                           RabbitMQObservabilityConstants.CONSUME_TYPE_SERVICE);
         countDownLatch.countDown();

@@ -21,11 +21,14 @@ package org.ballerinalang.messaging.rabbitmq.util;
 import com.rabbitmq.client.AlreadyClosedException;
 import com.rabbitmq.client.Channel;
 import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.utils.XmlUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.transactions.TransactionResourceManager;
 import org.ballerinalang.messaging.rabbitmq.RabbitMQConstants;
 import org.ballerinalang.messaging.rabbitmq.RabbitMQUtils;
@@ -154,6 +157,15 @@ public class MessageUtils {
             RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_GET_MSG_CONTENT);
             return RabbitMQUtils.returnErrorValue(RabbitMQConstants.XML_CONTENT_ERROR
                     + exception.getMessage());
+        }
+    }
+
+    public static byte[] convertDataIntoByteArray(Object data) {
+        int typeTag = TypeUtils.getType(data).getTag();
+        if (typeTag == TypeTags.STRING_TAG) {
+            return ((BString) data).getValue().getBytes(StandardCharsets.UTF_8);
+        } else {
+            return ((BArray) data).getBytes();
         }
     }
 
