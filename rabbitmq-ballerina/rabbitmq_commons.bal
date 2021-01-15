@@ -90,7 +90,7 @@ public type ConnectionConfig record {|
     int handshakeTimeoutMillis?;
     int shutdownTimeoutInMillis?;
     int heartbeatInSeconds?;
-    SecureSocket? secureSocket = ();
+    SecureSocket secureSocket?;
     Credentials auth?;
 |};
 
@@ -115,8 +115,8 @@ public type QosSettings record {|
 # + tlsVersion - TLS version
 # + verifyHostname - True if hostname verification should be enabled
 public type SecureSocket record {|
-    crypto:TrustStore? trustStore = ();
-    crypto:KeyStore? keyStore = ();
+    crypto:TrustStore trustStore;
+    crypto:KeyStore keyStore?;
     string tlsVersion = "TLS";
     boolean verifyHostname = true;
 |};
