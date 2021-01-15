@@ -65,15 +65,12 @@ public function testClient() {
     dependsOn: ["testClient"],
     groups: ["rabbitmq"]
 }
-public function testProducer() {
+public function testProducer() returns error? {
     Client? channelObj = rabbitmqChannel;
     if (channelObj is Client) {
         string message = "Hello from Ballerina";
-        Error? producerResult = channelObj->publishMessage({ content: message.toBytes(), routingKey: QUEUE });
-        if (producerResult is Error) {
-            test:assertFail("Producing a message to the broker caused an error.");
-        }
-        checkpanic channelObj->queuePurge(QUEUE);
+        check channelObj->publishMessage({ content: message.toBytes(), routingKey: QUEUE });
+        check channelObj->queuePurge(QUEUE);
     }
 }
 
@@ -93,22 +90,14 @@ public function testListener() {
     dependsOn: ["testProducer"],
     groups: ["rabbitmq"]
 }
-public function testSyncConsumer() {
+public function testSyncConsumer() returns error? {
     string message = "Testing Sync Consumer";
     produceMessage(message, QUEUE);
     Client? channelObj = rabbitmqChannel;
     if (channelObj is Client) {
-        Message|Error getResult = channelObj->consumeMessage(QUEUE);
-        if (getResult is Error) {
-            test:assertFail("Pulling a message from the broker caused an error.");
-        } else {
-            string|error messageContent = 'string:fromBytes(getResult.content);
-            if (messageContent is string) {
-                test:assertEquals(messageContent, message, msg = "Message received does not match.");
-            } else {
-                test:assertFail("Pulling a message from the broker caused an error.");
-            }
-        }
+        Message getResult = check channelObj->consumeMessage(QUEUE);
+        string messageContent = check 'string:fromBytes(getResult.content);
+        test:assertEquals(messageContent, message, msg = "Message received does not match.");
     }
 }
 

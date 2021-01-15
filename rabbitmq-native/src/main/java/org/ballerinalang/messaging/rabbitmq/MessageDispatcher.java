@@ -87,7 +87,7 @@ public class MessageDispatcher {
         if (service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue()) != null) {
             return (String) service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue());
         } else {
-            BMap serviceConfig = (BMap) ((AnnotatableType) service.getType())
+            BMap<BString, Object> serviceConfig = (BMap<BString, Object>) ((AnnotatableType) service.getType())
                     .getAnnotation(StringUtils.fromString(ModuleUtils.getModule().getOrg() + ORG_NAME_SEPARATOR
                                                                   + ModuleUtils.getModule().getName() +
                                                                   VERSION_SEPARATOR
