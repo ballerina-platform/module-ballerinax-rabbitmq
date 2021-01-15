@@ -62,7 +62,7 @@ public function testClient() {
 }
 
 @test:Config {
-    dependsOn: ["testClient"],
+    dependsOn: [testClient],
     groups: ["rabbitmq"]
 }
 public function testProducer() returns error? {
@@ -87,7 +87,7 @@ public function testListener() {
 }
 
 @test:Config {
-    dependsOn: ["testProducer"],
+    dependsOn: [testProducer],
     groups: ["rabbitmq"]
 }
 public function testSyncConsumer() returns error? {
@@ -102,7 +102,7 @@ public function testSyncConsumer() returns error? {
 }
 
 @test:Config {
-    dependsOn: ["testListener", "testSyncConsumer"],
+    dependsOn: [testListener, testSyncConsumer],
     groups: ["rabbitmq"]
 }
 public function testAsyncConsumer() {
@@ -119,7 +119,7 @@ public function testAsyncConsumer() {
 }
 
 @test:Config {
-    dependsOn: ["testListener", "testAsyncConsumer"],
+    dependsOn: [testListener, testAsyncConsumer],
     groups: ["rabbitmq"]
 }
 public function testAcknowledgements() {
@@ -133,7 +133,7 @@ public function testAcknowledgements() {
 }
 
 @test:Config {
-    dependsOn: ["testAsyncConsumer", "testAcknowledgements"],
+    dependsOn: [testAsyncConsumer, testAcknowledgements],
     groups: ["rabbitmq"]
 }
 public function testOnRequest() {
