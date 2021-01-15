@@ -86,7 +86,7 @@ public class RabbitMQConstants {
     public static final BString RABBITMQ_CONNECTION_KEYSTORE = StringUtils.fromString("keyStore");
     public static final BString RABBITMQ_CONNECTION_TRUSTORE = StringUtils.fromString("trustStore");
     public static final BString RABBITMQ_CONNECTION_VERIFY_HOST = StringUtils.fromString("verifyHostname");
-    public static final BString RABBITMQ_CONNECTION_TLS_VERSION = StringUtils.fromString("tlsVersion");
+    public static final BString RABBITMQ_CONNECTION_SECURE_SOCKET_PROTOCOL = StringUtils.fromString("protocol");
     public static final String KEY_STORE_TYPE = "PKCS12";
     public static final BString KEY_STORE_PASS = StringUtils.fromString("password");
     public static final BString KEY_STORE_PATH = StringUtils.fromString("path");
