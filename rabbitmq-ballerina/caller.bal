@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/java;
+import ballerina/jballerina.java;
 
 # Provides the functionality to manipulate the messages received by the consumer services.
 public client class Caller {
