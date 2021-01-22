@@ -3,21 +3,6 @@ org = "ballerinax"
 name = "rabbitmq"
 version = "@toml.version@"
 
-[[dependency]]
-org = "ballerina"
-name = "log"
-version = "@stdlib.log.version@"
-
-[[dependency]]
-org = "ballerina"
-name = "crypto"
-version = "@stdlib.crypto.version@"
-
-[[dependency]]
-org = "ballerina"
-name = "uuid"
-version = "@stdlib.uuid.version@"
-
 [[platform.java11.dependency]]
 path = "./lib/amqp-client-@amqp.client.version@.jar"
 groupId = "com.rabbitmq"
