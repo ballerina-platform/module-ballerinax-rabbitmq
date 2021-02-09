@@ -225,13 +225,13 @@ task ballerinaBuild {
 
     def testParams = "--skip-tests"
     gradle.taskGraph.whenReady { graph ->
-        if (graph.hasTask(':rabbitmq-ballerina:build') || graph.hasTask(':rabbitmq-ballerina:publish')) {
+        if (graph.hasTask(':${packageName}-ballerina:build') || graph.hasTask(':${packageName}-ballerina:publish')) {
             ballerinaTest.enabled = false
         }
-        if (graph.hasTask(':rabbitmq-ballerina:test')) {
+        if (graph.hasTask(':${packageName}-ballerina:test')) {
             testParams = "--code-coverage --includes=*"
         }
-        if (graph.hasTask(':rabbitmq-ballerina:publish')) {
+        if (graph.hasTask(':${packageName}-ballerina:publish')) {
             ballerinaPublish.enabled = true
         } else {
             ballerinaPublish.enabled = false
