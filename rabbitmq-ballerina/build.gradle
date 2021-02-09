@@ -231,6 +231,11 @@ task ballerinaBuild {
         if (graph.hasTask(':rabbitmq-ballerina:test')) {
             testParams = "--code-coverage --includes=*"
         }
+        if (graph.hasTask(':rabbitmq-ballerina:publish')) {
+            ballerinaPublish.enabled = true
+        } else {
+            ballerinaPublish.enabled = false
+        }
     }
 
     doLast {
@@ -256,19 +261,6 @@ task ballerinaBuild {
             into file("$artifactCacheParent/cache/")
         }
 
-        // Publish to central
-        if (!project.version.endsWith('-SNAPSHOT') && ballerinaCentralAccessToken != null && project.hasProperty("publishToCentral")) {
-            println("Publishing to the ballerina central..")
-            exec {
-                workingDir project.projectDir
-                environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
-                if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                    commandLine 'cmd', '/c', "$distributionBinPath/bal.bat push && exit %%ERRORLEVEL%%"
-                } else {
-                    commandLine 'sh', '-c', "$distributionBinPath/bal push"
-                }
-            }
-        }
         // Doc creation and packing
         exec {
             workingDir project.projectDir
@@ -315,6 +307,24 @@ publishing {
     }
 }
 
+task ballerinaPublish {
+    // Pushing module to Ballerina central
+    doLast {
+        if (ballerinaCentralAccessToken != null) {
+            println("Publishing to the ballerina central...")
+            exec {
+                workingDir project.projectDir
+                environment "JAVA_OPTS", "-DBALLERINA_DEV_COMPILE_BALLERINA_ORG=true"
+                if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                    commandLine 'cmd', '/c', "$distributionBinPath/bal.bat push && exit %%ERRORLEVEL%%"
+                } else {
+                    commandLine 'sh', '-c', "$distributionBinPath/bal push"
+                }
+            }
+        }
+    }
+}
+
 unpackJballerinaTools.dependsOn copyToLib
 unpackStdLibs.dependsOn unpackJballerinaTools
 copyStdlibs.dependsOn unpackStdLibs
@@ -326,3 +336,5 @@ ballerinaBuild.finalizedBy stopRabbitmqServer
 ballerinaTest.dependsOn startRabbitmqServer
 ballerinaTest.finalizedBy stopRabbitmqServer
 build.dependsOn ballerinaBuild
+ballerinaPublish.dependsOn ballerinaBuild
+publish.dependsOn ballerinaPublish
