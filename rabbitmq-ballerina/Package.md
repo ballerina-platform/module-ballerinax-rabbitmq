@@ -1,8 +1,8 @@
-## Module Overview
+## Package Overview
 
-This module contains the functionality to support messaging with the RabbitMQ broker (AMQP 0-9-1). It assumes that the most recent version of Ballerina is used and is built on top of the basics.
+This package contains the functionality to support messaging with the RabbitMQ broker (AMQP 0-9-1). It assumes that the most recent version of Ballerina is used and is built on top of the basics.
 
-[RabbitMQ](https://www.rabbitmq.com/) is one of the most popular open-source enterprise messaging systems modelled on the Advanced Message Queuing Protocol (AMQP) standard. This guide covers the Ballerina RabbitMQ module and its public API. 
+[RabbitMQ](https://www.rabbitmq.com/) is one of the most popular open-source enterprise messaging systems modelled on the Advanced Message Queuing Protocol (AMQP) standard. This guide covers the Ballerina RabbitMQ package and its public API. 
  
 Key sections include: 
 - Connecting to RabbitMQ
@@ -130,10 +130,10 @@ The negatively-acknowledged (rejected) messages can be re-queued.
 
 >**Note:** The default thread pool size used in Ballerina is the number of processors available * 2. You can configure the thread pool size by using the `BALLERINA_MAX_POOL_SIZE` environment variable.
 
-For information on the operations, which you can perform with this module, see the below **Functions**. 
+For information on the operations, which you can perform with this package, see the below **Functions**. 
 
 For examples on the usage of the connector, see the following.
-* [Producer Example](https://ballerina.io/swan-lake/learn/by-example/rabbitmq-producer.html).
-* [Consumer Example](https://ballerina.io/swan-lake/learn/by-example/rabbitmq-consumer.html)
-* [Client Acknowledgements Example](https://ballerina.io/swan-lake/learn/by-example/rabbitmq-consumer-with-client-acknowledgement.html)
-* [QoS Settings Example](https://ballerina.io/swan-lake/learn/by-example/rabbitmq-consumer-with-qos-settings.html)
+* [Producer Example](https://ballerina.io/learn/by-example/rabbitmq-producer.html).
+* [Consumer Example](https://ballerina.io/learn/by-example/rabbitmq-consumer.html)
+* [Client Acknowledgements Example](https://ballerina.io/learn/by-example/rabbitmq-consumer-with-client-acknowledgement.html)
+* [QoS Settings Example](https://ballerina.io/learn/by-example/rabbitmq-consumer-with-qos-settings.html)
