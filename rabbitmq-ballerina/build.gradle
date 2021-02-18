@@ -146,8 +146,12 @@ task initializeVariables {
     }
 
     gradle.taskGraph.whenReady { graph ->
-        if (graph.hasTask(":${packageName}-ballerina:build") || graph.hasTask(":${packageName}-ballerina:publish")) {
+        if (graph.hasTask(":${packageName}-ballerina:build") ||
+                graph.hasTask(":${packageName}-ballerina:publish") ||
+                graph.hasTask(":${packageName}-ballerina:publishToMavenLocal")) {
             ballerinaTest.enabled = false
+        } else {
+            ballerinaTest.enabled = true
         }
 
         if (graph.hasTask(":${packageName}-ballerina:test")) {
@@ -165,10 +169,6 @@ task initializeVariables {
 }
 
 task ballerinaTest {
-    dependsOn(copyStdlibs)
-    dependsOn(":rabbitmq-native:build")
-    dependsOn(updateTomlVersions)
-    finalizedBy(revertTomlFile)
 
     doLast {
         exec {
@@ -184,10 +184,6 @@ task ballerinaTest {
             }
         }
     }
-}
-
-test {
-    dependsOn(ballerinaTest)
 }
 
 task startRabbitmqServer() {
@@ -237,10 +233,7 @@ task stopRabbitmqServer() {
 }
 
 task ballerinaBuild {
-    dependsOn(":rabbitmq-native:build")
-    dependsOn(initializeVariables)
     inputs.dir file(project.projectDir)
-    finalizedBy(revertTomlFile)
 
     doLast {
         // Build and populate caches
@@ -332,12 +325,27 @@ unpackJballerinaTools.dependsOn copyToLib
 unpackStdLibs.dependsOn unpackJballerinaTools
 copyStdlibs.dependsOn unpackStdLibs
 updateTomlVersions.dependsOn copyStdlibs
-ballerinaBuild.dependsOn updateTomlVersions
-ballerinaBuild.dependsOn test
-ballerinaBuild.dependsOn startRabbitmqServer
-ballerinaBuild.finalizedBy stopRabbitmqServer
+
 ballerinaTest.dependsOn startRabbitmqServer
+ballerinaTest.dependsOn ":${packageName}-native:build"
+ballerinaTest.dependsOn updateTomlVersions
+ballerinaTest.dependsOn initializeVariables
 ballerinaTest.finalizedBy stopRabbitmqServer
+ballerinaTest.finalizedBy revertTomlFile
+test.dependsOn ballerinaTest
+
+ballerinaBuild.dependsOn updateTomlVersions
+ballerinaBuild.dependsOn ":${packageName}-native:build"
+ballerinaBuild.dependsOn initializeVariables
+ballerinaBuild.dependsOn startRabbitmqServer
+ballerinaBuild.finalizedBy revertTomlFile
+ballerinaBuild.finalizedBy stopRabbitmqServer
+ballerinaBuild.dependsOn test
 build.dependsOn ballerinaBuild
+
 ballerinaPublish.dependsOn ballerinaBuild
+ballerinaPublish.dependsOn updateTomlVersions
+ballerinaPublish.dependsOn initializeVariables
+ballerinaPublish.dependsOn ":${packageName}-native:build"
+ballerinaPublish.finalizedBy revertTomlFile
 publish.dependsOn ballerinaPublish
