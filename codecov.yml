@@ -2,7 +2,7 @@ codecov:
   require_ci_to_pass: no
 
 fixes:
-  - "ballerina/websocket/*/::websocket-ballerina/"
+  - "ballerina/rabbitmq/*/::rabbitmq-ballerina/"
 
 ignore:
   - "**/tests"
