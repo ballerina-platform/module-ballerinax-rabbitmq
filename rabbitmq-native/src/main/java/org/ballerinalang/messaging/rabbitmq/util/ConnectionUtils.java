@@ -21,6 +21,7 @@ package org.ballerinalang.messaging.rabbitmq.util;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.impl.DefaultCredentialsProvider;
+import io.ballerina.runtime.api.values.BDecimal;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import org.ballerinalang.messaging.rabbitmq.RabbitMQConstants;
@@ -91,19 +92,19 @@ public class ConnectionUtils {
             }
             Object timeout = connectionConfig.get(RabbitMQConstants.RABBITMQ_CONNECTION_TIMEOUT);
             if (timeout != null) {
-                connectionFactory.setConnectionTimeout(Integer.parseInt(timeout.toString()));
+                connectionFactory.setConnectionTimeout((int) ((BDecimal) timeout).intValue());
             }
             Object handshakeTimeout = connectionConfig.get(RabbitMQConstants.RABBITMQ_CONNECTION_HANDSHAKE_TIMEOUT);
             if (handshakeTimeout != null) {
-                connectionFactory.setHandshakeTimeout(Integer.parseInt(handshakeTimeout.toString()));
+                connectionFactory.setHandshakeTimeout((int) ((BDecimal) handshakeTimeout).intValue());
             }
             Object shutdownTimeout = connectionConfig.get(RabbitMQConstants.RABBITMQ_CONNECTION_SHUTDOWN_TIMEOUT);
             if (shutdownTimeout != null) {
-                connectionFactory.setShutdownTimeout(Integer.parseInt(shutdownTimeout.toString()));
+                connectionFactory.setShutdownTimeout((int) ((BDecimal) shutdownTimeout).intValue());
             }
             Object connectionHeartBeat = connectionConfig.get(RabbitMQConstants.RABBITMQ_CONNECTION_HEARTBEAT);
             if (connectionHeartBeat != null) {
-                connectionFactory.setRequestedHeartbeat(Integer.parseInt(connectionHeartBeat.toString()));
+                connectionFactory.setRequestedHeartbeat((int) ((BDecimal) connectionHeartBeat).intValue());
             }
             BMap<BString, Object> authConfig = (BMap<BString, Object>) connectionConfig.getMapValue(
                     RabbitMQConstants.AUTH_CONFIG);

@@ -76,12 +76,12 @@ public class RabbitMQConstants {
     public static final BString RABBITMQ_CONNECTION_PORT = StringUtils.fromString("port");
     public static final BString RABBITMQ_CONNECTION_USER = StringUtils.fromString("username");
     public static final BString RABBITMQ_CONNECTION_PASS = StringUtils.fromString("password");
-    public static final BString RABBITMQ_CONNECTION_TIMEOUT = StringUtils.fromString("connectionTimeoutInMillis");
+    public static final BString RABBITMQ_CONNECTION_TIMEOUT = StringUtils.fromString("connectionTimeout");
     public static final BString RABBITMQ_CONNECTION_HANDSHAKE_TIMEOUT = StringUtils.fromString(
-            "handshakeTimeoutMillis");
+            "handshakeTimeout");
     public static final BString RABBITMQ_CONNECTION_SHUTDOWN_TIMEOUT = StringUtils.fromString(
-            "shutdownTimeoutInMillis");
-    public static final BString RABBITMQ_CONNECTION_HEARTBEAT = StringUtils.fromString("heartbeatInSeconds");
+            "shutdownTimeout");
+    public static final BString RABBITMQ_CONNECTION_HEARTBEAT = StringUtils.fromString("heartbeat");
     public static final BString RABBITMQ_CONNECTION_SECURE_SOCKET = StringUtils.fromString("secureSocket");
     public static final BString RABBITMQ_CONNECTION_KEYSTORE = StringUtils.fromString("keyStore");
     public static final BString RABBITMQ_CONNECTION_TRUSTORE = StringUtils.fromString("trustStore");
