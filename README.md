@@ -4,6 +4,7 @@ Ballerina RabbitMQ Library
 [![Build](https://github.com/ballerina-platform/module-ballerinax-rabbitmq/workflows/Build/badge.svg)](https://github.com/ballerina-platform/module-ballerinax-rabbitmq/actions?query=workflow%3ABuild)
 [![GitHub Last Commit](https://img.shields.io/github/last-commit/ballerina-platform/module-ballerinax-rabbitmq.svg)](https://github.com/ballerina-platform/module-ballerinax-rabbitmq/commits/master)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![codecov](https://codecov.io/gh/ballerina-platform/module-ballerinax-rabbitmq/branch/master/graph/badge.svg)](https://codecov.io/gh/ballerina-platform/module-ballerinax-rabbitmq)
 
 The RabbitMQ library is one of the standard library modules of the<a target="_blank" href="https://ballerina.io/"> 
 Ballerina</a> language.
