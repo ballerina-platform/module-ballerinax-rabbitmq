@@ -15,7 +15,4 @@
 // under the License.
 
 # Represents the RabbitMQ module related errors.
-public type RabbitMqError distinct error;
-
-# The union of the RabbitMQ module related errors.
-public type Error RabbitMqError;
+public type Error distinct error;

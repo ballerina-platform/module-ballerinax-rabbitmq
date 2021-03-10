@@ -21,6 +21,7 @@ package org.ballerinalang.messaging.rabbitmq.util;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.impl.DefaultCredentialsProvider;
+import io.ballerina.runtime.api.values.BDecimal;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
 import org.ballerinalang.messaging.rabbitmq.RabbitMQConstants;
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -52,6 +54,7 @@ import javax.net.ssl.TrustManagerFactory;
  */
 public class ConnectionUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionUtils.class);
+    private static final BigDecimal MILLISECOND_MULTIPLIER = new BigDecimal(1000);
 
     /**
      * Creates a RabbitMQ Connection using the given connection parameters.
@@ -91,19 +94,20 @@ public class ConnectionUtils {
             }
             Object timeout = connectionConfig.get(RabbitMQConstants.RABBITMQ_CONNECTION_TIMEOUT);
             if (timeout != null) {
-                connectionFactory.setConnectionTimeout(Integer.parseInt(timeout.toString()));
+                connectionFactory.setConnectionTimeout(getTimeValuesInMillis((BDecimal) timeout));
             }
             Object handshakeTimeout = connectionConfig.get(RabbitMQConstants.RABBITMQ_CONNECTION_HANDSHAKE_TIMEOUT);
             if (handshakeTimeout != null) {
-                connectionFactory.setHandshakeTimeout(Integer.parseInt(handshakeTimeout.toString()));
+                connectionFactory.setHandshakeTimeout(getTimeValuesInMillis((BDecimal) handshakeTimeout));
             }
             Object shutdownTimeout = connectionConfig.get(RabbitMQConstants.RABBITMQ_CONNECTION_SHUTDOWN_TIMEOUT);
             if (shutdownTimeout != null) {
-                connectionFactory.setShutdownTimeout(Integer.parseInt(shutdownTimeout.toString()));
+                connectionFactory.setShutdownTimeout(getTimeValuesInMillis((BDecimal) shutdownTimeout));
             }
             Object connectionHeartBeat = connectionConfig.get(RabbitMQConstants.RABBITMQ_CONNECTION_HEARTBEAT);
             if (connectionHeartBeat != null) {
-                connectionFactory.setRequestedHeartbeat(Integer.parseInt(connectionHeartBeat.toString()));
+                // Set in seconds.
+                connectionFactory.setRequestedHeartbeat((int) ((BDecimal) connectionHeartBeat).intValue());
             }
             BMap<BString, Object> authConfig = (BMap<BString, Object>) connectionConfig.getMapValue(
                     RabbitMQConstants.AUTH_CONFIG);
@@ -120,6 +124,11 @@ public class ConnectionUtils {
             throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.CREATE_CONNECTION_ERROR
                     + exception.getMessage());
         }
+    }
+
+    private static int getTimeValuesInMillis(BDecimal value) {
+        BigDecimal valueInSeconds = value.decimalValue();
+        return (valueInSeconds.multiply(MILLISECOND_MULTIPLIER)).intValue();
     }
 
     private static SSLContext getSSLContext(BMap secureSocket) {
