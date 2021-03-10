@@ -32,7 +32,7 @@ string REPLYTO = "replyHere";
 
 @test:BeforeSuite
 function setup() {
-    log:print("Creating a ballerina RabbitMQ channel.");
+    log:printInfo("Creating a ballerina RabbitMQ channel.");
     Client newClient = checkpanic new;
     rabbitmqChannel = newClient;
     Client? clientObj = rabbitmqChannel;
@@ -157,9 +157,9 @@ service object {
         string|error messageContent = 'string:fromBytes(message.content);
         if (messageContent is string) {
             asyncConsumerMessage = <@untainted> messageContent;
-            log:print("The message received: " + messageContent);
+            log:printInfo("The message received: " + messageContent);
         } else {
-            log:printError("Error occurred while retrieving the message content.", err = messageContent);
+            log:printError("Error occurred while retrieving the message content.", 'error = messageContent);
         }
     }
 
@@ -167,9 +167,9 @@ service object {
         string|error messageContent = 'string:fromBytes(message.content);
         if (messageContent is string) {
             asyncConsumerMessage = <@untainted> messageContent;
-            log:print("The message received in onRequest: " + messageContent);
+            log:printInfo("The message received in onRequest: " + messageContent);
         } else {
-            log:printError("Error occurred while retrieving the message content.", err = messageContent);
+            log:printError("Error occurred while retrieving the message content.", 'error = messageContent);
         }
         return "Hello Back!!";
     }
@@ -195,9 +195,9 @@ service object {
         string|error messageContent = 'string:fromBytes(message.content);
         if (messageContent is string) {
             replyMessage = <@untainted> messageContent;
-            log:print("The reply message received: " + messageContent);
+            log:printInfo("The reply message received: " + messageContent);
         } else {
-            log:printError("Error occurred while retrieving the message content.", err = messageContent);
+            log:printError("Error occurred while retrieving the message content.", 'error = messageContent);
         }
     }
 };
