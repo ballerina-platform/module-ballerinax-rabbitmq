@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -92,18 +93,19 @@ public class ConnectionUtils {
             }
             Object timeout = connectionConfig.get(RabbitMQConstants.RABBITMQ_CONNECTION_TIMEOUT);
             if (timeout != null) {
-                connectionFactory.setConnectionTimeout((int) ((BDecimal) timeout).intValue());
+                connectionFactory.setConnectionTimeout(getTimeValuesInMillis((BDecimal) timeout));
             }
             Object handshakeTimeout = connectionConfig.get(RabbitMQConstants.RABBITMQ_CONNECTION_HANDSHAKE_TIMEOUT);
             if (handshakeTimeout != null) {
-                connectionFactory.setHandshakeTimeout((int) ((BDecimal) handshakeTimeout).intValue());
+                connectionFactory.setHandshakeTimeout(getTimeValuesInMillis((BDecimal) handshakeTimeout));
             }
             Object shutdownTimeout = connectionConfig.get(RabbitMQConstants.RABBITMQ_CONNECTION_SHUTDOWN_TIMEOUT);
             if (shutdownTimeout != null) {
-                connectionFactory.setShutdownTimeout((int) ((BDecimal) shutdownTimeout).intValue());
+                connectionFactory.setShutdownTimeout(getTimeValuesInMillis((BDecimal) shutdownTimeout));
             }
             Object connectionHeartBeat = connectionConfig.get(RabbitMQConstants.RABBITMQ_CONNECTION_HEARTBEAT);
             if (connectionHeartBeat != null) {
+                // Set in seconds.
                 connectionFactory.setRequestedHeartbeat((int) ((BDecimal) connectionHeartBeat).intValue());
             }
             BMap<BString, Object> authConfig = (BMap<BString, Object>) connectionConfig.getMapValue(
@@ -121,6 +123,11 @@ public class ConnectionUtils {
             throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.CREATE_CONNECTION_ERROR
                     + exception.getMessage());
         }
+    }
+
+    private static int getTimeValuesInMillis(BDecimal value) {
+        BigDecimal valueInSeconds = value.decimalValue();
+        return (valueInSeconds.multiply(new BigDecimal(1000))).intValue();
     }
 
     private static SSLContext getSSLContext(BMap secureSocket) {
