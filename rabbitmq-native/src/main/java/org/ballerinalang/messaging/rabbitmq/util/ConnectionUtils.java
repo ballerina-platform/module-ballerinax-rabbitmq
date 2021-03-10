@@ -190,7 +190,7 @@ public class ConnectionUtils {
                 sslContext = SSLContext.getDefault();
             }
             sslContext.init(keyManagerFactory != null ? keyManagerFactory.getKeyManagers() : null,
-                            trustManagerFactory.getTrustManagers(), null);
+                            trustManagerFactory.getTrustManagers(), new SecureRandom());
             return sslContext;
         } catch (FileNotFoundException exception) {
             throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.CREATE_SECURE_CONNECTION_ERROR +
