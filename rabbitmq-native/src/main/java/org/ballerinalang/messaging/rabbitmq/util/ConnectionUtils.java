@@ -54,6 +54,7 @@ import javax.net.ssl.TrustManagerFactory;
  */
 public class ConnectionUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionUtils.class);
+    private static final BigDecimal MILLISECOND_MULTIPLIER = new BigDecimal(1000);
 
     /**
      * Creates a RabbitMQ Connection using the given connection parameters.
@@ -127,7 +128,7 @@ public class ConnectionUtils {
 
     private static int getTimeValuesInMillis(BDecimal value) {
         BigDecimal valueInSeconds = value.decimalValue();
-        return (valueInSeconds.multiply(new BigDecimal(1000))).intValue();
+        return (valueInSeconds.multiply(MILLISECOND_MULTIPLIER)).intValue();
     }
 
     private static SSLContext getSSLContext(BMap secureSocket) {
