@@ -83,10 +83,11 @@ public class RabbitMQConstants {
             "shutdownTimeout");
     public static final BString RABBITMQ_CONNECTION_HEARTBEAT = StringUtils.fromString("heartbeat");
     public static final BString RABBITMQ_CONNECTION_SECURE_SOCKET = StringUtils.fromString("secureSocket");
-    public static final BString RABBITMQ_CONNECTION_KEYSTORE = StringUtils.fromString("keyStore");
-    public static final BString RABBITMQ_CONNECTION_TRUSTORE = StringUtils.fromString("trustStore");
-    public static final BString RABBITMQ_CONNECTION_VERIFY_HOST = StringUtils.fromString("verifyHostname");
-    public static final BString RABBITMQ_CONNECTION_SECURE_SOCKET_PROTOCOL = StringUtils.fromString("protocol");
+    public static final BString CONNECTION_KEYSTORE = StringUtils.fromString("key");
+    public static final BString CONNECTION_TRUSTORE = StringUtils.fromString("cert");
+    public static final BString CONNECTION_VERIFY_HOST = StringUtils.fromString("verifyHostName");
+    public static final BString CONNECTION_PROTOCOL = StringUtils.fromString("protocol");
+    public static final BString CONNECTION_PROTOCOL_NAME = StringUtils.fromString("name");
     public static final String KEY_STORE_TYPE = "PKCS12";
     public static final BString KEY_STORE_PASS = StringUtils.fromString("password");
     public static final BString KEY_STORE_PATH = StringUtils.fromString("path");
