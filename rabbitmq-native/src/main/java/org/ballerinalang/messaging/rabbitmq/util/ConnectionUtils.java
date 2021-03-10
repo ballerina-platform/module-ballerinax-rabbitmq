@@ -179,22 +179,16 @@ public class ConnectionUtils {
 
 
             // protocol
-            String protocol = null;
+            SSLContext sslContext;
             if (secureSocket.containsKey(RabbitMQConstants.CONNECTION_PROTOCOL)) {
                 @SuppressWarnings("unchecked")
                 BMap<BString, Object> protocolRecord =
                         (BMap<BString, Object>) secureSocket.getMapValue(RabbitMQConstants.CONNECTION_PROTOCOL);
-                protocol = protocolRecord.getStringValue(RabbitMQConstants.CONNECTION_PROTOCOL_NAME).getValue();
-            }
-
-            // SSL Context
-            SSLContext sslContext;
-            if (protocol == null) {
-                sslContext = SSLContext.getDefault();
-            } else {
+                String protocol = protocolRecord.getStringValue(RabbitMQConstants.CONNECTION_PROTOCOL_NAME).getValue();
                 sslContext = SSLContext.getInstance(protocol);
+            } else {
+                sslContext = SSLContext.getDefault();
             }
-
             sslContext.init(keyManagerFactory != null ? keyManagerFactory.getKeyManagers() : null,
                             trustManagerFactory.getTrustManagers(), null);
             return sslContext;
