@@ -110,16 +110,25 @@ public type QosSettings record {|
 
 # Configurations for facilitating secure connections.
 #
-# + trustStore - Configurations associated with the TrustStore
-# + keyStore - Configurations associated with the KeyStore
-# + protocol - TLS protocol
-# + verifyHostname - True if hostname verification should be enabled
+# + cert - Configurations associated with `crypto:TrustStore`
+# + key - Configurations associated with `crypto:KeyStore`
+# + protocol - SSL/TLS protocol related options
+# + verifyHostName - Enable/disable host name verification
 public type SecureSocket record {|
-    crypto:TrustStore trustStore?;
-    crypto:KeyStore keyStore?;
-    string protocol = "TLS";
-    boolean verifyHostname = true;
+    crypto:TrustStore cert;
+    crypto:KeyStore key?;
+    record {|
+        Protocol name;
+    |} protocol?;
+    boolean verifyHostName = true;
 |};
+
+# Represents protocol options.
+public enum Protocol {
+   SSL,
+   TLS,
+   DTLS
+}
 
 # Configurations related to authentication.
 #

@@ -39,6 +39,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.concurrent.TimeoutException;
@@ -72,7 +73,7 @@ public class ConnectionUtils {
             if (secureSocket != null) {
                 SSLContext sslContext = getSSLContext(secureSocket);
                 connectionFactory.useSslProtocol(sslContext);
-                if (secureSocket.getBooleanValue(RabbitMQConstants.RABBITMQ_CONNECTION_VERIFY_HOST)) {
+                if (secureSocket.getBooleanValue(RabbitMQConstants.CONNECTION_VERIFY_HOST)) {
                     connectionFactory.enableHostnameVerification();
                 }
                 LOGGER.info("TLS enabled for the connection.");
@@ -131,34 +132,39 @@ public class ConnectionUtils {
         return (valueInSeconds.multiply(MILLISECOND_MULTIPLIER)).intValue();
     }
 
-    private static SSLContext getSSLContext(BMap secureSocket) {
+    private static SSLContext getSSLContext(BMap<BString, Object> secureSocket) {
         try {
-            BMap cryptoKeyStore = secureSocket.getMapValue(RabbitMQConstants.RABBITMQ_CONNECTION_KEYSTORE);
-            BMap cryptoTrustStore = secureSocket.getMapValue(RabbitMQConstants.RABBITMQ_CONNECTION_TRUSTORE);
-            char[] keyPassphrase = cryptoKeyStore.getStringValue(RabbitMQConstants.KEY_STORE_PASS).getValue()
-                    .toCharArray();
-            String keyFilePath = cryptoKeyStore.getStringValue(RabbitMQConstants.KEY_STORE_PATH).getValue();
+            // keystore
+            KeyManagerFactory keyManagerFactory = null;
+            if (secureSocket.containsKey(RabbitMQConstants.CONNECTION_KEYSTORE)) {
+                @SuppressWarnings("unchecked")
+                BMap<BString, Object> cryptoKeyStore =
+                        (BMap<BString, Object>) secureSocket.getMapValue(RabbitMQConstants.CONNECTION_KEYSTORE);
+                char[] keyPassphrase = cryptoKeyStore.getStringValue(RabbitMQConstants.KEY_STORE_PASS).getValue()
+                        .toCharArray();
+                String keyFilePath = cryptoKeyStore.getStringValue(RabbitMQConstants.KEY_STORE_PATH).getValue();
+                KeyStore keyStore = KeyStore.getInstance(RabbitMQConstants.KEY_STORE_TYPE);
+                if (keyFilePath != null) {
+                    try (FileInputStream keyFileInputStream = new FileInputStream(keyFilePath)) {
+                        keyStore.load(keyFileInputStream, keyPassphrase);
+                    }
+                } else {
+                    RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_CONNECTION);
+                    throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.CREATE_SECURE_CONNECTION_ERROR +
+                                                                 "Path for the keystore is not found.");
+                }
+                keyManagerFactory =
+                        KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+                keyManagerFactory.init(keyStore, keyPassphrase);
+            }
+
+            // truststore
+            @SuppressWarnings("unchecked")
+            BMap<BString, Object> cryptoTrustStore =
+                    (BMap<BString, Object>) secureSocket.getMapValue(RabbitMQConstants.CONNECTION_TRUSTORE);
             char[] trustPassphrase = cryptoTrustStore.getStringValue(RabbitMQConstants.KEY_STORE_PASS).getValue()
                     .toCharArray();
             String trustFilePath = cryptoTrustStore.getStringValue(RabbitMQConstants.KEY_STORE_PATH).getValue();
-            String protocol =
-                    secureSocket.getStringValue(RabbitMQConstants.RABBITMQ_CONNECTION_SECURE_SOCKET_PROTOCOL)
-                            .getValue();
-
-            KeyStore keyStore = KeyStore.getInstance(RabbitMQConstants.KEY_STORE_TYPE);
-            if (keyFilePath != null) {
-                try (FileInputStream keyFileInputStream = new FileInputStream(keyFilePath)) {
-                    keyStore.load(keyFileInputStream, keyPassphrase);
-                }
-            } else {
-                RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_CONNECTION);
-                throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.CREATE_SECURE_CONNECTION_ERROR +
-                                                             "Path for the keystore is not found.");
-            }
-            KeyManagerFactory keyManagerFactory =
-                    KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-            keyManagerFactory.init(keyStore, keyPassphrase);
-
             KeyStore trustStore = KeyStore.getInstance(RabbitMQConstants.KEY_STORE_TYPE);
             if (trustFilePath != null) {
                 try (FileInputStream trustFileInputStream = new FileInputStream(trustFilePath)) {
@@ -172,8 +178,20 @@ public class ConnectionUtils {
                     TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
             trustManagerFactory.init(trustStore);
 
-            SSLContext sslContext = SSLContext.getInstance(protocol);
-            sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
+
+            // protocol
+            SSLContext sslContext;
+            if (secureSocket.containsKey(RabbitMQConstants.CONNECTION_PROTOCOL)) {
+                @SuppressWarnings("unchecked")
+                BMap<BString, Object> protocolRecord =
+                        (BMap<BString, Object>) secureSocket.getMapValue(RabbitMQConstants.CONNECTION_PROTOCOL);
+                String protocol = protocolRecord.getStringValue(RabbitMQConstants.CONNECTION_PROTOCOL_NAME).getValue();
+                sslContext = SSLContext.getInstance(protocol);
+            } else {
+                sslContext = SSLContext.getDefault();
+            }
+            sslContext.init(keyManagerFactory != null ? keyManagerFactory.getKeyManagers() : null,
+                            trustManagerFactory.getTrustManagers(), new SecureRandom());
             return sslContext;
         } catch (FileNotFoundException exception) {
             throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.CREATE_SECURE_CONNECTION_ERROR +
