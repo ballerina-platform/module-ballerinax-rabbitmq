@@ -81,7 +81,7 @@ public type ExchangeConfig record {|
 # + heartbeat - The initially-requested heartbeat timeout in seconds and zero for none
 # + secureSocket - Configurations for facilitating secure connections
 # + auth - Configurations releated to authentication
-public type ConnectionConfig record {|
+public type ConnectionConfiguration record {|
     string host = "localhost";
     int port = 5672;
     string username?;

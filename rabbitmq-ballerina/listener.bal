@@ -28,7 +28,7 @@ public class Listener {
     #
     # + connectionData - The connection configuration
     # + qosSettings - Consumer prefetch settings
-    public isolated function init(ConnectionConfig connectionData = {},
+    public isolated function init(ConnectionConfiguration connectionData = {},
                                      QosSettings? qosSettings = ()) returns Error? {
         Error? initResult = externInit(self, connectionData);
         if (initResult is Error) {
@@ -94,7 +94,7 @@ public type RabbitMQServiceConfig record {|
 # The annotation, which is used to configure the subscription.
 public annotation RabbitMQServiceConfig ServiceConfig on service, class;
 
-isolated function externInit(Listener lis, ConnectionConfig connectionData) returns Error? =
+isolated function externInit(Listener lis, ConnectionConfiguration connectionData) returns Error? =
 @java:Method {
     name: "init",
     'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
