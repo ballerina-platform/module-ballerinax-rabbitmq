@@ -16,7 +16,7 @@ Key sections include:
 The following code connects to a RabbitMQ node with default host and port: 
 
 ```ballerina
-   rabbitmq:Client newClient = new;
+   rabbitmq:Client newClient = check new(rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
 ```
 
 The `rabbitmq:Client` can now be used to send and receive messages as described in the subsequent sections. 
@@ -37,10 +37,8 @@ Client applications work with exchanges and queues, which are the high-level bui
    rabbitmq:Error? exchangeResult = newClient->exchangeDeclare("MyExchange", 
                                                                 rabbitmq:DIRECT_EXCHANGE);
    
-   string|rabbitmq:Error? queueResult = newClient->queueDeclare("MyQueue");
-   if (queueResult is string) {
-        rabbitmq:Error? bindResult = newClient->queueBind("MyQueue", "MyExchange", "routing-key");
-   }
+   rabbitmq:Error? queueResult = newClient->queueDeclare("MyQueue");
+   rabbitmq:Error? bindResult = newClient->queueBind("MyQueue", "MyExchange", "routing-key");
 ```
 
 This sample code will declare,
@@ -53,10 +51,10 @@ Next, the above function is called to bind the queue to the exchange with the gi
    rabbitmq:Error? exchangeResult = newClient->exchangeDeclare("MyExchange",
                                                         rabbitmq:DIRECT_EXCHANGE);
    
-   string|rabbitmq:Error? queueResult = newClient->queueDeclare("MyQueue", 
-                                                { durable: true,
-                                                  exclusive: false,
-                                                  autoDelete: false });
+   rabbitmq:Error? queueResult = newClient->queueDeclare("MyQueue", 
+                                                        { durable: true,
+                                                          exclusive: false,
+                                                          autoDelete: false });
 
    rabbitmq:Error? bindResult = newClient->queueBind("MyQueue", "MyExchange", "routing-key");
 ```
@@ -105,14 +103,14 @@ The most efficient way to receive messages is to set up a subscription using a B
 Multiple consumer services can be bound to one Ballerina RabbitMQ `rabbitmq:Listener`. The queue to which the service is listening is configured in the `rabbitmq:ServiceConfig` annotation of the service. 
 
 ```ballerina
-listener rabbitmq:Listener channelListener= new;
+listener rabbitmq:Listener channelListener= new(rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
 
 @rabbitmq:ServiceConfig {
     queueName: "MyQueue"
 }
-service rabbitmqConsumer on channelListener {
+
+service rabbitmq:Service on channelListener {
     remote function onMessage(rabbitmq:Message message) {
-        // Do something with the message here 
     }
 }
 ```
