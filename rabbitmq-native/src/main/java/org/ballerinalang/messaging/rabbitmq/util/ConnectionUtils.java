@@ -63,7 +63,7 @@ public class ConnectionUtils {
      * @param connectionConfig Parameters used to initialize the connection.
      * @return RabbitMQ Connection object.
      */
-    public static Connection createConnection(BMap<BString, Object> connectionConfig) {
+    public static Connection createConnection(BString host, long port, BMap<BString, Object> connectionConfig) {
         try {
             ConnectionFactory connectionFactory = new ConnectionFactory();
 
@@ -79,11 +79,10 @@ public class ConnectionUtils {
                 LOGGER.info("TLS enabled for the connection.");
             }
 
-            String host = connectionConfig.getStringValue(RabbitMQConstants.RABBITMQ_CONNECTION_HOST).getValue();
-            connectionFactory.setHost(host);
+            connectionFactory.setHost(host.getValue());
 
-            int port = Math.toIntExact(connectionConfig.getIntValue(RabbitMQConstants.RABBITMQ_CONNECTION_PORT));
-            connectionFactory.setPort(port);
+            int portInt = Math.toIntExact(port);
+            connectionFactory.setPort(portInt);
 
             Object username = connectionConfig.get(RabbitMQConstants.RABBITMQ_CONNECTION_USER);
             if (username != null) {

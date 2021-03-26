@@ -33,7 +33,7 @@ string REPLYTO = "replyHere";
 @test:BeforeSuite
 function setup() {
     log:printInfo("Creating a ballerina RabbitMQ channel.");
-    Client newClient = checkpanic new;
+    Client newClient = checkpanic new(DEFAULT_HOST, DEFAULT_PORT);
     rabbitmqChannel = newClient;
     Client? clientObj = rabbitmqChannel;
     if (clientObj is Client) {
@@ -43,7 +43,7 @@ function setup() {
         string? ackQueue = checkpanic clientObj->queueDeclare(ACK_QUEUE);
         string? replyQueue = checkpanic clientObj->queueDeclare(REPLYTO);
     }
-    Listener lis = checkpanic new;
+    Listener lis = checkpanic new(DEFAULT_HOST, DEFAULT_PORT);
     rabbitmqListener = lis;
 }
 
@@ -56,7 +56,7 @@ public function testClient() {
     if (con is Client) {
         flag = true;
     }
-    Client newClient = checkpanic new;
+    Client newClient = checkpanic new(DEFAULT_HOST, DEFAULT_PORT);
     checkpanic newClient.close();
     test:assertTrue(flag, msg = "RabbitMQ Connection creation failed.");
 }

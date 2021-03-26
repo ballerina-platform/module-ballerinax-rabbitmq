@@ -19,6 +19,12 @@ import ballerina/jballerina.java;
 
 final handle JAVA_NULL = java:createNull();
 
+# Constant for the default host
+public const DEFAULT_HOST = "localhost";
+
+# Constant for the default port
+public const DEFAULT_PORT = 5672;
+
 # Types of exchanges supported by the Ballerina RabbitMQ Connector.
 public type ExchangeType "direct"|"fanout"|"topic"|"headers";
 
@@ -70,8 +76,6 @@ public type ExchangeConfig record {|
 
 # Configurations used to create a `rabbitmq:Connection`.
 #
-# + host - The host used for establishing the connection
-# + port - The port used for establishing the connection
 # + username - The username used for establishing the connection
 # + password - The password used for establishing the connection
 # + connectionTimeout - Connection TCP establishment timeout in seconds and zero for infinite
@@ -82,8 +86,6 @@ public type ExchangeConfig record {|
 # + secureSocket - Configurations for facilitating secure connections
 # + auth - Configurations releated to authentication
 public type ConnectionConfiguration record {|
-    string host = "localhost";
-    int port = 5672;
     string username?;
     string password?;
     decimal connectionTimeout?;
