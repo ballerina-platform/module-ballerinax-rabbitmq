@@ -52,8 +52,9 @@ import java.util.concurrent.TimeoutException;
  * @since 0.995.0
  */
 public class ChannelUtils {
-    public static Object createChannel(BMap<BString, Object> connectionConfig, BObject channelObj) {
-        Connection connection = ConnectionUtils.createConnection(connectionConfig);
+    public static Object createChannel(BString host, long port, BMap<BString, Object> connectionConfig,
+                                       BObject channelObj) {
+        Connection connection = ConnectionUtils.createConnection(host, port, connectionConfig);
         try {
             Channel channel = connection.createChannel();
             RabbitMQMetricsUtil.reportNewChannel(channel);

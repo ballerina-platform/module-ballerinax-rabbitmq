@@ -25,9 +25,11 @@ public client class Client {
 
     # Initializes a `rabbitmq:Client` object.
     #
+    # + host - The host used for establishing the connection
+    # + port - The port used for establishing the connection
     # + connectionData - A connection configuration
-    public isolated function init(ConnectionConfiguration connectionData = {}) returns Error? {
-        handle|Error channelResult = createChannel(connectionData, self);
+    public isolated function init(string host, int port, *ConnectionConfiguration connectionData) returns Error? {
+        handle|Error channelResult = createChannel(host, port, connectionData, self);
         if (channelResult is handle) {
             self.amqpChannel = channelResult;
             return;
@@ -213,8 +215,8 @@ public client class Client {
     }
 }
 
-isolated function createChannel(ConnectionConfiguration config, Client channelObj) returns handle|Error =
-@java:Method {
+isolated function createChannel(string host, int port, *ConnectionConfiguration config, Client channelObj)
+returns handle|Error = @java:Method {
     'class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
 } external;
 
