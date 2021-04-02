@@ -60,8 +60,9 @@ public class ListenerUtils {
     private static final BString IO_ERROR_MSG = StringUtils
             .fromString("An I/O error occurred while setting the global quality of service settings for the listener");
 
-    public static Object init(BObject listenerBObject, BMap<BString, Object> connectionConfig) {
-        Connection connection = ConnectionUtils.createConnection(connectionConfig);
+    public static Object init(BString host, long port, BObject listenerBObject,
+                              BMap<BString, Object> connectionConfig) {
+        Connection connection = ConnectionUtils.createConnection(host, port, connectionConfig);
         Channel channel;
         try {
             channel = connection.createChannel();
