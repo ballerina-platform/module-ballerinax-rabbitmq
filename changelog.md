@@ -1,5 +1,5 @@
 # Change Log
-This file contains all the notable changes done to the Ballerina NATS package through the releases.
+This file contains all the notable changes done to the Ballerina RabbitMQ package through the releases.
 
 ## [1.1.0-alpha7] - 2021-04-02
 
