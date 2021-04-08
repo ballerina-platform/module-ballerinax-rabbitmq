@@ -13,8 +13,7 @@ plugins {
 
 rootProject.name = 'rabbitmq'
 include(':build-config:checkstyle')
-include ':rabbitmq-native', ':rabbitmq-ballerina'
-include 'rabbitmq-native'
+include ':rabbitmq-ballerina', 'rabbitmq-native', 'rabbitmq-compiler-plugin', 'rabbitmq-compiler-plugin-tests'
 
 gradleEnterprise {
     buildScan {

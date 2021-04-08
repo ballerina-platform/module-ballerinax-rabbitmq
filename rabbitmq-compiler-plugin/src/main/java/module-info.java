@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,11 +16,8 @@
  * under the License.
  */
 
-module io.ballerina.stdlib.rabbitmq.runtime {
-    requires com.rabbitmq.client;
-    requires io.ballerina.runtime;
-    requires org.slf4j;
-    requires java.transaction.xa;
-    exports org.ballerinalang.messaging.rabbitmq.util;
-    exports org.ballerinalang.messaging.rabbitmq;
+module io.ballerina.stdlib.rabbitmq.plugin {
+    requires io.ballerina.lang;
+    requires io.ballerina.parser;
+    requires io.ballerina.tools.api;
 }
