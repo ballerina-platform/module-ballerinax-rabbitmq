@@ -34,16 +34,24 @@ import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import java.util.List;
 import java.util.Optional;
 
+import static io.ballerina.stdlib.rabbitmq.plugin.PluginUtils.validateModuleId;
+
 /**
  * RabbitMQ service compilation analysis task.
  */
 public class RabbitmqServiceAnalysisTask implements AnalysisTask<SyntaxNodeAnalysisContext> {
+    private final RabbitmqServiceValidator serviceValidator;
+
+    public RabbitmqServiceAnalysisTask() {
+        this.serviceValidator = new RabbitmqServiceValidator();
+    }
+
     @Override
     public void perform(SyntaxNodeAnalysisContext context) {
         if (!isRabbitmqService(context)) {
             return;
         }
-        new RabbitmqServiceValidator(context).validate();
+        this.serviceValidator.validate(context);
     }
 
     private boolean isRabbitmqService(SyntaxNodeAnalysisContext context) {
@@ -64,19 +72,13 @@ public class RabbitmqServiceAnalysisTask implements AnalysisTask<SyntaxNodeAnaly
                     for (TypeSymbol memberSymbol : members) {
                         Optional<ModuleSymbol> module = memberSymbol.getModule();
                         if (module.isPresent()) {
-                            String moduleName = module.get().id().moduleName();
-                            String orgName = module.get().id().orgName();
-                            isRabbitmqService = moduleName.equals(PluginConstants.PACKAGE_PREFIX) &&
-                                    orgName.equals(PluginConstants.PACKAGE_ORG);
+                            isRabbitmqService = validateModuleId(module.get());
                         }
                     }
                 } else {
                     Optional<ModuleSymbol> module = listeners.get(0).getModule();
                     if (module.isPresent()) {
-                        String moduleName = module.get().id().moduleName();
-                        String orgName = module.get().id().orgName();
-                        isRabbitmqService = moduleName.equals(PluginConstants.PACKAGE_PREFIX) &&
-                                orgName.equals(PluginConstants.PACKAGE_ORG);
+                        isRabbitmqService = validateModuleId(module.get());
                     }
                 }
             }

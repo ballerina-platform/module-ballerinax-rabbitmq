@@ -33,6 +33,11 @@ public class PluginConstants {
     // parameters
     public static final String MESSAGE = "Message";
     public static final String CALLER = "Caller";
+    public static final String CONTENT_FIELD = "content";
+    public static final String ROUTING_KEY_FIELD = "routingKey";
+    public static final String EXCHANGE_FIELD = "exchange";
+    public static final String PROPS_FIELD = "properties";
+    public static final String DELIVERY_TAG_FIELD = "deliveryTag";
     public static final String ERROR_PARAM = "Error";
 
     // return types error or nil
@@ -54,22 +59,22 @@ public class PluginConstants {
      */
     enum CompilationErrors {
         ON_MESSAGE_OR_ON_REQUEST("Only one of either onMessage or onRequest is allowed.", "RABBITMQ_101"),
-        NO_ON_MESSAGE_OR_ON_REQUEST("Service must have either remote function onMessage or onRequest.",
+        NO_ON_MESSAGE_OR_ON_REQUEST("Service must have either remote method onMessage or onRequest.",
                 "RABBITMQ_102"),
-        INVALID_REMOTE_FUNCTION("Invalid remote function.", "RABBITMQ_103"),
-        FUNCTION_SHOULD_BE_REMOTE("Function must have the remote qualifier.", "RABBITMQ_104"),
-        MUST_HAVE_MESSAGE("Must have the function parameter rabbitmq:Message.", "RABBITMQ_105"),
-        MUST_HAVE_MESSAGE_AND_ERROR("Must have the function parameters rabbitmq:Message and rabbitmq:Error.",
+        INVALID_REMOTE_FUNCTION("Invalid remote method.", "RABBITMQ_103"),
+        FUNCTION_SHOULD_BE_REMOTE("Method must have the remote qualifier.", "RABBITMQ_104"),
+        MUST_HAVE_MESSAGE("Must have the method parameter rabbitmq:Message.", "RABBITMQ_105"),
+        MUST_HAVE_MESSAGE_AND_ERROR("Must have the method parameters rabbitmq:Message and rabbitmq:Error.",
                 "RABBITMQ_106"),
-        INVALID_FUNCTION_PARAM_MESSAGE("Invalid function parameter. Only rabbitmq:Message is allowed.",
+        INVALID_FUNCTION_PARAM_MESSAGE("Invalid method parameter. Only rabbitmq:Message is allowed.",
                 "RABBITMQ_107"),
-        INVALID_FUNCTION_PARAM_ERROR("Invalid function parameter. Only rabbitmq:Error is allowed.",
+        INVALID_FUNCTION_PARAM_ERROR("Invalid method parameter. Only rabbitmq:Error is allowed.",
                 "RABBITMQ_108"),
-        INVALID_FUNCTION_PARAM_CALLER("Invalid function parameter. Only rabbitmq:Caller is allowed.",
+        INVALID_FUNCTION_PARAM_CALLER("Invalid method parameter. Only rabbitmq:Caller is allowed.",
                 "RABBITMQ_109"),
-        ONLY_PARAMS_ALLOWED("Invalid function parameter count. Only rabbitmq:Message and " +
+        ONLY_PARAMS_ALLOWED("Invalid method parameter count. Only rabbitmq:Message and " +
                 "rabbitmq:Caller are allowed.", "RABBITMQ_110"),
-        ONLY_PARAMS_ALLOWED_ON_ERROR("Invalid function parameter count. Only rabbitmq:Message and " +
+        ONLY_PARAMS_ALLOWED_ON_ERROR("Invalid method parameter count. Only rabbitmq:Message and " +
                 "rabbitmq:Error are allowed.",
                 "RABBITMQ_111"),
         INVALID_RETURN_TYPE_ERROR_OR_NIL("Invalid return type. Only error? or rabbitmq:Error? is allowed.",
@@ -84,7 +89,7 @@ public class PluginConstants {
                 "RABBITMQ_116"),
         INVALID_ANNOTATION("Invalid service config annotation. Only @rabbitmq:ServiceConfig{} is allowed.",
                 "RABBITMQ_117"),
-        INVALID_SERVICE_NAME("Invalid service name. Only string literals are allowed.",
+        INVALID_SERVICE_ATTACH_POINT("Invalid service attach point. Only string literals are allowed.",
                 "RABBITMQ_118");
 
         private final String error;
