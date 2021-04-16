@@ -25,4 +25,8 @@ listener rabbitmq:Listener channelListener =
 service rabbitmq:Service on channelListener {
     remote function onMessage(rabbitmq:Message message) {
     }
+
+    resource function get greeting() returns string {
+        return "Hello";
+    }
 }

@@ -69,6 +69,8 @@ public class RabbitmqServiceValidator {
                         validateNonRabbitmqFunction(functionDefinitionNode, context);
                     }
                 }
+            }  else {
+                validateNonRabbitmqFunction(functionDefinitionNode, context);
             }
         }
         new RabbitmqFunctionValidator(context, onMessage, onRequest, onError).validate();
@@ -76,9 +78,14 @@ public class RabbitmqServiceValidator {
 
     public void validateNonRabbitmqFunction(FunctionDefinitionNode functionDefinitionNode,
                                             SyntaxNodeAnalysisContext context) {
-        if (PluginUtils.isRemoteFunction(context, functionDefinitionNode)) {
-            context.reportDiagnostic(PluginUtils.getDiagnostic(CompilationErrors.INVALID_REMOTE_FUNCTION,
+        if (functionDefinitionNode.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
+            context.reportDiagnostic(PluginUtils.getDiagnostic(CompilationErrors.INVALID_FUNCTION,
                     DiagnosticSeverity.ERROR, functionDefinitionNode.location()));
+        } else {
+            if (PluginUtils.isRemoteFunction(context, functionDefinitionNode)) {
+                context.reportDiagnostic(PluginUtils.getDiagnostic(CompilationErrors.INVALID_REMOTE_FUNCTION,
+                        DiagnosticSeverity.ERROR, functionDefinitionNode.location()));
+            }
         }
     }
 
