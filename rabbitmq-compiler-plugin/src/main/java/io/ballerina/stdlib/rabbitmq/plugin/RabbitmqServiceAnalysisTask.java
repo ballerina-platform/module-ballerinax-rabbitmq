@@ -62,7 +62,7 @@ public class RabbitmqServiceAnalysisTask implements AnalysisTask<SyntaxNodeAnaly
         if (symbol.isPresent()) {
             ServiceDeclarationSymbol serviceDeclarationSymbol = (ServiceDeclarationSymbol) symbol.get();
             List<TypeSymbol> listeners = serviceDeclarationSymbol.listenerTypes();
-            if (listeners.size() > 1) {
+            if (listeners.size() > 1 && hasRabbitmqListener(listeners)) {
                 context.reportDiagnostic(PluginUtils.getDiagnostic(CompilationErrors.INVALID_MULTIPLE_LISTENERS,
                         DiagnosticSeverity.ERROR, serviceDeclarationNode.location()));
             } else {
@@ -84,5 +84,14 @@ public class RabbitmqServiceAnalysisTask implements AnalysisTask<SyntaxNodeAnaly
             }
         }
         return isRabbitmqService;
+    }
+
+    private boolean hasRabbitmqListener(List<TypeSymbol> listeners) {
+        for (TypeSymbol listener: listeners) {
+            if (validateModuleId(listener.getModule().get())) {
+                return true;
+            }
+        }
+        return false;
     }
 }
