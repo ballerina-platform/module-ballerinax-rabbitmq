@@ -28,10 +28,10 @@ public class Listener {
     #
     # + host - The host used for establishing the connection
     # + port - The port used for establishing the connection
-    # + connectionData - The connection configuration
     # + qosSettings - Consumer prefetch settings
-    public isolated function init(string host, int port, *ConnectionConfiguration connectionData,
-                                     QosSettings? qosSettings = ()) returns Error? {
+    # + connectionData - The connection configuration
+    public isolated function init(string host, int port, QosSettings? qosSettings = (),
+                                    *ConnectionConfiguration connectionData) returns Error? {
         Error? initResult = externInit(host, port, self, connectionData);
         if (initResult is Error) {
             return initResult;
