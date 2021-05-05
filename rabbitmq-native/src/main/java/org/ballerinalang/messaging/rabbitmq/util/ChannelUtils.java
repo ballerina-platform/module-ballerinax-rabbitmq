@@ -52,8 +52,8 @@ import java.util.concurrent.TimeoutException;
  * @since 0.995.0
  */
 public class ChannelUtils {
-    public static Object createChannel(BString host, long port, BMap<BString, Object> connectionConfig,
-                                       BObject channelObj) {
+    public static Object createChannel(BString host, long port, BObject channelObj,
+                                       BMap<BString, Object> connectionConfig) {
         Connection connection = ConnectionUtils.createConnection(host, port, connectionConfig);
         try {
             Channel channel = connection.createChannel();
