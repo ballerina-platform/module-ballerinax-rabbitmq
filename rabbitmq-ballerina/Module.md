@@ -142,7 +142,7 @@ The `rabbitmq:Message` record received can be used to retrieve its contents.
 
 The message consuming is supported by mainly two types of acknowledgement modes, which are auto acknowledgements and client acknowledgements.
 Client acknowledgements can further be divided into two different types as positive and negative acknowledgements.
-The default acknowledgement mode is auto-ack (messages are acknowledged immediately after consuming). Following examples show the usage of positive and negative acknowledgements.
+The default acknowledgement mode is auto-ack (messages are acknowledged immediately after consuming). The following examples show the usage of positive and negative acknowledgements.
 > WARNING: To ensure the reliability of receiving messages, use the client-ack mode.
 
 1. Positive client acknowledgement:
