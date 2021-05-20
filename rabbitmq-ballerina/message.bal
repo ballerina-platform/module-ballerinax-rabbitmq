@@ -17,8 +17,8 @@
 # Represents the message, which a RabbitMQ server sends to its subscribed services.
 #
 # + content - The content of the message
-# + routingKey - The routing key to which the message is sent to
-# + exchange - The exchange to which the message is sent to
+# + routingKey - The routing key to which the message is sent 
+# + exchange - The exchange to which the message is sent 
 # + deliveryTag - The delivery tag of the message
 # + properties - Basic properties of the message - routing headers etc.
 public type Message record {|
@@ -28,4 +28,3 @@ public type Message record {|
    int deliveryTag?;
    BasicProperties properties?;
 |};
-

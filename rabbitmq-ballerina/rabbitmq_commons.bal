@@ -55,7 +55,7 @@ public type BasicProperties record {|
 # + durable - Set to true if declaring a durable queue
 # + exclusive - Set to true if declaring an exclusive queue
 # + autoDelete - Set to true if declaring an auto-delete queue
-# + arguments - Other properties (construction arguments) for the queue
+# + arguments - Other properties (construction arguments) of the queue
 public type QueueConfig record {|
     boolean durable = false;
     boolean exclusive = false;
@@ -65,8 +65,8 @@ public type QueueConfig record {|
 
 # Additional configurations used to declare an exchange.
 #
-# + durable - Set to true if declaring a durable exchange
-# + autoDelete - Set to true if an autodelete exchange is declared
+# + durable - Set to `true` if a durable exchange is declared
+# + autoDelete - Set to `true` if an autodelete exchange is declared
 # + arguments - Other properties (construction arguments) for the queue
 public type ExchangeConfig record {|
     boolean durable = false;
@@ -103,7 +103,7 @@ public type ConnectionConfiguration record {|
 #                   Give the value as 0 if unlimited
 # + prefetchSize - The maximum amount of content (measured in octets)
 #                   that the server will deliver and 0 if unlimited
-# + global - True if the settings should be shared among all consumers
+# + global - `true` if the settings should be shared among all the consumers
 public type QosSettings record {|
    int prefetchCount;
    int prefetchSize?;

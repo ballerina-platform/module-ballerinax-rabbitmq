@@ -3,7 +3,7 @@
 The `rabbitmq` library is one of the standard library packages of the<a target="_blank" href="https://ballerina.io
 /"> Ballerina </a> language.
 
-This package provides the capability to send and receive messages by connecting to the RabbitMQ server. RabbitMQ gives your applications a common platform to send and receive messages, and your messages a safe place to live until received. RabbitMQ is one of the most popular open source message brokers. It is lightweight and easy to deploy on premises and in the cloud. 
+This package provides the capability to send and receive messages by connecting to the RabbitMQ server. RabbitMQ gives your applications a common platform to send and receive messages and a safe place for your messages to live until received. RabbitMQ is one of the most popular open-source message brokers. It is lightweight and easy to deploy on-premise and in the cloud. 
 
 ### Report Issues
 

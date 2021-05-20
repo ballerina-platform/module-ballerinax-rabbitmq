@@ -40,7 +40,7 @@ public client class Caller {
     # check caller->basicNack(true, requeue = false);
     # ```
     #
-    # + multiple - Set to `true` to reject all messages, up to and including the called on message and
+    # + multiple - Set to `true` to reject all messages up to and including the called on message and
     #              `false` to reject just the called on message
     # + requeue - `true` if the rejected message(s) should be re-queued rather than discarded/dead-lettered
     # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`

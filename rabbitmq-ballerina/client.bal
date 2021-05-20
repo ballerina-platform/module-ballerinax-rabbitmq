@@ -54,12 +54,12 @@ public client class Client {
         return nativeQueueDeclare(name, config, self.amqpChannel);
     }
 
-    # Declares a queue with a server generated name.
+    # Declares a queue with a server-generated name.
     # ```ballerina
     # string queueName = check rabbitmqClient->queueAutoGenerate();
     # ```
     #
-    # + return - The name of the queue, or else a `rabbitmq:Error`
+    # + return - The name of the queue or else a `rabbitmq:Error`
     #             if an I/O error occurred
     isolated remote function queueAutoGenerate() returns string|Error {
         return nativeQueueAutoGenerate(self.amqpChannel);
@@ -192,8 +192,8 @@ public client class Client {
     # check rabbitmqClient.close();
     # ```
     #
-    # + closeCode - The close code (for information, go to the "Reply Codes" section in the
-    #               [AMQP 0-9-1 specification] (#https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf))
+    # + closeCode - The close code (for information, go to the [Reply Codes]
+    #               (#https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf))
     # + closeMessage - A message indicating the reason for closing the channel
     # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
     isolated function close(int? closeCode = (), string? closeMessage = ()) returns Error? {

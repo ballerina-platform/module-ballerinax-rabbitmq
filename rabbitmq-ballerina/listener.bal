@@ -102,7 +102,7 @@ public class Listener {
     }
 }
 
-# Configurations required to creating a subscription.
+# Configurations required to create a subscription.
 #
 # + queueName - The name of the queue to be subscribed
 # + autoAck - If false, should manually acknowledge

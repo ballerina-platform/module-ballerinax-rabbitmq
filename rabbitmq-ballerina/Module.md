@@ -2,7 +2,7 @@
 
 This module provides the capability to send and receive messages by connecting to the RabbitMQ server.
 
-RabbitMQ gives your applications a common platform to send and receive messages, and your messages a safe place to live until received. RabbitMQ is one of the most popular open source message brokers. It is lightweight and easy to deploy on premises and in the cloud.
+RabbitMQ gives your applications a common platform to send and receive messages and a safe place for your messages to live until received. RabbitMQ is one of the most popular open-source message brokers. It is lightweight and easy to deploy on-premise and in the cloud.
 
 ### Basic Usage
 
@@ -34,7 +34,7 @@ The `rabbitmq:Client` can now be used to send and receive messages as described 
 
 #### Using Exchanges and Queues
 
-Client applications work with exchanges and queues, which are the high-level building blocks of the AMQP protocol. These must be declared before they can be used. The following code declares an exchange, and a server-named queue and then binds them together.
+Client applications work with exchanges and queues, which are the high-level building blocks of the AMQP protocol. These must be declared before they can be used. The following code declares an exchange and a server-named queue and then binds them together.
 
 ```ballerina
     check rabbitmqClient->exchangeDeclare("MyExchange", rabbitmq:DIRECT_EXCHANGE);
@@ -58,7 +58,7 @@ Next, the `queueBind` function is called to bind the queue to the exchange with 
 
 This sample code will declare,
 - a durable auto-delete exchange of the type `rabbitmq:DIRECT_EXCHANGE`
-- a durable, non-exclusive non-auto-delete queue with a well-known name
+- a durable, non-exclusive, non-auto-delete queue with a well-known name
 
 #### Deleting Entities and Purging Queues
 
@@ -141,7 +141,7 @@ The `rabbitmq:Message` record received can be used to retrieve its contents.
 #### Client Acknowledgements
 
 The message consuming is supported by mainly two types of acknowledgement modes, which are auto acknowledgements and client acknowledgements.
-Client acknowledgements can further be divided into to two different types as positive and negative acknowledgements.
+Client acknowledgements can further be divided into two different types as positive and negative acknowledgements.
 The default acknowledgement mode is auto-ack (messages are acknowledged immediately after consuming). Following examples show the usage of positive and negative acknowledgements.
 > WARNING: To ensure the reliability of receiving messages, use the client-ack mode.
 
@@ -175,4 +175,4 @@ The default acknowledgement mode is auto-ack (messages are acknowledged immediat
     }
 ```
 
-The negatively-acknowledged (rejected) messages can be re-queued byt setting `requeue` to `true`.
+The negatively-acknowledged (rejected) messages can be re-queued by setting the `requeue` to `true`.
