@@ -206,8 +206,8 @@ public client class Client {
     # check rabbitmqClient.abort(320, "Client Aborted");
     # ```
     #
-    # + closeCode - The close code (for information, go to the "Reply Codes" section in the
-    #               [AMQP 0-9-1 specification] (#https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf))
+    # + closeCode - The close code (for information, go to the [Reply Codes]
+    #               (#https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf))
     # + closeMessage - A message indicating the reason for closing the channel
     # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
     isolated function 'abort(int? closeCode = (), string? closeMessage = ()) returns Error? {
