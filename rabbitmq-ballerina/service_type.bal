@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-# The RabbitMQ service type
+# The RabbitMQ service type.
 public type Service service object {
     // TBD when support for optional params in remote functions is available in lang
 };

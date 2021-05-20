@@ -23,12 +23,12 @@ public client class Caller {
 
     # Acknowledges one or several received messages.
     # ```ballerina
-    # rabbitmq:Error? ackResult = caller->basicAck(true);
+    # check caller->basicAck(true);
     # ```
     #
-    # + multiple - `true` to acknowledge all messages up to and including the called on message and
+    # + multiple - Set to `true` to acknowledge all messages up to and including the called on message and
     #              `false` to acknowledge just the called on message
-    # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
+    # + return - A `rabbitmq:Error` if an I/O error occurred
     isolated remote function basicAck(boolean multiple = false) returns Error? {
         var result = nativeBasicAck(multiple, self.autoAck, self.ackStatus, self);
         self.ackStatus = true;
@@ -37,10 +37,10 @@ public client class Caller {
 
     # Rejects one or several received messages.
     # ```ballerina
-    # rabbitmq:Error? nackResult = caller->basicNack(true, requeue = false);
+    # check caller->basicNack(true, requeue = false);
     # ```
     #
-    # + multiple - `true` to reject all messages up to and including the called on message and
+    # + multiple - Set to `true` to reject all messages, up to and including the called on message and
     #              `false` to reject just the called on message
     # + requeue - `true` if the rejected message(s) should be re-queued rather than discarded/dead-lettered
     # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`

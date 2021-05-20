@@ -16,7 +16,7 @@
 
 # Represents the message, which a RabbitMQ server sends to its subscribed services.
 #
-# + content - Content of the message
+# + content - The content of the message
 # + routingKey - The routing key to which the message is sent to
 # + exchange - The exchange to which the message is sent to
 # + deliveryTag - The delivery tag of the message
