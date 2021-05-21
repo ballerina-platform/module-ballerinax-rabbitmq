@@ -24,10 +24,13 @@ public client class Client {
     string connectorId = uuid:createType4AsString();
 
     # Initializes a `rabbitmq:Client` object.
+    # ```ballerina
+    # rabbitmq:Client rabbitmqClient = check new(rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
+    # ```
     #
     # + host - The host used for establishing the connection
     # + port - The port used for establishing the connection
-    # + connectionData - A connection configuration
+    # + connectionData - The connection configurations
     public isolated function init(string host, int port, *ConnectionConfiguration connectionData) returns Error? {
         handle|Error channelResult = createChannel(host, port, self, connectionData);
         if (channelResult is handle) {
@@ -40,24 +43,24 @@ public client class Client {
 
     # Declares a non-exclusive, auto-delete, or non-durable queue with the given configurations.
     # ```ballerina
-    # string|rabbitmq:Error? queueResult = newClient->queueDeclare("MyQueue");
+    # check rabbitmqClient->queueDeclare("MyQueue");
     # ```
     #
-    # + name - Name of the queue
-    # + config - Configurations required to declare a queue
+    # + name - The name of the queue
+    # + config - The configurations required to declare a queue
     # + return - `()` if the queue was successfully generated or else a `rabbitmq:Error`
-    #               if an I/O error is encountered
+    #               if an I/O error occurred
     isolated remote function queueDeclare(string name, QueueConfig? config = ()) returns Error? {
         return nativeQueueDeclare(name, config, self.amqpChannel);
     }
 
-    # Declares a queue with a server generated name.
+    # Declares a queue with a server-generated name.
     # ```ballerina
-    # string|rabbitmq:Error? queueName = newClient->queueAutoGenerate();
+    # string queueName = check rabbitmqClient->queueAutoGenerate();
     # ```
     #
-    # + return - The name of the queue, or else a `rabbitmq:Error`
-    #             if an I/O error is encountered
+    # + return - The name of the queue or else a `rabbitmq:Error`
+    #             if an I/O error occurred
     isolated remote function queueAutoGenerate() returns string|Error {
         return nativeQueueAutoGenerate(self.amqpChannel);
     }
@@ -65,14 +68,13 @@ public client class Client {
     # Declares a non-auto-delete, non-durable exchange with no extra arguments.
     # If the arguments are specified, then the exchange is declared accordingly.
     # ```ballerina
-    # rabbitmq:Error? exchangeResult = newClient->exchangeDeclare("MyExchange",
-    #                                               rabbitmq:DIRECT_EXCHANGE);
+    # check rabbitmqClient->exchangeDeclare("MyExchange", rabbitmq:DIRECT_EXCHANGE);
     # ```
     #
     # + name - The name of the exchange
     # + exchangeType - The type of the exchange
-    # + config - Configurations required to declare an exchange
-    # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
+    # + config - The configurations required to declare an exchange
+    # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
     isolated remote function exchangeDeclare(string name,
             ExchangeType exchangeType = DIRECT_EXCHANGE, ExchangeConfig? config = ()) returns Error? {
         return nativeExchangeDeclare(name, exchangeType, config, self.amqpChannel);
@@ -80,13 +82,13 @@ public client class Client {
 
     # Binds a queue to an exchange with the given binding key.
     # ```ballerina
-    # rabbitmq:Error? bindResult = newClient->queueBind("MyQueue", "MyExchange", "routing-key");
+    # check rabbitmqClient->queueBind("MyQueue", "MyExchange", "routing-key");
     # ```
     #
-    # + queueName - Name of the queue
-    # + exchangeName - Name of the exchange
-    # + bindingKey - Binding key used to bind the queue to the exchange
-    # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
+    # + queueName - The name of the queue
+    # + exchangeName - The name of the exchange
+    # + bindingKey - The binding key used to bind the queue to the exchange
+    # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
     isolated remote function queueBind(string queueName, string exchangeName, string bindingKey) returns Error? {
          return nativeQueueBind(queueName, exchangeName, bindingKey, self.amqpChannel);
     }
@@ -94,11 +96,11 @@ public client class Client {
     # Publishes a message. Publishing to a non-existent exchange will result in a channel-level
     # protocol error, which closes the channel.
     # ```ballerina
-    # rabbitmq:Error? sendResult = newClient->publishMessage(messageInBytes, "MyQueue");
+    # check rabbitmqClient->publishMessage(messageInBytes, "MyQueue");
     # ```
     #
-    # + message - Message to be published 
-    # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
+    # + message - The message to be published
+    # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
     isolated remote function publishMessage(Message message) returns Error? {
         return nativeBasicPublish(message.content, message.routingKey,
                 message.exchange, message?.properties, self.amqpChannel, self);
@@ -106,13 +108,13 @@ public client class Client {
 
     # Retrieves a message synchronously from the given queue providing direct access to the messages in the queue.
     # ```ballerina
-    # rabbitmq:Message|rabbitmq:Error getResult = newClient->consumeMessage("MyQueue", rabbitmq:AUTO_ACK);
+    # rabbitmq:Message message = check rabbitmqClient->consumeMessage("MyQueue");
     # ```
     #
     # + queueName - The name of the queue
     # + autoAck - If false, should manually acknowledge
     # + return - A `rabbitmq:Message` object containing the retrieved message data or else a`rabbitmq:Error` if an
-    #            I/O error is encountered
+    #            I/O error occurred
     isolated remote function consumeMessage(string queueName, boolean autoAck = true)
         returns Message|Error {
         return nativeBasicGet(queueName, autoAck, self.amqpChannel);
@@ -120,12 +122,13 @@ public client class Client {
 
     # Acknowledges one or several received messages.
     # ```ballerina
-    # rabbitmq:Error? ackResult = newClient->basicAck(<message>);
+    # check rabbitmqClient->basicAck(<message>);
     # ```
-    # + message - Message to be acknowledged
-    # + multiple - `true` to acknowledge all messages up to and including the called on message and
+    #
+    # + message - The message to be acknowledged
+    # + multiple - Set to `true` to acknowledge all messages up to and including the called on message and
     #              `false` to acknowledge just the called on message
-    # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
+    # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
     isolated remote function basicAck(Message message, boolean multiple = false) returns Error? {
         var result = nativeClientAck(message, multiple, self.amqpChannel);
         return result;
@@ -133,13 +136,14 @@ public client class Client {
 
     # Rejects one or several received messages.
     # ```ballerina
-    # rabbitmq:Error? nackResult = newClient->basicNack(<message>);
+    # check rabbitmqClient->basicNack(<message>);
     # ```
-    # + message - Message to be rejected
-    # + multiple - `true` to reject all messages up to and including the called on message and
+    #
+    # + message - The message to be rejected
+    # + multiple - Set to `true` to reject all messages up to and including the called on message and
     #              `false` to reject just the called on message
     # + requeue - `true` if the rejected message(s) should be re-queued rather than discarded/dead-lettered
-    # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
+    # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
     isolated remote function basicNack(Message message, boolean multiple = false, boolean requeue = true)
                             returns Error? {
         var result = nativeClientNack(message, multiple, requeue, self.amqpChannel);
@@ -149,13 +153,13 @@ public client class Client {
     # Deletes the queue with the given name although it is in use or has messages in it.
     # If the `ifUnused` or `ifEmpty` parameters are given, the queue is checked before deleting.
     # ```ballerina
-    # rabbitmq:Error? deleteResult = newClient->queueDelete("MyQueue");
+    # check rabbitmqClient->queueDelete("MyQueue");
     # ```
     #
-    # + queueName - Name of the queue to be deleted
+    # + queueName - The name of the queue to be deleted
     # + ifUnused - True if the queue should be deleted only if it's not in use
     # + ifEmpty - True if the queue should be deleted only if it's empty
-    # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
+    # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
     isolated remote function queueDelete(string queueName, boolean ifUnused = false, boolean ifEmpty = false)
                         returns Error? {
         return nativeQueueDelete(queueName, ifUnused, ifEmpty, self.amqpChannel);
@@ -163,35 +167,35 @@ public client class Client {
 
     # Deletes the exchange with the given name.
     # ```ballerina
-    # rabbitmq:Error? deleteResult = newClient->exchangeDelete("MyExchange");
+    # check rabbitmqClient->exchangeDelete("MyExchange");
     # ```
     #
     # + exchangeName - The name of the exchange
-    # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
+    # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
     isolated remote function exchangeDelete(string exchangeName) returns Error? {
         return nativeExchangeDelete(exchangeName, self.amqpChannel);
     }
 
     # Purges the content of the given queue.
     # ```ballerina
-    # rabbitmq:Error? purgeResult = newClient->queuePurge("MyQueue");
+    # check rabbitmqClient->queuePurge("MyQueue");
     # ```
     #
     # + queueName - The name of the queue
-    # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
+    # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
     isolated remote function queuePurge(string queueName) returns Error? {
         return nativeQueuePurge(queueName, self.amqpChannel);
     }
 
     # Closes the `rabbitmq:Client`.
     # ```ballerina
-    # rabbitmq:Error? closeResult = newClient.close();
+    # check rabbitmqClient.close();
     # ```
     #
-    # + closeCode - The close code (for information, go to the "Reply Codes" section in the
-    #               [AMQP 0-9-1 specification] (#https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf))
+    # + closeCode - The close code (for information, go to the [Reply Codes]
+    #               (#https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf))
     # + closeMessage - A message indicating the reason for closing the channel
-    # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
+    # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
     isolated function close(int? closeCode = (), string? closeMessage = ()) returns Error? {
         return nativeClientClose(closeCode, closeMessage, self.amqpChannel);
     }
@@ -199,11 +203,11 @@ public client class Client {
     # Aborts the RabbitMQ `rabbitmq:Client`. Forces the `rabbitmq:Client` to close and waits for all the close operations
     # to complete. Any encountered exceptions in the close operations are discarded silently.
     # ```ballerina
-    # rabbitmq:Error? abortResult = newClient.abort(320, "Client Aborted");
+    # check rabbitmqClient.abort(320, "Client Aborted");
     # ```
     #
-    # + closeCode - The close code (for information, go to the "Reply Codes" section in the
-    #               [AMQP 0-9-1 specification] (#https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf))
+    # + closeCode - The close code (for information, go to the [Reply Codes]
+    #               (#https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf))
     # + closeMessage - A message indicating the reason for closing the channel
     # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
     isolated function 'abort(int? closeCode = (), string? closeMessage = ()) returns Error? {

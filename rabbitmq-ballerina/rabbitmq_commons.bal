@@ -19,10 +19,10 @@ import ballerina/jballerina.java;
 
 final handle JAVA_NULL = java:createNull();
 
-# Constant for the default host
+# Constant for the default host.
 public const DEFAULT_HOST = "localhost";
 
-# Constant for the default port
+# Constant for the default port.
 public const DEFAULT_PORT = 5672;
 
 # Types of exchanges supported by the Ballerina RabbitMQ Connector.
@@ -39,10 +39,10 @@ public const TOPIC_EXCHANGE = "topic";
 
 # Basic properties of the message - routing headers etc.
 #
-# + replyTo - The queue name to which the other apps should send the response
-# + contentType - Content type of the message
-# + contentEncoding - Content encoding of the message
-# + correlationId - Client-specific ID that can be used to mark or identify messages between clients
+# + replyTo - The queue name to which the reply should be sent
+# + contentType - The content type of the message
+# + contentEncoding - The content encoding of the message
+# + correlationId - The client-specific ID that can be used to mark or identify messages between clients
 public type BasicProperties record {|
     string replyTo?;
     string contentType?;
@@ -52,10 +52,10 @@ public type BasicProperties record {|
 
 # Additional configurations used to declare a queue.
 #
-# + durable - True if declaring a durable queue (the queue will survive in a server restart)
-# + exclusive - True if declaring an exclusive queue (restricted to this connection)
-# + autoDelete - True if declaring an auto-delete queue (the server will delete it when it is no longer in use)
-# + arguments - Other properties (construction arguments) for the queue
+# + durable - Set to true if declaring a durable queue
+# + exclusive - Set to true if declaring an exclusive queue
+# + autoDelete - Set to true if declaring an auto-delete queue
+# + arguments - Other properties (construction arguments) of the queue
 public type QueueConfig record {|
     boolean durable = false;
     boolean exclusive = false;
@@ -65,8 +65,8 @@ public type QueueConfig record {|
 
 # Additional configurations used to declare an exchange.
 #
-# + durable - True if declaring a durable exchange (the exchange will survive in a server restart)
-# + autoDelete - True if an autodelete exchange is declared (the server will delete it when it is no longer in use)
+# + durable - Set to `true` if a durable exchange is declared
+# + autoDelete - Set to `true` if an autodelete exchange is declared
 # + arguments - Other properties (construction arguments) for the queue
 public type ExchangeConfig record {|
     boolean durable = false;
@@ -74,7 +74,7 @@ public type ExchangeConfig record {|
     map<anydata> arguments?;
 |};
 
-# Configurations used to create a `rabbitmq:Connection`.
+# Configurations related to initializing the RabbitMQ client and listener.
 #
 # + username - The username used for establishing the connection
 # + password - The password used for establishing the connection
@@ -99,11 +99,11 @@ public type ConnectionConfiguration record {|
 # QoS settings to limit the number of unacknowledged
 # messages on a channel.
 #
-# + prefetchCount - Maximum number of messages that the server will deliver.
+# + prefetchCount - The maximum number of messages that the server will deliver.
 #                   Give the value as 0 if unlimited
-# + prefetchSize - Maximum amount of content (measured in octets)
+# + prefetchSize - The maximum amount of content (measured in octets)
 #                   that the server will deliver and 0 if unlimited
-# + global - True if the settings should be shared among all consumers
+# + global - `true` if the settings should be shared among all the consumers
 public type QosSettings record {|
    int prefetchCount;
    int prefetchSize?;

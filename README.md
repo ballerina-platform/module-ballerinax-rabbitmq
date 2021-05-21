@@ -11,7 +11,7 @@ Ballerina</a> language.
 
 This module contains the functionality to support messaging with the RabbitMQ broker (AMQP 0-9-1). 
 
-For more information on the operations supported by the module, which include the below, go to [The RabbitMQ Module](https://ballerina.io/swan-lake/learn/api-docs/ballerina/rabbitmq/).
+For more information on the operations supported by the module, which include the below, go to the [`rabbitmq` module](https://docs.central.ballerina.io/ballerinax/rabbitmq/latest).
 
 - Connecting to RabbitMQ
 - Using Exchanges and Queues
@@ -19,7 +19,7 @@ For more information on the operations supported by the module, which include th
 - Consuming Messages Using Consumer Services
 - Client Acknowledgements 
 
-For example demonstrations of the usage, go to [Ballerina By Examples](https://ballerina.io/learn/by-example/rabbitmq-producer.html).
+For example demonstrations of the usage, go to [Ballerina By Examples](https://ballerina.io/learn/by-example/).
 
 ## Issues and Projects 
 
@@ -102,6 +102,6 @@ All contributors are encouraged to read the [Ballerina Code of Conduct](https://
 
 ## Useful Links
 
-* Discuss about code changes of the Ballerina project in [ballerina-dev@googlegroups.com](mailto:ballerina-dev@googlegroups.com).
+* Discuss code changes of the Ballerina project in [ballerina-dev@googlegroups.com](mailto:ballerina-dev@googlegroups.com).
 * Chat live with us via our [Slack channel](https://ballerina.io/community/slack/).
 * Post all technical questions on Stack Overflow with the [#ballerina](https://stackoverflow.com/questions/tagged/ballerina) tag.
