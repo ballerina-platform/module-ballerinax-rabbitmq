@@ -18,7 +18,7 @@ import ballerina/jballerina.java;
 import ballerina/uuid;
 
 # The Ballerina interface to provide AMQP Channel related functionality.
-public client class Client {
+public isolated client class Client {
 
     private string connectorId = uuid:createType4AsString();
 
