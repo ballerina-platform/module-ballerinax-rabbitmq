@@ -277,8 +277,8 @@ public class MessageDispatcher {
                 (RabbitMQTransactionContext) listenerObj.getNativeData(RabbitMQConstants.RABBITMQ_TRANSACTION_CONTEXT);
         callerObj.addNativeData(RabbitMQConstants.DELIVERY_TAG.getValue(), deliveryTag);
         callerObj.addNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT, channel);
-        callerObj.set(RabbitMQConstants.AUTO_ACK_STATUS, autoAck);
-        callerObj.set(RabbitMQConstants.MESSAGE_ACK_STATUS, false);
+        callerObj.addNativeData(RabbitMQConstants.ACK_MODE, autoAck);
+        callerObj.addNativeData(RabbitMQConstants.ACK_STATUS, false);
         callerObj.addNativeData(RabbitMQConstants.RABBITMQ_TRANSACTION_CONTEXT, transactionContext);
         return callerObj;
     }
