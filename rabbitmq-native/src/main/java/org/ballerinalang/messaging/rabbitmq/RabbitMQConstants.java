@@ -55,7 +55,6 @@ public class RabbitMQConstants {
 
     // Error constant fields
     static final String RABBITMQ_ERROR = "Error";
-    static final String RABBITMQ_ERROR_DETAILS = "Detail";
     static final String RABBITMQ_ERROR_MESSAGE = "message";
 
     // Connection errors
@@ -118,8 +117,10 @@ public class RabbitMQConstants {
     // Message constant fields
     public static final String MESSAGE_RECORD = "Message";
     public static final String CALLER_OBJECT = "Caller";
-    public static final BString MESSAGE_CONTENT = StringUtils.fromString("messageContent");
+    public static final BString MESSAGE_CONTENT = StringUtils.fromString("content");
     public static final BString DELIVERY_TAG = StringUtils.fromString("deliveryTag");
+    public static final BString MESSAGE_EXCHANGE = StringUtils.fromString("exchange");
+    public static final BString MESSAGE_ROUTING_KEY = StringUtils.fromString("routingKey");
     public static final BString MESSAGE_ACK_STATUS = StringUtils.fromString("ackStatus");
     public static final BString AUTO_ACK_STATUS = StringUtils.fromString("autoAck");
     public static final BString BASIC_PROPERTIES = StringUtils.fromString("properties");

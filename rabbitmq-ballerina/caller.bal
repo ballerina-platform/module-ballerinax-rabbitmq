@@ -30,7 +30,7 @@ public client class Caller {
     #              `false` to acknowledge just the called on message
     # + return - A `rabbitmq:Error` if an I/O error occurred
     isolated remote function basicAck(boolean multiple = false) returns Error? {
-        var result = nativeBasicAck(multiple, self.autoAck, self.ackStatus, self);
+        Error? result = nativeBasicAck(multiple, self.autoAck, self.ackStatus, self);
         self.ackStatus = true;
         return result;
     }
@@ -46,7 +46,7 @@ public client class Caller {
     # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
     isolated remote function basicNack(boolean multiple = false, boolean requeue = true)
                             returns Error? {
-        var result = nativeBasicNack(self.autoAck, self.ackStatus,
+        Error? result = nativeBasicNack(self.autoAck, self.ackStatus,
                                 multiple, requeue, self);
         self.ackStatus = true;
         return result;

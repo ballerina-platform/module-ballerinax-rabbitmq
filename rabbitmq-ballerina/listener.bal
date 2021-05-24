@@ -19,9 +19,9 @@ import ballerina/uuid;
 
 # Ballerina RabbitMQ Message Listener.
 # Provides a listener to consume messages from the RabbitMQ server.
-public class Listener {
+public isolated class Listener {
 
-    string connectorId = uuid:createType4AsString();
+    private string connectorId = uuid:createType4AsString();
 
     # Initializes a Listener object with the given connection configuration. Sets the global QoS settings,
     # which will be applied to the entire `rabbitmq:Listener`.
@@ -55,9 +55,10 @@ public class Listener {
     # + s - The type descriptor of the service
     # + name - The name of the service
     # + return - `()` or else a `rabbitmq:Error` upon failure to register the service
-    public isolated function attach(Service s, string[]|string? name = ()) returns error? {
-        return registerListener(self, s, name);
-    }
+    public isolated function attach(Service s, string[]|string? name = ()) returns error? =
+    @java:Method {
+        'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
+    } external;
 
     # Starts consuming the messages on all the attached services.
     # ```ballerina
@@ -65,9 +66,10 @@ public class Listener {
     # ```
     #
     # + return - `()` or else a `rabbitmq:Error` upon failure to start
-    public isolated function 'start() returns error? {
-        return 'start(self);
-    }
+    public isolated function 'start() returns error? =
+    @java:Method {
+        'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
+    } external;
 
     # Stops consuming messages and detaches the service from the `rabbitmq:Listener` endpoint.
     # ```ballerina
@@ -76,9 +78,10 @@ public class Listener {
     #
     # + s - The type descriptor of the service
     # + return - `()` or else  a `rabbitmq:Error` upon failure to detach the service
-    public isolated function detach(Service s) returns error? {
-        return detach(self, s);
-    }
+    public isolated function detach(Service s) returns error? =
+    @java:Method {
+        'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
+    } external;
 
     # Stops consuming messages through all consumer services by terminating the connection and all its channels.
     # ```ballerina
@@ -86,9 +89,10 @@ public class Listener {
     # ```
     #
     # + return - `()` or else  a `rabbitmq:Error` upon failure to close the `ChannelListener`
-    public isolated function gracefulStop() returns error? {
-        return stop(self);
-    }
+    public isolated function gracefulStop() returns error? =
+    @java:Method {
+        'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
+    } external;
 
     # Stops consuming messages through all the consumer services and terminates the connection
     # with the server.
@@ -97,9 +101,10 @@ public class Listener {
     # ```
     #
     # + return - `()` or else  a `rabbitmq:Error` upon failure to close ChannelListener.
-    public isolated function immediateStop() returns error? {
-        return abortConnection(self);
-    }
+    public isolated function immediateStop() returns error? =
+    @java:Method {
+        'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
+    } external;
 }
 
 # Configurations required to create a subscription.
@@ -117,31 +122,6 @@ public annotation RabbitMQServiceConfig ServiceConfig on service, class;
 isolated function externInit(string host, int port, Listener lis, *ConnectionConfiguration connectionData)
 returns Error? = @java:Method {
     name: "init",
-    'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
-} external;
-
-isolated function registerListener(Listener lis, Service serviceType, string[]|string? name = ()) returns Error? =
-@java:Method {
-    'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
-} external;
-
-isolated function 'start(Listener lis) returns Error? =
-@java:Method {
-    'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
-} external;
-
-isolated function detach(Listener lis, Service serviceType) returns Error? =
-@java:Method {
-    'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
-} external;
-
-isolated function stop(Listener lis) returns Error? =
-@java:Method {
-    'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
-} external;
-
-isolated function abortConnection(Listener lis) returns Error? =
-@java:Method {
     'class: "org.ballerinalang.messaging.rabbitmq.util.ListenerUtils"
 } external;
 
