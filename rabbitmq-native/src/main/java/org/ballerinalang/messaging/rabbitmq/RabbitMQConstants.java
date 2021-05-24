@@ -40,8 +40,6 @@ public class RabbitMQConstants {
     public static final BString QUEUE_ARGUMENTS = StringUtils.fromString("arguments");
 
     // Exchange configuration constant fields
-    public static final BString EXCHANGE_NAME = StringUtils.fromString("exchangeName");
-    public static final BString EXCHANGE_TYPE = StringUtils.fromString("exchangeType");
     public static final BString EXCHANGE_DURABLE = StringUtils.fromString("durable");
     public static final BString EXCHANGE_AUTO_DELETE = StringUtils.fromString("autoDelete");
     public static final BString EXCHANGE_ARGUMENTS = StringUtils.fromString("arguments");
@@ -55,7 +53,6 @@ public class RabbitMQConstants {
 
     // Error constant fields
     static final String RABBITMQ_ERROR = "Error";
-    static final String RABBITMQ_ERROR_MESSAGE = "message";
 
     // Connection errors
     public static final String CREATE_CONNECTION_ERROR = "Error occurred while connecting to the broker: ";
@@ -71,8 +68,6 @@ public class RabbitMQConstants {
     public static final String CONNECTION_NATIVE_OBJECT = "rabbitmq_connection_object";
 
     // Connection configuration constant fields
-    public static final BString RABBITMQ_CONNECTION_HOST = StringUtils.fromString("host");
-    public static final BString RABBITMQ_CONNECTION_PORT = StringUtils.fromString("port");
     public static final BString RABBITMQ_CONNECTION_USER = StringUtils.fromString("username");
     public static final BString RABBITMQ_CONNECTION_PASS = StringUtils.fromString("password");
     public static final BString RABBITMQ_CONNECTION_TIMEOUT = StringUtils.fromString("connectionTimeout");
@@ -94,13 +89,9 @@ public class RabbitMQConstants {
     // Channel listener constant fields
     public static final String CONSUMER_SERVICES = "consumer_services";
     public static final String STARTED_SERVICES = "started_services";
-    static final String LISTENER_OBJECT = "Listener";
     public static final String SERVICE_CONFIG = "ServiceConfig";
     public static final BString ALIAS_QUEUE_NAME = StringUtils.fromString("queueName");
     public static final BString AUTO_ACK = StringUtils.fromString("autoAck");
-    public static final BString ALIAS_PREFETCH_COUNT = StringUtils.fromString("prefetchCount");
-    public static final BString ALIAS_PREFETCH_SIZE = StringUtils.fromString("prefetchSize");
-    public static final int DEFAULT_PREFETCH = 10;
     public static final String MULTIPLE_ACK_ERROR = "Trying to acknowledge the same message multiple times";
     public static final String ACK_MODE_ERROR = "Trying to acknowledge messages in auto-ack mode";
     static final String THREAD_INTERRUPTED = "Error occurred in RabbitMQ service. " +
@@ -117,18 +108,13 @@ public class RabbitMQConstants {
     // Message constant fields
     public static final String MESSAGE_RECORD = "Message";
     public static final String CALLER_OBJECT = "Caller";
+    public static final  String ACK_STATUS = "ackStatus";
+    public static final String ACK_MODE = "ackMode";
     public static final BString MESSAGE_CONTENT = StringUtils.fromString("content");
     public static final BString DELIVERY_TAG = StringUtils.fromString("deliveryTag");
     public static final BString MESSAGE_EXCHANGE = StringUtils.fromString("exchange");
     public static final BString MESSAGE_ROUTING_KEY = StringUtils.fromString("routingKey");
-    public static final BString MESSAGE_ACK_STATUS = StringUtils.fromString("ackStatus");
-    public static final BString AUTO_ACK_STATUS = StringUtils.fromString("autoAck");
     public static final BString BASIC_PROPERTIES = StringUtils.fromString("properties");
-    public static final String XML_CONTENT_ERROR = "Error while retrieving the xml content of the message. ";
-    public static final String JSON_CONTENT_ERROR = "Error while retrieving the json content of the message. ";
-    public static final String TEXT_CONTENT_ERROR = "Error while retrieving the string content of the message. ";
-    public static final String INT_CONTENT_ERROR = "Error while retrieving the int content of the message. ";
-    public static final String FLOAT_CONTENT_ERROR = "Error while retrieving the float content of the message. ";
     static final String DISPATCH_ERROR = "Error occurred while dispatching the message. ";
 
     // Transaction constant fields
