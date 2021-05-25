@@ -81,7 +81,7 @@ public class ListenerUtils {
         return null;
     }
 
-    public static Object registerListener(Environment environment, BObject listenerBObject, BObject service,
+    public static Object attach(Environment environment, BObject listenerBObject, BObject service,
                                           Object queueName) {
         runtime = environment.getRuntime();
         Channel channel = (Channel) listenerBObject.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
@@ -216,7 +216,7 @@ public class ListenerUtils {
         return autoAck;
     }
 
-    public static Object stop(BObject listenerBObject) {
+    public static Object gracefulStop(BObject listenerBObject) {
         Channel channel = (Channel) listenerBObject.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         if (channel == null) {
             RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_STOP);
@@ -238,7 +238,7 @@ public class ListenerUtils {
         return null;
     }
 
-    public static Object abortConnection(BObject listenerBObject) {
+    public static Object immediateStop(BObject listenerBObject) {
         Channel channel = (Channel) listenerBObject.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         if (channel == null) {
             RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_CONNECTION_ABORT);

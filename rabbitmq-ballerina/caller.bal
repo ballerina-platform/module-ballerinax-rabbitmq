@@ -17,9 +17,7 @@
 import ballerina/jballerina.java;
 
 # Provides the functionality to manipulate the messages received by the consumer services.
-public client class Caller {
-    private boolean ackStatus = false;
-    private boolean autoAck = true;
+public isolated client class Caller {
 
     # Acknowledges one or several received messages.
     # ```ballerina
@@ -29,11 +27,10 @@ public client class Caller {
     # + multiple - Set to `true` to acknowledge all messages up to and including the called on message and
     #              `false` to acknowledge just the called on message
     # + return - A `rabbitmq:Error` if an I/O error occurred
-    isolated remote function basicAck(boolean multiple = false) returns Error? {
-        var result = nativeBasicAck(multiple, self.autoAck, self.ackStatus, self);
-        self.ackStatus = true;
-        return result;
-    }
+    isolated remote function basicAck(boolean multiple = false) returns Error? =
+    @java:Method {
+        'class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
+    } external;
 
     # Rejects one or several received messages.
     # ```ballerina
@@ -45,22 +42,8 @@ public client class Caller {
     # + requeue - `true` if the rejected message(s) should be re-queued rather than discarded/dead-lettered
     # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
     isolated remote function basicNack(boolean multiple = false, boolean requeue = true)
-                            returns Error? {
-        var result = nativeBasicNack(self.autoAck, self.ackStatus,
-                                multiple, requeue, self);
-        self.ackStatus = true;
-        return result;
-    }
+                            returns Error? =
+    @java:Method {
+        'class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
+    } external;
 }
-
-isolated function nativeBasicAck(boolean multiple, boolean ackMode, boolean ackStatus, Caller caller) returns Error? =
-@java:Method {
-    name: "basicAck",
-    'class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
-} external;
-
-isolated function nativeBasicNack(boolean ackMode, boolean ackStatus, boolean multiple, boolean requeue, Caller caller)
- returns Error? = @java:Method {
-    name: "basicNack",
-    'class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
-} external;

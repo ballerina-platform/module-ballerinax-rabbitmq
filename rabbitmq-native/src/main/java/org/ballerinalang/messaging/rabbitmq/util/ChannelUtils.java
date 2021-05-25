@@ -59,9 +59,10 @@ public class ChannelUtils {
             Channel channel = connection.createChannel();
             RabbitMQMetricsUtil.reportNewChannel(channel);
             String connectorId = channelObj.getStringValue(RabbitMQConstants.CONNECTOR_ID).getValue();
+            channelObj.addNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT, channel);
             channelObj.addNativeData(RabbitMQConstants.RABBITMQ_TRANSACTION_CONTEXT,
                                      new RabbitMQTransactionContext(channel, connectorId));
-            return channel;
+            return null;
         } catch (IOException exception) {
             RabbitMQMetricsUtil.reportError(connection, RabbitMQObservabilityConstants.ERROR_TYPE_CHANNEL_CREATE);
             return RabbitMQUtils.returnErrorValue("Error occurred while initializing the channel: "
@@ -69,11 +70,13 @@ public class ChannelUtils {
         }
     }
 
-    public static Object queueDeclare(Environment environment, BString queueName, Object queueConfig, Channel channel) {
+    public static Object queueDeclare(Environment environment, BObject clientObj,
+                                      BString queueName, Object queueConfig) {
         boolean durable = false;
         boolean exclusive = false;
         boolean autoDelete = true;
         Map<String, Object> argumentsMap = null;
+        Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         try {
             if (queueConfig != null) {
                 @SuppressWarnings(RabbitMQConstants.UNCHECKED)
@@ -96,7 +99,8 @@ public class ChannelUtils {
         return null;
     }
 
-    public static Object queueAutoGenerate(Channel channel) {
+    public static Object queueAutoGenerate(BObject clientObj) {
+        Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         try {
             AMQP.Queue.DeclareOk result = channel.queueDeclare();
             return StringUtils.fromString(result.getQueue());
@@ -107,7 +111,8 @@ public class ChannelUtils {
         }
     }
 
-    public static Object basicGet(BString queueName, boolean ackMode, Channel channel) {
+    public static Object consumeMessage(BObject clientObj, BString queueName, boolean ackMode) {
+        Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         try {
             GetResponse response = channel.basicGet(queueName.getValue(), ackMode);
             if (Objects.isNull(response)) {
@@ -149,8 +154,9 @@ public class ChannelUtils {
         return ValueCreator.createRecordValue(messageRecord, values);
     }
 
-    public static Object basicAck(Environment environment, BMap<BString, Object> message, boolean multiple,
-                                  Channel channel) {
+    public static Object basicAck(Environment environment, BObject clientObj, BMap<BString, Object> message,
+                                  boolean multiple) {
+        Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         int deliveryTag =
                 Integer.parseInt(message.getIntValue(RabbitMQConstants.DELIVERY_TAG).toString());
         try {
@@ -167,8 +173,9 @@ public class ChannelUtils {
         return null;
     }
 
-    public static Object basicNack(Environment environment, BMap<BString, Object> message, boolean multiple,
-                                   boolean requeue, Channel channel) {
+    public static Object basicNack(Environment environment, BObject clientObj, BMap<BString, Object> message,
+                                   boolean multiple, boolean requeue) {
+        Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         int deliveryTag =
                 Integer.parseInt(message.getStringValue(RabbitMQConstants.DELIVERY_TAG).toString());
         try {
@@ -186,8 +193,9 @@ public class ChannelUtils {
         return null;
     }
 
-    public static Object exchangeDeclare(Environment environment, BString exchangeName, BString exchangeType,
-                                         Object exchangeConfig, Channel channel) {
+    public static Object exchangeDeclare(Environment environment, BObject clientObj, BString exchangeName,
+                                         BString exchangeType, Object exchangeConfig) {
+        Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         boolean durable = false;
         boolean autoDelete = true;
         Map<String, Object> argumentsMap = null;
@@ -215,8 +223,9 @@ public class ChannelUtils {
         return null;
     }
 
-    public static Object queueBind(Environment environment, BString queueName, BString exchangeName, BString bindingKey,
-                                   Channel channel) {
+    public static Object queueBind(Environment environment, BObject clientObj, BString queueName, BString exchangeName,
+                                   BString bindingKey) {
+        Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         try {
             channel.queueBind(queueName.getValue(), exchangeName.getValue(), bindingKey.getValue(), null);
             RabbitMQTracingUtil.traceResourceInvocation(channel, environment);
@@ -230,8 +239,12 @@ public class ChannelUtils {
         return null;
     }
 
-    public static Object basicPublish(Environment environment, BArray messageContent, BString routingKey,
-                                      BString exchangeName, Object properties, Channel channel, BObject channelObj) {
+    public static Object publishMessage(Environment environment, BObject channelObj, BMap<BString, Object> message) {
+        Channel channel = (Channel) channelObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
+        BArray messageContent = message.getArrayValue(RabbitMQConstants.MESSAGE_CONTENT);
+        BString exchangeName = message.getStringValue(RabbitMQConstants.MESSAGE_EXCHANGE);
+        BString routingKey = message.getStringValue(RabbitMQConstants.MESSAGE_ROUTING_KEY);
+        Object properties = message.get(RabbitMQConstants.BASIC_PROPERTIES);
         String defaultExchangeName = "";
         if (exchangeName != null) {
             defaultExchangeName = exchangeName.getValue();
@@ -289,8 +302,9 @@ public class ChannelUtils {
         return null;
     }
 
-    public static Object queueDelete(Environment environment, BString queueName, boolean ifUnused, boolean ifEmpty,
-                                     Channel channel) {
+    public static Object queueDelete(Environment environment, BObject clientObj, BString queueName, boolean ifUnused,
+                                     boolean ifEmpty) {
+        Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         try {
             channel.queueDelete(queueName.getValue(), ifUnused, ifEmpty);
             RabbitMQMetricsUtil.reportQueueDeletion(channel, queueName.getValue());
@@ -303,7 +317,8 @@ public class ChannelUtils {
         return null;
     }
 
-    public static Object exchangeDelete(Environment environment, BString exchangeName, Channel channel) {
+    public static Object exchangeDelete(Environment environment, BObject clientObj, BString exchangeName) {
+        Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         try {
             channel.exchangeDelete(exchangeName.getValue());
             RabbitMQMetricsUtil.reportExchangeDeletion(channel, exchangeName.getValue());
@@ -316,7 +331,8 @@ public class ChannelUtils {
         return null;
     }
 
-    public static Object queuePurge(Environment environment, BString queueName, Channel channel) {
+    public static Object queuePurge(Environment environment, BObject clientObj, BString queueName) {
+        Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         try {
             channel.queuePurge(queueName.getValue());
             RabbitMQTracingUtil.traceQueueResourceInvocation(channel, queueName.getValue(), environment);
@@ -328,7 +344,8 @@ public class ChannelUtils {
         return null;
     }
 
-    public static Object close(Environment environment, Object closeCode, Object closeMessage, Channel channel) {
+    public static Object close(Environment environment, BObject clientObj, Object closeCode, Object closeMessage) {
+        Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         try {
             boolean validCloseCode = closeCode != null && RabbitMQUtils.checkIfInt(closeCode);
             boolean validCloseMessage = closeMessage != null && RabbitMQUtils.checkIfString(closeMessage);
@@ -347,7 +364,8 @@ public class ChannelUtils {
         return null;
     }
 
-    public static Object abort(Environment environment, Object closeCode, Object closeMessage, Channel channel) {
+    public static Object abort(Environment environment, BObject clientObj, Object closeCode, Object closeMessage) {
+        Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         try {
             boolean validCloseCode = closeCode != null && RabbitMQUtils.checkIfInt(closeCode);
             boolean validCloseMessage = closeMessage != null && RabbitMQUtils.checkIfString(closeMessage);
