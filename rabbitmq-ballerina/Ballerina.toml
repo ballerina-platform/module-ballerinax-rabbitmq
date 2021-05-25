@@ -14,3 +14,6 @@ path = "../rabbitmq-native/build/libs/rabbitmq-native-@project.version@.jar"
 groupId = "ballerina"
 artifactId = "rabbitmq"
 version = "@project.version@"
+
+[build-options]
+observabilityIncluded=true
