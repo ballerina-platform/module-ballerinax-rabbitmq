@@ -176,8 +176,7 @@ public class ChannelUtils {
     public static Object basicNack(Environment environment, BObject clientObj, BMap<BString, Object> message,
                                    boolean multiple, boolean requeue) {
         Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
-        int deliveryTag =
-                Integer.parseInt(message.getStringValue(RabbitMQConstants.DELIVERY_TAG).toString());
+        int deliveryTag = (int) ((long) message.getIntValue(RabbitMQConstants.DELIVERY_TAG));
         try {
             channel.basicNack(deliveryTag, multiple, requeue);
             RabbitMQMetricsUtil.reportAcknowledgement(channel, RabbitMQObservabilityConstants.NACK);
@@ -350,7 +349,7 @@ public class ChannelUtils {
             boolean validCloseCode = closeCode != null && RabbitMQUtils.checkIfInt(closeCode);
             boolean validCloseMessage = closeMessage != null && RabbitMQUtils.checkIfString(closeMessage);
             if (validCloseCode && validCloseMessage) {
-                channel.close((int) closeCode, closeMessage.toString());
+                channel.close((int) ((long) closeCode), closeMessage.toString());
             } else {
                 channel.close();
             }
@@ -370,7 +369,7 @@ public class ChannelUtils {
             boolean validCloseCode = closeCode != null && RabbitMQUtils.checkIfInt(closeCode);
             boolean validCloseMessage = closeMessage != null && RabbitMQUtils.checkIfString(closeMessage);
             if (validCloseCode && validCloseMessage) {
-                channel.abort((int) closeCode, closeMessage.toString());
+                channel.abort((int) ((long) closeCode), closeMessage.toString());
             } else {
                 channel.abort();
             }
