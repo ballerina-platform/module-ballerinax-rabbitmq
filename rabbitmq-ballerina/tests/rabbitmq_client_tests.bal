@@ -23,6 +23,10 @@ Client? rabbitmqChannel = ();
 Listener? rabbitmqListener = ();
 const QUEUE = "MyQueue";
 const ACK_QUEUE = "MyAckQueue";
+const MOCK_QUEUE = "MockQueue";
+const DIRECT_EXCHANGE_NAME = "MyDirectExchange";
+const TOPIC_EXCHANGE_NAME = "MyTopicExchange";
+const FANOUT_EXCHANGE_NAME = "MyFanoutExchange";
 const SYNC_NEGATIVE_QUEUE = "MySyncNegativeQueue";
 const DATA_BINDING_QUEUE = "MyDataQueue";
 string asyncConsumerMessage = "";
@@ -119,6 +123,99 @@ public function testAsyncConsumer() {
 }
 
 @test:Config {
+    dependsOn: [testListener],
+    groups: ["rabbitmq"]
+}
+public isolated function testGracefulStop() returns error? {
+    Listener channelListener = check new(DEFAULT_HOST, DEFAULT_PORT);
+    error? stopResult = channelListener.gracefulStop();
+    if stopResult is error {
+        test:assertFail("Error when trying to close the listener gracefully.");
+    }
+}
+
+@test:Config {
+    dependsOn: [testListener],
+    groups: ["rabbitmq"]
+}
+public isolated function testImmediateStop() returns error? {
+    Listener channelListener = check new(DEFAULT_HOST, DEFAULT_PORT);
+    error? stopResult = channelListener.immediateStop();
+    if stopResult is error {
+        test:assertFail("Error when trying to close the listener immediately.");
+    }
+}
+
+@test:Config {
+    dependsOn: [testListener],
+    groups: ["rabbitmq"]
+}
+public function testListenerDetach() returns error? {
+    Listener channelListener = check new(DEFAULT_HOST, DEFAULT_PORT);
+    check channelListener.attach(mockService);
+    check channelListener.'start();
+    error? detachResult = channelListener.detach(mockService);
+    if detachResult is error {
+        test:assertFail("Error when trying to detach a service from the listener.");
+    }
+    check channelListener.immediateStop();
+}
+
+@test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
+public isolated function testQueueAutoGenerate() returns error? {
+    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Error|string queueResult = newClient->queueAutoGenerate();
+    if queueResult is error {
+        test:assertFail("Error when trying to create an auto generated queue.");
+    } else {
+        log:printInfo("Auto generated queue name: " + queueResult);
+    }
+    check newClient.close();
+}
+
+@test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
+public isolated function testDirectExchangeDeclare() returns error? {
+    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Error? result = newClient->exchangeDeclare(DIRECT_EXCHANGE_NAME, DIRECT_EXCHANGE);
+    if result is error {
+       test:assertFail("Error when trying to create a direct exchange.");
+    }
+    check newClient.close();
+}
+
+@test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
+public isolated function testTopicExchangeDeclare() returns error? {
+    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Error? result = newClient->exchangeDeclare(TOPIC_EXCHANGE_NAME, TOPIC_EXCHANGE);
+    if result is error {
+       test:assertFail("Error when trying to create a topic exchange.");
+    }
+    check newClient.close();
+}
+
+@test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
+public isolated function testFanoutExchangeDeclare() returns error? {
+    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Error? result = newClient->exchangeDeclare(FANOUT_EXCHANGE_NAME, FANOUT_EXCHANGE);
+    if result is error {
+       test:assertFail("Error when trying to create a fanout exchange.");
+    }
+    check newClient.close();
+}
+
+@test:Config {
     dependsOn: [testListener, testAsyncConsumer],
     groups: ["rabbitmq"]
 }
@@ -183,6 +280,15 @@ Service ackTestService =
 service object {
     remote function onMessage(Message message, Caller caller) {
         checkpanic caller->basicAck();
+    }
+};
+
+Service mockService =
+@ServiceConfig {
+    queueName: MOCK_QUEUE
+}
+service object {
+    remote function onMessage(Message message) {
     }
 };
 
