@@ -216,6 +216,133 @@ public isolated function testFanoutExchangeDeclare() returns error? {
 }
 
 @test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
+public isolated function testQueueBind() returns error? {
+    string exchange = "QueueBindTestExchange";
+    string queue = "QueueBindTest";
+    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    check newClient->exchangeDeclare(exchange, DIRECT_EXCHANGE);
+    check newClient->queueDeclare(queue);
+    Error? result = newClient->queueBind(queue, exchange, "myBinding");
+    if result is error {
+        test:assertFail("Error when trying to bind a queue.");
+    }
+    check newClient.close();
+}
+
+@test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
+public isolated function testClientBasicAck() returns error? {
+    string queue = "testClientBasicAck";
+    string message = "Test client basic ack";
+    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    check newClient->queueDeclare(queue);
+    check newClient->publishMessage({ content: message.toBytes(), routingKey: queue });
+    Message|Error consumeResult = newClient->consumeMessage(queue, false);
+    if consumeResult is Message {
+        string messageContent = check 'string:fromBytes(consumeResult.content);
+        log:printInfo("The message received: " + messageContent);
+        test:assertEquals(messageContent, message, msg = "Message received does not match.");
+        Error? ackResult = newClient->basicAck(consumeResult, false);
+        if ackResult is Error {
+            test:assertFail("Error when trying to acknowledge the message using client.");
+        }
+    } else {
+        test:assertFail("Error when trying to consume messages using client.");
+    }
+    check newClient.close();
+}
+
+@test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
+public isolated function testClientBasicNack() returns error? {
+    string queue = "testClientBasicNack";
+    string message = "Test client basic nack";
+    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    check newClient->queueDeclare(queue);
+    check newClient->publishMessage({ content: message.toBytes(), routingKey: queue });
+    Message|Error consumeResult = newClient->consumeMessage(queue, false);
+    if consumeResult is Message {
+        string messageContent = check 'string:fromBytes(consumeResult.content);
+        test:assertEquals(messageContent, message, msg = "Message received does not match.");
+        log:printInfo("The message received: " + messageContent);
+        Error? ackResult = newClient->basicNack(consumeResult, false, false);
+        if ackResult is Error {
+            test:assertFail("Error when trying to acknowledge the message using client.");
+        }
+    } else {
+        test:assertFail("Error when trying to consume messages using client.");
+    }
+    check newClient.close();
+}
+
+@test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
+public isolated function testQueueDelete() returns error? {
+    string queue = "testQueueDelete";
+    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    check newClient->queueDeclare(queue);
+    Error? deleteResult = newClient->queueDelete(queue);
+    if deleteResult is Error {
+        test:assertFail("Error when trying to delete a queue.");
+    }
+    check newClient.close(200, "Client closed");
+}
+
+@test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
+public isolated function testExchangeDelete() returns error? {
+    string exchange = "testExchangeDelete";
+    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    check newClient->exchangeDeclare(exchange, DIRECT_EXCHANGE);
+    Error? deleteExchange = newClient->exchangeDelete(exchange);
+    check newClient.close(200, "Client closed");
+}
+
+@test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
+public isolated function testClientAbort() returns error? {
+    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Error? abortResult = newClient.'abort(200, "Client aborted");
+    if abortResult is Error {
+        test:assertFail("Error when trying to abort a client.");
+    }
+}
+
+@test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
+public function testQueuePurge() returns error? {
+    string queue = "testQueuePurge";
+    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    check newClient->queueDeclare(queue);
+    produceMessage("Hello world 1", queue);
+    produceMessage("Hello world 2", queue);
+    Error? deleteResult = newClient->queuePurge(queue);
+    if deleteResult is Error {
+        test:assertFail("Error when trying to purge a queue.");
+    }
+    Message|Error message = newClient->consumeMessage(queue);
+    if message is Message {
+        test:assertFail("Error expected when trying to consume from a purged queue.");
+    }
+    check newClient.close(200, "Client closed");
+}
+
+@test:Config {
     dependsOn: [testListener, testAsyncConsumer],
     groups: ["rabbitmq"]
 }
