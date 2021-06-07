@@ -41,8 +41,7 @@ public isolated client class Caller {
     #              `false` to reject just the called on message
     # + requeue - `true` if the rejected message(s) should be re-queued rather than discarded/dead-lettered
     # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
-    isolated remote function basicNack(boolean multiple = false, boolean requeue = true)
-                            returns Error? =
+    isolated remote function basicNack(boolean multiple = false, boolean requeue = true) returns Error? =
     @java:Method {
         'class: "org.ballerinalang.messaging.rabbitmq.util.MessageUtils"
     } external;

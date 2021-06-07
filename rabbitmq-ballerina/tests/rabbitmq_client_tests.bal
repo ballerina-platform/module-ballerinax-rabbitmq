@@ -23,6 +23,7 @@ Client? rabbitmqChannel = ();
 Listener? rabbitmqListener = ();
 const QUEUE = "MyQueue";
 const ACK_QUEUE = "MyAckQueue";
+const NACK_QUEUE = "MyNackQueue";
 const MOCK_QUEUE = "MockQueue";
 const DIRECT_EXCHANGE_NAME = "MyDirectExchange";
 const TOPIC_EXCHANGE_NAME = "MyTopicExchange";
@@ -35,17 +36,18 @@ string dataBindingMessage = "";
 string REPLYTO = "replyHere";
 
 @test:BeforeSuite
-function setup() {
+function setup() returns error? {
     log:printInfo("Creating a ballerina RabbitMQ channel.");
     Client newClient = checkpanic new(DEFAULT_HOST, DEFAULT_PORT);
     rabbitmqChannel = newClient;
     Client? clientObj = rabbitmqChannel;
     if (clientObj is Client) {
-        string? queue = checkpanic clientObj->queueDeclare(QUEUE);
-        string? dataBindingQueue = checkpanic clientObj->queueDeclare(DATA_BINDING_QUEUE);
-        string? syncNegativeQueue = checkpanic clientObj->queueDeclare(SYNC_NEGATIVE_QUEUE);
-        string? ackQueue = checkpanic clientObj->queueDeclare(ACK_QUEUE);
-        string? replyQueue = checkpanic clientObj->queueDeclare(REPLYTO);
+        check clientObj->queueDeclare(QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_QUEUE);
+        check clientObj->queueDeclare(SYNC_NEGATIVE_QUEUE);
+        check clientObj->queueDeclare(ACK_QUEUE);
+        check clientObj->queueDeclare(NACK_QUEUE);
+        check clientObj->queueDeclare(REPLYTO);
     }
     Listener lis = checkpanic new(DEFAULT_HOST, DEFAULT_PORT);
     rabbitmqListener = lis;
@@ -357,6 +359,20 @@ public function testAcknowledgements() {
 }
 
 @test:Config {
+    dependsOn: [testListener, testAsyncConsumer],
+    groups: ["rabbitmq"]
+}
+public function testNegativeAcknowledgements() {
+    string message = "Testing Message Rejection";
+    produceMessage(message, NACK_QUEUE);
+    Listener? channelListener = rabbitmqListener;
+    if (channelListener is Listener) {
+        checkpanic channelListener.attach(nackTestService);
+        runtime:sleep(2);
+    }
+}
+
+@test:Config {
     dependsOn: [testAsyncConsumer, testAcknowledgements],
     groups: ["rabbitmq"]
 }
@@ -407,6 +423,17 @@ Service ackTestService =
 service object {
     remote function onMessage(Message message, Caller caller) {
         checkpanic caller->basicAck();
+    }
+};
+
+Service nackTestService =
+@ServiceConfig {
+    queueName: NACK_QUEUE,
+    autoAck: false
+}
+service object {
+    remote function onMessage(Message message, Caller caller) {
+        checkpanic caller->basicNack(false, false);
     }
 };
 
