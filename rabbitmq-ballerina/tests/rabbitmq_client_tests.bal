@@ -218,6 +218,38 @@ public isolated function testFanoutExchangeDeclare() returns error? {
 }
 
 @test:Config {
+    dependsOn: [testClient, testQueueDelete],
+    groups: ["rabbitmq"]
+}
+public isolated function testQueueConfig() returns error? {
+    string queueName = "testQueueConfig";
+    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    QueueConfig queueConfig = { durable: true, exclusive: true, autoDelete: false };
+    Error? result = newClient->queueDeclare(queueName, config = queueConfig);
+    if result is error {
+       test:assertFail("Error when trying to create a queue with config.");
+    }
+    check newClient->queueDelete(queueName);
+    check newClient.close();
+}
+
+@test:Config {
+    dependsOn: [testClient, testExchangeDelete],
+    groups: ["rabbitmq"]
+}
+public isolated function testExchangeConfig() returns error? {
+    string exchangeName = "testExchangeConfig";
+    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    ExchangeConfig exchangeConfig = { durable: true, autoDelete: true};
+    Error? result = newClient->exchangeDeclare(exchangeName, DIRECT_EXCHANGE, config = exchangeConfig);
+    if result is error {
+       test:assertFail("Error when trying to create an exchange with options.");
+    }
+    check newClient->exchangeDelete(exchangeName);
+    check newClient.close();
+}
+
+@test:Config {
     dependsOn: [testClient],
     groups: ["rabbitmq"]
 }
@@ -324,7 +356,7 @@ public isolated function testClientAbort() returns error? {
 }
 
 @test:Config {
-    dependsOn: [testClient],
+    dependsOn: [testClient, testQueueDelete],
     groups: ["rabbitmq"]
 }
 public function testQueuePurge() returns error? {
@@ -341,6 +373,7 @@ public function testQueuePurge() returns error? {
     if message is Message {
         test:assertFail("Error expected when trying to consume from a purged queue.");
     }
+    check newClient->queueDelete(queue);
     check newClient.close(200, "Client closed");
 }
 
