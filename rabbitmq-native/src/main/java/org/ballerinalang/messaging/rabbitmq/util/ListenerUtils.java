@@ -23,7 +23,6 @@ import com.rabbitmq.client.Connection;
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.TypeTags;
-import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.types.AnnotatableType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.TypeUtils;
@@ -175,21 +174,19 @@ public class ListenerUtils {
         RabbitMQMetricsUtil.reportNewQueue(channel, queueName);
     }
 
-    public static Object setQosSettings(int prefetchCount, Object prefetchSize, boolean global,
+    public static Object setQosSettings(long prefetchCount, Object prefetchSize, boolean global,
                                         BObject listenerBObject) {
         Channel channel = (Channel) listenerBObject.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         boolean isValidSize = prefetchSize != null && RabbitMQUtils.checkIfInt(prefetchSize);
         try {
             if (isValidSize) {
-                channel.basicQos(Math.toIntExact(((Number) prefetchSize).longValue()),
-                                 prefetchCount,
-                                 global);
+                channel.basicQos(((Long) prefetchSize).intValue(), (int) prefetchCount, global);
             } else {
-                channel.basicQos(prefetchCount, global);
+                channel.basicQos((int) prefetchCount, global);
             }
         } catch (IOException exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_SET_QOS);
-            return ErrorCreator.createError(IO_ERROR_MSG);
+            return RabbitMQUtils.returnErrorValue(IO_ERROR_MSG.getValue());
         }
         return null;
     }

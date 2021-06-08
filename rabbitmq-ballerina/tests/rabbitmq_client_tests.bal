@@ -93,6 +93,21 @@ public function testListener() {
 }
 
 @test:Config {
+    groups: ["rabbitmq"]
+}
+public function testListenerWithQos() {
+    Listener|Error qosListener1 = new(DEFAULT_HOST, DEFAULT_PORT, qosSettings = { prefetchCount: 10 });
+    if (qosListener1 is Error) {
+        test:assertFail("RabbitMQ Listener initialization with qos settings failed.");
+    }
+    Listener|Error qosListener2 = new(DEFAULT_HOST, DEFAULT_PORT, qosSettings =
+                                                            { prefetchCount: 10, prefetchSize: 0, global: true });
+    if (qosListener2 is Error) {
+        test:assertFail("RabbitMQ Listener initialization with qos settings failed.");
+    }
+}
+
+@test:Config {
     dependsOn: [testProducer],
     groups: ["rabbitmq"]
 }
