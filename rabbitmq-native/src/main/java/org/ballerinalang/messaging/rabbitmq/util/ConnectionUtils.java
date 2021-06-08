@@ -224,53 +224,6 @@ public class ConnectionUtils {
         }
     }
 
-    public static boolean isClosed(Connection connection) {
-        return connection == null || !connection.isOpen();
-    }
-
-    public static Object handleCloseConnection(Object closeCode, Object closeMessage, Object timeout,
-                                               Connection connection) {
-        boolean validTimeout = timeout != null && RabbitMQUtils.checkIfInt(timeout);
-        boolean validCloseCode = (closeCode != null && RabbitMQUtils.checkIfInt(closeCode)) &&
-                (closeMessage != null && RabbitMQUtils.checkIfString(closeMessage));
-        try {
-            if (validTimeout && validCloseCode) {
-                connection.close(Integer.parseInt(closeCode.toString()), closeMessage.toString(),
-                        Integer.parseInt(timeout.toString()));
-            } else if (validTimeout) {
-                connection.close(Integer.parseInt(timeout.toString()));
-            } else if (validCloseCode) {
-                connection.close(Integer.parseInt(closeCode.toString()), closeMessage.toString());
-            } else {
-                connection.close();
-            }
-            RabbitMQMetricsUtil.reportConnectionClose(connection);
-        } catch (IOException | ArithmeticException exception) {
-            RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_CONNECTION_CLOSE);
-            return RabbitMQUtils.returnErrorValue("Error occurred while closing the connection: "
-                    + exception.getMessage());
-        }
-        return null;
-    }
-
-    public static void handleAbortConnection(Object closeCode, Object closeMessage, Object timeout,
-                                             Connection connection) {
-        boolean validTimeout = timeout != null && RabbitMQUtils.checkIfInt(timeout);
-        boolean validCloseCode = (closeCode != null && RabbitMQUtils.checkIfInt(closeCode)) &&
-                (closeMessage != null && RabbitMQUtils.checkIfString(closeMessage));
-        if (validTimeout && validCloseCode) {
-            connection.abort(Integer.parseInt(closeCode.toString()), closeMessage.toString(),
-                    Integer.parseInt(timeout.toString()));
-        } else if (validTimeout) {
-            connection.abort(Integer.parseInt(timeout.toString()));
-        } else if (validCloseCode) {
-            connection.abort(Integer.parseInt(closeCode.toString()), closeMessage.toString());
-        } else {
-            connection.abort();
-        }
-        RabbitMQMetricsUtil.reportConnectionClose(connection);
-    }
-
     private ConnectionUtils() {
     }
 }
