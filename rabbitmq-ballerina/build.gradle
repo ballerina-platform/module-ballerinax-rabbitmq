@@ -114,13 +114,13 @@ task startRabbitmqServer() {
         if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
             def stdOut = new ByteArrayOutputStream()
             exec {
-                commandLine 'sh', '-c', "docker ps --filter name=my-rabbit"
+                commandLine 'sh', '-c', "docker ps --filter name=server_rabbitmq-1_1"
                 standardOutput = stdOut
             }
-            if (!stdOut.toString().contains("my-rabbit")) {
+            if (!stdOut.toString().contains("server_rabbitmq-1_1")) {
                 println "Starting RabbitMQ server."
                 exec {
-                    commandLine 'sh', '-c', "docker run --rm -d --name my-rabbit -p 15672:15672 -p  5672:5672 rabbitmq:3-management"
+                    commandLine 'sh', '-c', "docker-compose -f tests/server/docker-compose.yaml up -d"
                     standardOutput = stdOut
                 }
                 println stdOut.toString()
@@ -137,13 +137,13 @@ task stopRabbitmqServer() {
         if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
             def stdOut = new ByteArrayOutputStream()
             exec {
-                commandLine 'sh', '-c', "docker ps --filter name=my-rabbit"
+                commandLine 'sh', '-c', "docker ps --filter name=server_rabbitmq-1_1"
                 standardOutput = stdOut
             }
-            if (stdOut.toString().contains("my-rabbit")) {
+            if (stdOut.toString().contains("server_rabbitmq-1_1")) {
                 println "Stopping RabbitMQ server."
                 exec {
-                    commandLine 'sh', '-c', "docker stop my-rabbit"
+                    commandLine 'sh', '-c', "docker-compose -f tests/server/docker-compose.yaml rm -svf"
                     standardOutput = stdOut
                 }
                 println stdOut.toString()

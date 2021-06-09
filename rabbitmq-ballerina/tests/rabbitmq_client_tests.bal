@@ -285,6 +285,23 @@ public isolated function testQueueBind() returns error? {
     dependsOn: [testClient],
     groups: ["rabbitmq"]
 }
+public isolated function testAuthentication() returns error? {
+    Credentials credentials = {
+        username: "user",
+        password: "pass"
+    };
+    Client|Error newClient = check new(DEFAULT_HOST, 5673, auth = credentials);
+    if newClient is Error {
+        test:assertFail("Error when trying to initialize a client with auth.");
+    } else {
+        check newClient.close();
+    }
+}
+
+@test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
 public isolated function testClientBasicAck() returns error? {
     string queue = "testClientBasicAck";
     string message = "Test client basic ack";
