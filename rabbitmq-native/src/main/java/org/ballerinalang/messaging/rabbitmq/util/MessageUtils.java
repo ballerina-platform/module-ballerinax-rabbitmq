@@ -62,12 +62,9 @@ public class MessageUtils {
                 if (TransactionResourceManager.getInstance().isInTransaction()) {
                     RabbitMQUtils.handleTransaction(callerObj);
                 }
-            } catch (IOException exception) {
+            } catch (IOException | AlreadyClosedException exception) {
                 RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_ACK);
                 return RabbitMQUtils.returnErrorValue(RabbitMQConstants.ACK_ERROR + exception.getMessage());
-            } catch (AlreadyClosedException exception) {
-                RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_ACK);
-                return RabbitMQUtils.returnErrorValue(RabbitMQConstants.CHANNEL_CLOSED_ERROR);
             }
         }
         return null;
@@ -94,13 +91,10 @@ public class MessageUtils {
                 if (TransactionResourceManager.getInstance().isInTransaction()) {
                     RabbitMQUtils.handleTransaction(callerObj);
                 }
-            } catch (IOException exception) {
+            } catch (IOException | AlreadyClosedException exception) {
                 RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_NACK);
                 return RabbitMQUtils.returnErrorValue(RabbitMQConstants.NACK_ERROR
                         + exception.getMessage());
-            } catch (AlreadyClosedException exception) {
-                RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_NACK);
-                return RabbitMQUtils.returnErrorValue(RabbitMQConstants.CHANNEL_CLOSED_ERROR);
             }
         }
         return null;

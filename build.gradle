@@ -26,16 +26,23 @@ plugins {
 ext.ballerinaLangVersion = project.ballerinaLangVersion
 ext.slf4jVersion = "1.7.30"
 ext.amqpVersion = project.amqpClientVersion
-ext.stdlibCryptoVersion = project.stdlibCryptoVersion
 ext.puppycrawlCheckstyleVersion = project.puppycrawlCheckstyleVersion
-ext.stdlibLogVersion = project.stdlibLogVersion
-ext.stdlibTimeVersion = project.stdlibTimeVersion
-ext.stdlibUuidVersion = project.stdlibUuidVersion
-ext.stdlibRegexVersion = project.stdlibRegexVersion
-ext.stdlibTaskVersion = project.stdlibTaskVersion
-ext.stdlibJwtVersion = project.stdlibJwtVersion
 ext.stdlibFileVersion = project.stdlibFileVersion
 ext.stdlibIoVersion = project.stdlibIoVersion
+ext.stdlibLogVersion = project.stdlibLogVersion
+ext.stdlibUuidVersion = project.stdlibUuidVersion
+ext.stdlibRegexVersion = project.stdlibRegexVersion
+ext.stdlibCryptoVersion = project.stdlibCryptoVersion
+ext.stdlibTimeVersion = project.stdlibTimeVersion
+ext.stdlibTransactionVersion = project.stdlibTransactionVersion
+ext.stdlibJwtVersion = project.stdlibJwtVersion
+ext.stdlibTaskVersion = project.stdlibTaskVersion
+ext.stdlibMimeVersion = project.stdlibMimeVersion
+ext.stdlibHttpVersion = project.stdlibHttpVersion
+ext.stdlibOAuth2Version = project.stdlibOAuth2Version
+ext.stdlibOsVersion = project.stdlibOsVersion
+ext.stdlibCacheVersion = project.stdlibCacheVersion
+ext.stdlibAuthVersion = project.stdlibAuthVersion
 ext.amqpClientVersion = project.amqpClientVersion
 ext.stdlibTransactionVersion = project.stdlibTransactionVersion
 
@@ -92,16 +99,23 @@ subprojects {
         }
 
         /* Standard libraries */
-        ballerinaStdLibs "org.ballerinalang:task-ballerina:${stdlibTaskVersion}"
         ballerinaStdLibs "org.ballerinalang:file-ballerina:${stdlibFileVersion}"
-        ballerinaStdLibs "org.ballerinalang:jwt-ballerina:${stdlibJwtVersion}"
+        ballerinaStdLibs "org.ballerinalang:io-ballerina:${stdlibIoVersion}"
         ballerinaStdLibs "org.ballerinalang:log-ballerina:${stdlibLogVersion}"
-        ballerinaStdLibs "org.ballerinalang:crypto-ballerina:${stdlibCryptoVersion}"
-        ballerinaStdLibs "org.ballerinalang:time-ballerina:${stdlibTimeVersion}"
         ballerinaStdLibs "org.ballerinalang:uuid-ballerina:${stdlibUuidVersion}"
         ballerinaStdLibs "org.ballerinalang:regex-ballerina:${stdlibRegexVersion}"
-        ballerinaStdLibs "org.ballerinalang:io-ballerina:${stdlibIoVersion}"
+        ballerinaStdLibs "org.ballerinalang:crypto-ballerina:${stdlibCryptoVersion}"
+        ballerinaStdLibs "org.ballerinalang:time-ballerina:${stdlibTimeVersion}"
         ballerinaStdLibs "org.ballerinalang:transaction-ballerina:${stdlibTransactionVersion}"
+        ballerinaStdLibs "org.ballerinalang:task-ballerina:${stdlibTaskVersion}"
+        ballerinaStdLibs "org.ballerinalang:jwt-ballerina:${stdlibJwtVersion}"
+        ballerinaStdLibs "org.ballerinalang:mime-ballerina:${stdlibMimeVersion}"
+        ballerinaStdLibs "org.ballerinalang:http-ballerina:${stdlibHttpVersion}"
+        ballerinaStdLibs "org.ballerinalang:oauth2-ballerina:${stdlibOAuth2Version}"
+        ballerinaStdLibs "org.ballerinalang:os-ballerina:${stdlibOsVersion}"
+        ballerinaStdLibs "org.ballerinalang:url-ballerina:${stdlibUrlVersion}"
+        ballerinaStdLibs "org.ballerinalang:cache-ballerina:${stdlibCacheVersion}"
+        ballerinaStdLibs "org.ballerinalang:auth-ballerina:${stdlibAuthVersion}"
     }
 }
 def moduleVersion = project.version

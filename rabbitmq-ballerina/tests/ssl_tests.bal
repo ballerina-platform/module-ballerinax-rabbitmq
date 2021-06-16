@@ -30,6 +30,9 @@ public isolated function testSslConnection() returns error? {
             path: "tests/server/certs/keystore.p12",
             password: "password"
         },
+        protocol: {
+            name: TLS
+        },
         verifyHostName: true
     };
     Client|Error newClient = new(DEFAULT_HOST, 5671, secureSocket = secured);
