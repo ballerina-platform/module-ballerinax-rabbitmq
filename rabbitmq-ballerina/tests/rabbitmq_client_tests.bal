@@ -401,12 +401,6 @@ public function testQueuePurge() returns error? {
     if deleteResult is Error {
         test:assertFail("Error when trying to purge a queue.");
     }
-    Message|Error message = newClient->consumeMessage(queue);
-    if message is Message {
-        test:assertFail("Error expected when trying to consume from a purged queue.");
-    }
-    check newClient->queueDelete(queue);
-    check newClient.close(200, "Client closed");
 }
 
 @test:Config {

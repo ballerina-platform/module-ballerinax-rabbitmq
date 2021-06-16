@@ -83,6 +83,7 @@ public class RabbitMQConstants {
     public static final BString CONNECTION_PROTOCOL = StringUtils.fromString("protocol");
     public static final BString CONNECTION_PROTOCOL_NAME = StringUtils.fromString("name");
     public static final String KEY_STORE_TYPE = "PKCS12";
+    public static final String DEFAULT_SSL_PROTOCOL = "TLSv1.2";
     public static final BString KEY_STORE_PASS = StringUtils.fromString("password");
     public static final BString KEY_STORE_PATH = StringUtils.fromString("path");
 
