@@ -176,7 +176,6 @@ public class MessageDispatcher {
             throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.THREAD_INTERRUPTED);
         } catch (AlreadyClosedException | BError exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
-            handleError(message, envelope, properties);
         }
     }
 
@@ -201,7 +200,6 @@ public class MessageDispatcher {
             throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.THREAD_INTERRUPTED);
         } catch (AlreadyClosedException | BError exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
-            handleError(message, envelope, properties);
         }
     }
 
@@ -222,7 +220,6 @@ public class MessageDispatcher {
             throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.THREAD_INTERRUPTED);
         } catch (AlreadyClosedException | BError exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
-            handleError(message, envelope, properties);
         }
     }
 
@@ -246,7 +243,6 @@ public class MessageDispatcher {
             throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.THREAD_INTERRUPTED);
         } catch (AlreadyClosedException | BError exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
-            handleError(message, envelope, properties);
         }
     }
 
@@ -288,25 +284,6 @@ public class MessageDispatcher {
         callerObj.addNativeData(RabbitMQConstants.ACK_STATUS, false);
         callerObj.addNativeData(RabbitMQConstants.RABBITMQ_TRANSACTION_CONTEXT, transactionContext);
         return callerObj;
-    }
-
-
-    private void handleError(byte[] message, Envelope envelope, AMQP.BasicProperties properties) {
-        BError error = RabbitMQUtils.returnErrorValue(RabbitMQConstants.DISPATCH_ERROR);
-        BMap<BString, Object> messageBObject = createAndPopulateMessageRecord(message, envelope, properties);
-        CountDownLatch countDownLatch = new CountDownLatch(1);
-        try {
-            Callback callback = new RabbitMQErrorResourceCallback(countDownLatch);
-            executeResourceOnError(callback, messageBObject, true, error, true);
-            countDownLatch.await();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
-            throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.THREAD_INTERRUPTED);
-        } catch (AlreadyClosedException | BError exception) {
-            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
-            throw RabbitMQUtils.returnErrorValue("Error occurred in RabbitMQ service. ");
-        }
     }
 
     private void executeResourceOnMessage(Callback callback, Type returnType, Object... args) {
