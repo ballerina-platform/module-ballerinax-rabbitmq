@@ -51,7 +51,6 @@ import java.util.concurrent.CountDownLatch;
 
 import static io.ballerina.runtime.api.constants.RuntimeConstants.ORG_NAME_SEPARATOR;
 import static io.ballerina.runtime.api.constants.RuntimeConstants.VERSION_SEPARATOR;
-import static org.ballerinalang.messaging.rabbitmq.RabbitMQConstants.FUNC_ON_ERROR;
 import static org.ballerinalang.messaging.rabbitmq.RabbitMQConstants.FUNC_ON_MESSAGE;
 import static org.ballerinalang.messaging.rabbitmq.RabbitMQConstants.FUNC_ON_REQUEST;
 import static org.ballerinalang.messaging.rabbitmq.RabbitMQConstants.ORG_NAME;
@@ -296,12 +295,6 @@ public class MessageDispatcher {
         StrandMetadata metadata = new StrandMetadata(ORG_NAME, RABBITMQ,
                                                      ModuleUtils.getModule().getVersion(), FUNC_ON_REQUEST);
         executeResource(FUNC_ON_REQUEST, callback, metadata, returnType, args);
-    }
-
-    private void executeResourceOnError(Callback callback, Object... args) {
-        StrandMetadata metadata = new StrandMetadata(ORG_NAME, RABBITMQ,
-                                                      ModuleUtils.getModule().getVersion(), FUNC_ON_ERROR);
-        runtime.invokeMethodAsync(service, RabbitMQConstants.FUNC_ON_ERROR, null, metadata, callback, args);
     }
 
     private void executeResource(String function, Callback callback, StrandMetadata metaData, Type returnType,

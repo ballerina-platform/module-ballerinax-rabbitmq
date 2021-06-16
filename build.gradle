@@ -32,6 +32,9 @@ ext.stdlibLogVersion = project.stdlibLogVersion
 ext.stdlibTimeVersion = project.stdlibTimeVersion
 ext.stdlibUuidVersion = project.stdlibUuidVersion
 ext.stdlibRegexVersion = project.stdlibRegexVersion
+ext.stdlibTaskVersion = project.stdlibTaskVersion
+ext.stdlibJwtVersion = project.stdlibJwtVersion
+ext.stdlibFileVersion = project.stdlibFileVersion
 ext.stdlibIoVersion = project.stdlibIoVersion
 ext.amqpClientVersion = project.amqpClientVersion
 ext.stdlibTransactionVersion = project.stdlibTransactionVersion
@@ -89,6 +92,9 @@ subprojects {
         }
 
         /* Standard libraries */
+        ballerinaStdLibs "org.ballerinalang:task-ballerina:${stdlibTaskVersion}"
+        ballerinaStdLibs "org.ballerinalang:file-ballerina:${stdlibFileVersion}"
+        ballerinaStdLibs "org.ballerinalang:jwt-ballerina:${stdlibJwtVersion}"
         ballerinaStdLibs "org.ballerinalang:log-ballerina:${stdlibLogVersion}"
         ballerinaStdLibs "org.ballerinalang:crypto-ballerina:${stdlibCryptoVersion}"
         ballerinaStdLibs "org.ballerinalang:time-ballerina:${stdlibTimeVersion}"

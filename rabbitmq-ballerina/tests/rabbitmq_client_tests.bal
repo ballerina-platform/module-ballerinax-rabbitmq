@@ -81,6 +81,33 @@ public function testProducer() returns error? {
 }
 
 @test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
+public function testProducerTransactional() returns error? {
+    string queue = "testProducerTransactional";
+    string message = "Test producing transactionally";
+    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    check newClient->queueDeclare(queue);
+    transaction {
+        check newClient->publishMessage({ content: message.toBytes(), routingKey: queue });
+        var commitResult = commit;
+        if !(commitResult is ()) {
+            test:assertFail(msg = "Commit failed for transactional producer.");
+        }
+    }
+    Message|Error consumeResult = newClient->consumeMessage(queue, false);
+    if consumeResult is Message {
+        string messageContent = check 'string:fromBytes(consumeResult.content);
+        log:printInfo("The message received: " + messageContent);
+        test:assertEquals(messageContent, message, msg = "Message received does not match.");
+    } else {
+        test:assertFail("Error when trying to consume messages using client.");
+    }
+    check newClient.close();
+}
+
+@test:Config {
     groups: ["rabbitmq"]
 }
 public function testListener() {
