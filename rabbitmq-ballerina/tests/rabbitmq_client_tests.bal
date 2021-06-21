@@ -462,7 +462,7 @@ public function testNegativeAcknowledgements() returns error? {
     dependsOn: [testAsyncConsumer, testAcknowledgements],
     groups: ["rabbitmq"]
 }
-public function testOnRequest() {
+public function testOnRequest() returns error? {
     string message = "Hello from the other side!";
     check produceMessage(message, QUEUE, REPLYTO);
     Listener? channelListener = rabbitmqListener;
