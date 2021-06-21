@@ -192,21 +192,19 @@ public class ConnectionUtils {
         return store;
     }
 
-    public static KeyManager[] createTestKeyManagers(String keyStorePath, char[] keyStorePass)
+    public static KeyManager[] createKeyManagers(String keyStorePath, char[] keyStorePass)
             throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException,
             UnrecoverableKeyException {
         KeyStore store = loadKeystore(keyStorePath, keyStorePass);
-        KeyManagerFactory factory;
-        factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        KeyManagerFactory factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
         factory.init(store, keyStorePass);
         return factory.getKeyManagers();
     }
 
-    public static TrustManager[] createTestTrustManagers(String trustStorePath, char[] trustStorePass)
+    public static TrustManager[] createTrustManagers(String trustStorePath, char[] trustStorePass)
             throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         KeyStore store = loadKeystore(trustStorePath, trustStorePass);
-        TrustManagerFactory factory;
-        factory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        TrustManagerFactory factory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         factory.init(store);
         return factory.getTrustManagers();
     }
@@ -216,10 +214,10 @@ public class ConnectionUtils {
             throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
             NoSuchAlgorithmException, KeyManagementException {
 
-        SSLContext ctx;
-        ctx = SSLContext.getInstance(Objects.requireNonNullElse(protocol, RabbitMQConstants.DEFAULT_SSL_PROTOCOL));
-        ctx.init(keyStorePath != null ? createTestKeyManagers(keyStorePath, keyStorePass) : null,
-                createTestTrustManagers(trustStorePath, trustStorePass), new SecureRandom());
+        SSLContext ctx =
+                SSLContext.getInstance(Objects.requireNonNullElse(protocol, RabbitMQConstants.DEFAULT_SSL_PROTOCOL));
+        ctx.init(keyStorePath != null ? createKeyManagers(keyStorePath, keyStorePass) : null,
+                createTrustManagers(trustStorePath, trustStorePass), new SecureRandom());
         return ctx;
     }
 
