@@ -20,6 +20,7 @@ package org.ballerinalang.messaging.rabbitmq.util;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ShutdownSignalException;
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.TypeTags;
@@ -61,23 +62,27 @@ public class ListenerUtils {
 
     public static Object init(BString host, long port, BObject listenerBObject,
                               BMap<BString, Object> connectionConfig) {
-        Connection connection = ConnectionUtils.createConnection(host, port, connectionConfig);
-        Channel channel;
-        try {
-            channel = connection.createChannel();
-        } catch (IOException e) {
-            RabbitMQMetricsUtil.reportError(connection, RabbitMQObservabilityConstants.ERROR_TYPE_CHANNEL_CREATE);
-            return RabbitMQUtils.returnErrorValue("Error occurred while initializing the listener: "
-                                                         + e.getMessage());
+        Object result = ConnectionUtils.createConnection(host, port, connectionConfig);
+        if (result instanceof Connection) {
+            Connection connection = (Connection) result;
+            Channel channel;
+            try {
+                channel = connection.createChannel();
+            } catch (IOException e) {
+                RabbitMQMetricsUtil.reportError(connection, RabbitMQObservabilityConstants.ERROR_TYPE_CHANNEL_CREATE);
+                return RabbitMQUtils.returnErrorValue("Error occurred while initializing the listener: "
+                        + e.getMessage());
+            }
+            String connectorId = listenerBObject.getStringValue(RabbitMQConstants.CONNECTOR_ID).getValue();
+            listenerBObject.addNativeData(RabbitMQConstants.RABBITMQ_TRANSACTION_CONTEXT,
+                    new RabbitMQTransactionContext(channel, connectorId));
+            listenerBObject.addNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT, channel);
+            listenerBObject.addNativeData(RabbitMQConstants.CONSUMER_SERVICES, services);
+            listenerBObject.addNativeData(RabbitMQConstants.STARTED_SERVICES, startedServices);
+            RabbitMQMetricsUtil.reportNewConsumer(channel);
+            return null;
         }
-        String connectorId = listenerBObject.getStringValue(RabbitMQConstants.CONNECTOR_ID).getValue();
-        listenerBObject.addNativeData(RabbitMQConstants.RABBITMQ_TRANSACTION_CONTEXT,
-                                 new RabbitMQTransactionContext(channel, connectorId));
-        listenerBObject.addNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT, channel);
-        listenerBObject.addNativeData(RabbitMQConstants.CONSUMER_SERVICES, services);
-        listenerBObject.addNativeData(RabbitMQConstants.STARTED_SERVICES, startedServices);
-        RabbitMQMetricsUtil.reportNewConsumer(channel);
-        return null;
+        return result;
     }
 
     public static Object attach(Environment environment, BObject listenerBObject, BObject service,
@@ -144,7 +149,7 @@ public class ListenerUtils {
         String queueName = (String) service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue());
         try {
             channel.basicCancel(serviceName);
-            console.println("[ballerina/rabbitmq] Consumer service unsubscribed from the queue " + queueName);
+            console.println("[ballerinax/rabbitmq] Consumer service unsubscribed from the queue " + queueName);
         } catch (IOException e) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_DETACH);
             return RabbitMQUtils.returnErrorValue("Error occurred while detaching the service");
@@ -227,7 +232,7 @@ public class ListenerUtils {
                 RabbitMQMetricsUtil.reportConnectionClose(connection);
                 channel.close();
                 connection.close();
-            } catch (IOException | TimeoutException exception) {
+            } catch (IOException | TimeoutException | ShutdownSignalException exception) {
                 return RabbitMQUtils.returnErrorValue(RabbitMQConstants.CLOSE_CHANNEL_ERROR
                                                               + exception.getMessage());
             }

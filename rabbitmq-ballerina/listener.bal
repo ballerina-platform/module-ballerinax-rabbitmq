@@ -41,6 +41,8 @@ public isolated class Listener {
                 checkpanic nativeSetQosSettings(qosSettings.prefetchCount, qosSettings?.prefetchSize,
                     qosSettings.global, self);
             }
+        } else {
+            return initResult;
         }
     }
 

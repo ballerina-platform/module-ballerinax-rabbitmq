@@ -49,14 +49,6 @@ public class RabbitMQUtils {
         return TypeUtils.getType(object).getTag() == TypeTags.STRING_TAG;
     }
 
-    static ArrayList<BObject> addToList(ArrayList<BObject> arrayList, BObject objectValue) {
-        if (arrayList == null) {
-            arrayList = new ArrayList<>();
-        }
-        arrayList.add(objectValue);
-        return arrayList;
-    }
-
     /**
      * Removes a given element from the provided array list and returns the resulting list.
      *

@@ -66,11 +66,12 @@ public class ConnectionUtils {
      * @param connectionConfig Parameters used to initialize the connection.
      * @return RabbitMQ Connection object.
      */
-    public static Connection createConnection(BString host, long port, BMap<BString, Object> connectionConfig) {
+    public static Object createConnection(BString host, long port, BMap<BString, Object> connectionConfig) {
         try {
             ConnectionFactory connectionFactory = new ConnectionFactory();
 
             // Enable TLS for the connection.
+            @SuppressWarnings("unchecked")
             BMap<BString, Object> secureSocket = (BMap<BString, Object>) connectionConfig.getMapValue(
                     RabbitMQConstants.RABBITMQ_CONNECTION_SECURE_SOCKET);
             if (secureSocket != null) {
@@ -112,6 +113,7 @@ public class ConnectionUtils {
                 // Set in seconds.
                 connectionFactory.setRequestedHeartbeat((int) ((BDecimal) connectionHeartBeat).intValue());
             }
+            @SuppressWarnings("unchecked")
             BMap<BString, Object> authConfig = (BMap<BString, Object>) connectionConfig.getMapValue(
                     RabbitMQConstants.AUTH_CONFIG);
             if (authConfig != null) {
@@ -124,13 +126,13 @@ public class ConnectionUtils {
             return connection;
         } catch (IOException | TimeoutException exception) {
             RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_CONNECTION);
-            throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.CREATE_CONNECTION_ERROR
+            return RabbitMQUtils.returnErrorValue(RabbitMQConstants.CREATE_CONNECTION_ERROR
                     + exception.getMessage());
         } catch (CertificateException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException |
                 UnrecoverableKeyException e) {
             String errorMsg = "error occurred while setting up the connection. " +
                     (e.getMessage() != null ? e.getMessage() : "");
-            throw RabbitMQUtils.returnErrorValue(errorMsg);
+            return RabbitMQUtils.returnErrorValue(errorMsg);
         }
     }
 

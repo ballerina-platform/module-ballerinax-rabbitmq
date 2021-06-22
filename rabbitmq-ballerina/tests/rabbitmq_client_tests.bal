@@ -84,7 +84,7 @@ public function testProducer() returns error? {
     dependsOn: [testClient],
     groups: ["rabbitmq"]
 }
-public function testProducerTransactional() returns error? {
+public isolated function testProducerTransactional() returns error? {
     string queue = "testProducerTransactional";
     string message = "Test producing transactionally";
     Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
@@ -122,7 +122,7 @@ public function testListener() {
 @test:Config {
     groups: ["rabbitmq"]
 }
-public function testListenerWithQos() {
+public isolated function testListenerWithQos() {
     Listener|Error qosListener1 = new(DEFAULT_HOST, DEFAULT_PORT, qosSettings = { prefetchCount: 10 });
     if (qosListener1 is Error) {
         test:assertFail("RabbitMQ Listener initialization with qos settings failed.");
@@ -354,6 +354,27 @@ public isolated function testClientBasicAck() returns error? {
     dependsOn: [testClient],
     groups: ["rabbitmq"]
 }
+public isolated function testConnectionConfig() returns error? {
+    ConnectionConfiguration connConfig = {
+        username: "guest",
+        password: "guest",
+        connectionTimeout: 5,
+        handshakeTimeout: 5,
+        shutdownTimeout: 5,
+        heartbeat: 5
+    };
+    Client|error newClient = new(DEFAULT_HOST, DEFAULT_PORT, connectionData = connConfig);
+    if newClient is error {
+        test:assertFail("Error when trying to connect.");
+    } else {
+        check newClient.close();
+    }
+}
+
+@test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
 public isolated function testClientBasicNack() returns error? {
     string queue = "testClientBasicNack";
     string message = "Test client basic nack";
@@ -507,7 +528,7 @@ Service ackTestService =
     autoAck: false
 }
 service object {
-    remote function onMessage(Message message, Caller caller) {
+    remote isolated function onMessage(Message message, Caller caller) {
         checkpanic caller->basicAck();
     }
 };
@@ -518,7 +539,7 @@ Service nackTestService =
     autoAck: false
 }
 service object {
-    remote function onMessage(Message message, Caller caller) {
+    remote isolated function onMessage(Message message, Caller caller) {
         checkpanic caller->basicNack(false, false);
     }
 };

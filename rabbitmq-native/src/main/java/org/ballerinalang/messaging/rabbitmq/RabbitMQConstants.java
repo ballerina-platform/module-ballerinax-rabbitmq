@@ -56,16 +56,9 @@ public class RabbitMQConstants {
 
     // Connection errors
     public static final String CREATE_CONNECTION_ERROR = "Error occurred while connecting to the broker: ";
-    public static final String CREATE_SECURE_CONNECTION_ERROR = "An error occurred while configuring " +
-            "the SSL connection: ";
 
     // Channel errors
     public static final String CLOSE_CHANNEL_ERROR = "An error occurred while closing the channel: ";
-    public static final String CHANNEL_CLOSED_ERROR = "Channel already closed, messages will no longer be received: ";
-
-    // Connection constant fields
-    public static final String CONNECTION_OBJECT = "Connection";
-    public static final String CONNECTION_NATIVE_OBJECT = "rabbitmq_connection_object";
 
     // Connection configuration constant fields
     public static final BString RABBITMQ_CONNECTION_USER = StringUtils.fromString("username");
@@ -101,7 +94,6 @@ public class RabbitMQConstants {
     public static final String NACK_ERROR = "Error occurred while negatively acknowledging the message: ";
     static final String FUNC_ON_MESSAGE = "onMessage";
     static final String FUNC_ON_REQUEST = "onRequest";
-    static final String FUNC_ON_ERROR = "onError";
 
     // Channel constant fields
     public static final String CHANNEL_NATIVE_OBJECT = "rabbitmq_channel_object";
@@ -116,7 +108,6 @@ public class RabbitMQConstants {
     public static final BString MESSAGE_EXCHANGE = StringUtils.fromString("exchange");
     public static final BString MESSAGE_ROUTING_KEY = StringUtils.fromString("routingKey");
     public static final BString BASIC_PROPERTIES = StringUtils.fromString("properties");
-    static final String DISPATCH_ERROR = "Error occurred while dispatching the message. ";
 
     // Transaction constant fields
     public static final String RABBITMQ_TRANSACTION_CONTEXT = "rabbitmq_transactional_context";
