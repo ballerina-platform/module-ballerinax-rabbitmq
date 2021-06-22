@@ -51,7 +51,6 @@ import java.util.concurrent.CountDownLatch;
 
 import static io.ballerina.runtime.api.constants.RuntimeConstants.ORG_NAME_SEPARATOR;
 import static io.ballerina.runtime.api.constants.RuntimeConstants.VERSION_SEPARATOR;
-import static org.ballerinalang.messaging.rabbitmq.RabbitMQConstants.FUNC_ON_ERROR;
 import static org.ballerinalang.messaging.rabbitmq.RabbitMQConstants.FUNC_ON_MESSAGE;
 import static org.ballerinalang.messaging.rabbitmq.RabbitMQConstants.FUNC_ON_REQUEST;
 import static org.ballerinalang.messaging.rabbitmq.RabbitMQConstants.ORG_NAME;
@@ -104,7 +103,7 @@ public class MessageDispatcher {
      * @param listener Listener object value.
      */
     public void receiveMessages(BObject listener) {
-        console.println("[ballerina/rabbitmq] Consumer service started for queue " + queueName);
+        console.println("[ballerinax/rabbitmq] Consumer service started for queue " + queueName);
         DefaultConsumer consumer = new DefaultConsumer(channel) {
             @Override
             public void handleDelivery(String consumerTag,
@@ -176,7 +175,6 @@ public class MessageDispatcher {
             throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.THREAD_INTERRUPTED);
         } catch (AlreadyClosedException | BError exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
-            handleError(message, envelope, properties);
         }
     }
 
@@ -201,7 +199,6 @@ public class MessageDispatcher {
             throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.THREAD_INTERRUPTED);
         } catch (AlreadyClosedException | BError exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
-            handleError(message, envelope, properties);
         }
     }
 
@@ -222,7 +219,6 @@ public class MessageDispatcher {
             throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.THREAD_INTERRUPTED);
         } catch (AlreadyClosedException | BError exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
-            handleError(message, envelope, properties);
         }
     }
 
@@ -246,7 +242,6 @@ public class MessageDispatcher {
             throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.THREAD_INTERRUPTED);
         } catch (AlreadyClosedException | BError exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
-            handleError(message, envelope, properties);
         }
     }
 
@@ -290,25 +285,6 @@ public class MessageDispatcher {
         return callerObj;
     }
 
-
-    private void handleError(byte[] message, Envelope envelope, AMQP.BasicProperties properties) {
-        BError error = RabbitMQUtils.returnErrorValue(RabbitMQConstants.DISPATCH_ERROR);
-        BMap<BString, Object> messageBObject = createAndPopulateMessageRecord(message, envelope, properties);
-        CountDownLatch countDownLatch = new CountDownLatch(1);
-        try {
-            Callback callback = new RabbitMQErrorResourceCallback(countDownLatch);
-            executeResourceOnError(callback, messageBObject, true, error, true);
-            countDownLatch.await();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
-            throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.THREAD_INTERRUPTED);
-        } catch (AlreadyClosedException | BError exception) {
-            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
-            throw RabbitMQUtils.returnErrorValue("Error occurred in RabbitMQ service. ");
-        }
-    }
-
     private void executeResourceOnMessage(Callback callback, Type returnType, Object... args) {
         StrandMetadata metadata = new StrandMetadata(ORG_NAME, RABBITMQ,
                                                      ModuleUtils.getModule().getVersion(), FUNC_ON_MESSAGE);
@@ -319,12 +295,6 @@ public class MessageDispatcher {
         StrandMetadata metadata = new StrandMetadata(ORG_NAME, RABBITMQ,
                                                      ModuleUtils.getModule().getVersion(), FUNC_ON_REQUEST);
         executeResource(FUNC_ON_REQUEST, callback, metadata, returnType, args);
-    }
-
-    private void executeResourceOnError(Callback callback, Object... args) {
-        StrandMetadata metadata = new StrandMetadata(ORG_NAME, RABBITMQ,
-                                                      ModuleUtils.getModule().getVersion(), FUNC_ON_ERROR);
-        runtime.invokeMethodAsync(service, RabbitMQConstants.FUNC_ON_ERROR, null, metadata, callback, args);
     }
 
     private void executeResource(String function, Callback callback, StrandMetadata metaData, Type returnType,

@@ -36,14 +36,13 @@ public isolated class Listener {
     public isolated function init(string host, int port, QosSettings? qosSettings = (),
                                     *ConnectionConfiguration connectionData) returns Error? {
         Error? initResult = externInit(host, port, self, connectionData);
-        if (initResult is Error) {
-            return initResult;
-        } else {
+        if !(initResult is Error) {
             if (qosSettings is QosSettings) {
                 checkpanic nativeSetQosSettings(qosSettings.prefetchCount, qosSettings?.prefetchSize,
                     qosSettings.global, self);
             }
-            return;
+        } else {
+            return initResult;
         }
     }
 

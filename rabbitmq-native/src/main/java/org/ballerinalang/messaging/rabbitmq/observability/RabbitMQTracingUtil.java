@@ -31,13 +31,6 @@ import io.ballerina.runtime.observability.ObserverContext;
  */
 public class RabbitMQTracingUtil {
 
-    public static void traceResourceInvocation(Connection connection, Environment environment) {
-        if (!ObserveUtils.isTracingEnabled()) {
-            return;
-        }
-        setTags(getObserverContext(environment), connection);
-    }
-
     public static void traceResourceInvocation(Channel channel, Environment environment) {
         if (!ObserveUtils.isTracingEnabled()) {
             return;

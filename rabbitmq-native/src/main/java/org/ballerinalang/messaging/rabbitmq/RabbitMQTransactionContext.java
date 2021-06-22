@@ -34,8 +34,8 @@ import javax.transaction.xa.XAResource;
  * @since 0.995
  */
 public class RabbitMQTransactionContext implements BallerinaTransactionContext {
-    private Channel channel;
-    private String connectorId;
+    private final Channel channel;
+    private final String connectorId;
 
     /**
      * Initializes the rabbitmq transaction context.

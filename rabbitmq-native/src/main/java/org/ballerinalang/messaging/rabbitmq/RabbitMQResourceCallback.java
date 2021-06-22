@@ -33,10 +33,10 @@ import java.util.concurrent.CountDownLatch;
  * @since 0.995.0
  */
 public class RabbitMQResourceCallback implements Callback {
-    private CountDownLatch countDownLatch;
-    private Channel channel;
-    private String queueName;
-    private int size;
+    private final CountDownLatch countDownLatch;
+    private final Channel channel;
+    private final String queueName;
+    private final int size;
     private String replyTo = null;
     private String exchange = null;
 

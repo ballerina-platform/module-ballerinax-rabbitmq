@@ -1,0 +1,26 @@
+version: "3"
+services:
+    rabbitmq-tls:
+        image: rabbitmq:3-management
+        hostname: rabbitmq-tls
+        ports:
+            - 15671:15671
+            - 5671:5671
+        volumes:
+            - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+            - ./certs:/certs
+    rabbitmq-1:
+        image: rabbitmq:3-management
+        hostname: rabbitmq-1
+        ports:
+            - 15672:15672
+            - 5672:5672
+    rabbitmq-auth:
+        image: rabbitmq:3-management
+        hostname: rabbitmq-auth
+        ports:
+            - 5673:5672
+            - 15673:15672
+        environment:
+            RABBITMQ_DEFAULT_USER: "user"
+            RABBITMQ_DEFAULT_PASS: "pass"
