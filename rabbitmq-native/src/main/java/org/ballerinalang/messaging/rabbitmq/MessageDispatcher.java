@@ -169,11 +169,7 @@ public class MessageDispatcher {
             values[1] = true;
             executeResourceOnRequest(callback, returnType, values);
             countDownLatch.await();
-        } catch (InterruptedException e) {
-            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
-            Thread.currentThread().interrupt();
-            throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.THREAD_INTERRUPTED);
-        } catch (AlreadyClosedException | BError exception) {
+        } catch (InterruptedException | AlreadyClosedException | BError exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
         }
     }
@@ -193,11 +189,7 @@ public class MessageDispatcher {
             values[3] = true;
             executeResourceOnRequest(callback, returnType, values);
             countDownLatch.await();
-        } catch (InterruptedException e) {
-            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
-            Thread.currentThread().interrupt();
-            throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.THREAD_INTERRUPTED);
-        } catch (AlreadyClosedException | BError exception) {
+        } catch (InterruptedException | AlreadyClosedException | BError exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
         }
     }
@@ -213,11 +205,7 @@ public class MessageDispatcher {
             values[1] = true;
             executeResourceOnMessage(callback, returnType, values);
             countDownLatch.await();
-        } catch (InterruptedException e) {
-            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
-            Thread.currentThread().interrupt();
-            throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.THREAD_INTERRUPTED);
-        } catch (AlreadyClosedException | BError exception) {
+        } catch (InterruptedException | AlreadyClosedException | BError exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
         }
     }
@@ -236,11 +224,7 @@ public class MessageDispatcher {
             values[3] = true;
             executeResourceOnMessage(callback, returnType, values);
             countDownLatch.await();
-        } catch (InterruptedException e) {
-            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
-            Thread.currentThread().interrupt();
-            throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.THREAD_INTERRUPTED);
-        } catch (AlreadyClosedException | BError exception) {
+        } catch (InterruptedException | AlreadyClosedException | BError exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
         }
     }
