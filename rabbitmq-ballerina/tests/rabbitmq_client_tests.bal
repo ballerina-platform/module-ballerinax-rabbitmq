@@ -22,6 +22,7 @@ import ballerina/test;
 Client? rabbitmqChannel = ();
 Listener? rabbitmqListener = ();
 const QUEUE = "MyQueue";
+const REQ_QUEUE = "OnRequestQueue";
 const ACK_QUEUE = "MyAckQueue";
 const NACK_QUEUE = "MyNackQueue";
 const MOCK_QUEUE = "MockQueue";
@@ -31,9 +32,12 @@ const FANOUT_EXCHANGE_NAME = "MyFanoutExchange";
 const SYNC_NEGATIVE_QUEUE = "MySyncNegativeQueue";
 const DATA_BINDING_QUEUE = "MyDataQueue";
 string asyncConsumerMessage = "";
+string onRequestMessage = "";
 string replyMessage = "";
+string reqReplyMessage = "";
 string dataBindingMessage = "";
 string REPLYTO = "replyHere";
+string REQ_REPLYTO = "onReqReply";
 
 @test:BeforeSuite
 function setup() returns error? {
@@ -47,6 +51,8 @@ function setup() returns error? {
         check clientObj->queueDeclare(SYNC_NEGATIVE_QUEUE);
         check clientObj->queueDeclare(ACK_QUEUE);
         check clientObj->queueDeclare(NACK_QUEUE);
+        check clientObj->queueDeclare(REQ_QUEUE);
+        check clientObj->queueDeclare(REQ_REPLYTO);
         check clientObj->queueDeclare(REPLYTO);
     }
     Listener lis = check new(DEFAULT_HOST, DEFAULT_PORT);
@@ -163,6 +169,25 @@ public function testAsyncConsumer() returns error? {
         check channelListener.'start();
         runtime:sleep(5);
         test:assertEquals(asyncConsumerMessage, message, msg = "Message received does not match.");
+    }
+}
+
+@test:Config {
+    dependsOn: [testListener, testSyncConsumer],
+    groups: ["rabbitmq"]
+}
+public function testAsyncConsumer2() returns error? {
+    string message = "Testing Async Consumer With onRequest";
+    check produceMessage(message, REQ_QUEUE, REQ_REPLYTO);
+    Listener? channelListener = rabbitmqListener;
+    if (channelListener is Listener) {
+        check channelListener.attach(asyncTestService2);
+        check channelListener.attach(replyService2);
+        check channelListener.'start();
+        runtime:sleep(5);
+        string replyMsg = "Hello back from ballerina!";
+        test:assertEquals(onRequestMessage, message, msg = "Message received does not match.");
+        test:assertEquals(reqReplyMessage, replyMsg, msg = "Message received does not match.");
     }
 }
 
@@ -522,6 +547,23 @@ service object {
     }
 };
 
+Service asyncTestService2 =
+@ServiceConfig {
+    queueName: REQ_QUEUE
+}
+service object {
+    remote function onRequest(Message message, Caller caller) returns string {
+        string|error messageContent = 'string:fromBytes(message.content);
+        if (messageContent is string) {
+            onRequestMessage = messageContent;
+            log:printInfo("The message received in onRequest: " + messageContent);
+        } else {
+            log:printError("Error occurred while retrieving the message content.", 'error = messageContent);
+        }
+        return "Hello back from ballerina!";
+    }
+};
+
 Service ackTestService =
 @ServiceConfig {
     queueName: ACK_QUEUE,
@@ -562,6 +604,22 @@ service object {
         string|error messageContent = 'string:fromBytes(message.content);
         if (messageContent is string) {
             replyMessage = messageContent;
+            log:printInfo("The reply message received: " + messageContent);
+        } else {
+            log:printError("Error occurred while retrieving the message content.", 'error = messageContent);
+        }
+    }
+};
+
+Service replyService2 =
+@ServiceConfig {
+    queueName: REQ_REPLYTO
+}
+service object {
+    remote function onMessage(Message message) {
+        string|error messageContent = 'string:fromBytes(message.content);
+        if (messageContent is string) {
+            reqReplyMessage = messageContent;
             log:printInfo("The reply message received: " + messageContent);
         } else {
             log:printError("Error occurred while retrieving the message content.", 'error = messageContent);
