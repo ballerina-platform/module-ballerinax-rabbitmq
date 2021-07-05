@@ -22,7 +22,17 @@ import ballerina/test;
 Client? rabbitmqChannel = ();
 Listener? rabbitmqListener = ();
 const QUEUE = "MyQueue";
+const QUEUE2 = "MyQueue2";
+const REQ_QUEUE = "OnRequestQueue";
 const ACK_QUEUE = "MyAckQueue";
+const ACK_QUEUE2 = "MyAckQueue2";
+const ACK_QUEUE3 = "MyAckQueue3";
+const NACK_QUEUE2 = "MyNackQueue2";
+const NACK_QUEUE3 = "MyNackQueue3";
+boolean negativeAck = false;
+boolean negativeAck2 = false;
+boolean negativeNack = false;
+boolean negativeNack2 = false;
 const NACK_QUEUE = "MyNackQueue";
 const MOCK_QUEUE = "MockQueue";
 const DIRECT_EXCHANGE_NAME = "MyDirectExchange";
@@ -31,9 +41,13 @@ const FANOUT_EXCHANGE_NAME = "MyFanoutExchange";
 const SYNC_NEGATIVE_QUEUE = "MySyncNegativeQueue";
 const DATA_BINDING_QUEUE = "MyDataQueue";
 string asyncConsumerMessage = "";
+string asyncConsumerMessage2 = "";
+string onRequestMessage = "";
 string replyMessage = "";
+string reqReplyMessage = "";
 string dataBindingMessage = "";
 string REPLYTO = "replyHere";
+string REQ_REPLYTO = "onReqReply";
 
 @test:BeforeSuite
 function setup() returns error? {
@@ -43,10 +57,17 @@ function setup() returns error? {
     Client? clientObj = rabbitmqChannel;
     if (clientObj is Client) {
         check clientObj->queueDeclare(QUEUE);
+        check clientObj->queueDeclare(QUEUE2);
         check clientObj->queueDeclare(DATA_BINDING_QUEUE);
         check clientObj->queueDeclare(SYNC_NEGATIVE_QUEUE);
         check clientObj->queueDeclare(ACK_QUEUE);
+        check clientObj->queueDeclare(ACK_QUEUE2);
+        check clientObj->queueDeclare(ACK_QUEUE3);
+        check clientObj->queueDeclare(NACK_QUEUE3);
+        check clientObj->queueDeclare(NACK_QUEUE2);
         check clientObj->queueDeclare(NACK_QUEUE);
+        check clientObj->queueDeclare(REQ_QUEUE);
+        check clientObj->queueDeclare(REQ_REPLYTO);
         check clientObj->queueDeclare(REPLYTO);
     }
     Listener lis = check new(DEFAULT_HOST, DEFAULT_PORT);
@@ -163,6 +184,41 @@ public function testAsyncConsumer() returns error? {
         check channelListener.'start();
         runtime:sleep(5);
         test:assertEquals(asyncConsumerMessage, message, msg = "Message received does not match.");
+    }
+}
+
+@test:Config {
+    dependsOn: [testListener, testSyncConsumer, testAsyncConsumer],
+    groups: ["rabbitmq"]
+}
+public function testAsyncConsumerWithoutServiceConfig() returns error? {
+    string message = "Testing Async Consumer Without Queue Config";
+    check produceMessage(message, QUEUE2);
+    Listener? channelListener = rabbitmqListener;
+    if (channelListener is Listener) {
+        check channelListener.attach(asyncTestService3, QUEUE2);
+        check channelListener.'start();
+        runtime:sleep(5);
+        test:assertEquals(asyncConsumerMessage2, message, msg = "Message received does not match.");
+    }
+}
+
+@test:Config {
+    dependsOn: [testListener, testSyncConsumer],
+    groups: ["rabbitmq"]
+}
+public function testAsyncConsumer2() returns error? {
+    string message = "Testing Async Consumer With onRequest";
+    check produceMessage(message, REQ_QUEUE, REQ_REPLYTO);
+    Listener? channelListener = rabbitmqListener;
+    if (channelListener is Listener) {
+        check channelListener.attach(asyncTestService2);
+        check channelListener.attach(replyService2);
+        check channelListener.'start();
+        runtime:sleep(5);
+        string replyMsg = "Hello back from ballerina!";
+        test:assertEquals(onRequestMessage, message, msg = "Message received does not match.");
+        test:assertEquals(reqReplyMessage, replyMsg, msg = "Message received does not match.");
     }
 }
 
@@ -427,6 +483,21 @@ public isolated function testExchangeDelete() returns error? {
     dependsOn: [testClient],
     groups: ["rabbitmq"]
 }
+public isolated function testExchangeDeleteNegative() returns error? {
+    string exchange = "testExchangeDeleteNegative";
+    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    check newClient->exchangeDeclare(exchange, DIRECT_EXCHANGE);
+    check newClient.close(200, "Client closed");
+    Error? deleteExchange = newClient->exchangeDelete(exchange);
+    if !(deleteExchange is error) {
+        test:assertFail("Error expected when deleting with closed channel.");
+    }
+}
+
+@test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
 public isolated function testClientAbort() returns error? {
     Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
     Error? abortResult = newClient.'abort(200, "Client aborted");
@@ -463,6 +534,66 @@ public function testAcknowledgements() returns error? {
         check channelListener.attach(ackTestService);
         runtime:sleep(2);
     }
+}
+
+@test:Config {
+    dependsOn: [testListener, testAsyncConsumer],
+    groups: ["rabbitmq"]
+}
+public function testAcknowledgements2() returns error? {
+    string message = "Testing Negative Message Acknowledgements";
+    check produceMessage(message, ACK_QUEUE2);
+    Listener? channelListener = rabbitmqListener;
+    if (channelListener is Listener) {
+        check channelListener.attach(ackTestService2);
+        runtime:sleep(3);
+    }
+    test:assertTrue(negativeAck, msg = "Negative acknoeledgement failed.");
+}
+
+@test:Config {
+    dependsOn: [testListener, testAsyncConsumer],
+    groups: ["rabbitmq"]
+}
+public function testAcknowledgements3() returns error? {
+    string message = "Testing Negative Message Acknowledgements";
+    check produceMessage(message, ACK_QUEUE3);
+    Listener? channelListener = rabbitmqListener;
+    if (channelListener is Listener) {
+        check channelListener.attach(ackTestService3);
+        runtime:sleep(3);
+    }
+    test:assertTrue(negativeAck2, msg = "Negative acknoeledgement failed.");
+}
+
+@test:Config {
+    dependsOn: [testListener, testAsyncConsumer],
+    groups: ["rabbitmq"]
+}
+public function testAcknowledgements4() returns error? {
+    string message = "Testing Negative Message Acknowledgements";
+    check produceMessage(message, NACK_QUEUE2);
+    Listener? channelListener = rabbitmqListener;
+    if (channelListener is Listener) {
+        check channelListener.attach(nackTestService2);
+        runtime:sleep(3);
+    }
+    test:assertTrue(negativeNack, msg = "Negative acknoeledgement failed.");
+}
+
+@test:Config {
+    dependsOn: [testListener, testAsyncConsumer],
+    groups: ["rabbitmq"]
+}
+public function testAcknowledgements5() returns error? {
+    string message = "Testing Negative Message Acknowledgements";
+    check produceMessage(message, NACK_QUEUE3);
+    Listener? channelListener = rabbitmqListener;
+    if (channelListener is Listener) {
+        check channelListener.attach(nackTestService3);
+        runtime:sleep(3);
+    }
+    test:assertTrue(negativeNack2, msg = "Negative acknoeledgement failed.");
 }
 
 @test:Config {
@@ -522,6 +653,36 @@ service object {
     }
 };
 
+Service asyncTestService2 =
+@ServiceConfig {
+    queueName: REQ_QUEUE
+}
+service object {
+    remote function onRequest(Message message, Caller caller) returns string {
+        string|error messageContent = 'string:fromBytes(message.content);
+        if (messageContent is string) {
+            onRequestMessage = messageContent;
+            log:printInfo("The message received in onRequest: " + messageContent);
+        } else {
+            log:printError("Error occurred while retrieving the message content.", 'error = messageContent);
+        }
+        return "Hello back from ballerina!";
+    }
+};
+
+Service asyncTestService3 =
+service object {
+    remote function onMessage(Message message) {
+        string|error messageContent = 'string:fromBytes(message.content);
+        if (messageContent is string) {
+            asyncConsumerMessage2 = messageContent;
+            log:printInfo("The message received in onRequest: " + messageContent);
+        } else {
+            log:printError("Error occurred while retrieving the message content.", 'error = messageContent);
+        }
+    }
+};
+
 Service ackTestService =
 @ServiceConfig {
     queueName: ACK_QUEUE,
@@ -530,6 +691,64 @@ Service ackTestService =
 service object {
     remote isolated function onMessage(Message message, Caller caller) {
         checkpanic caller->basicAck();
+    }
+};
+
+Service ackTestService2 =
+@ServiceConfig {
+    queueName: ACK_QUEUE2,
+    autoAck: true
+}
+service object {
+    remote function onMessage(Message message, Caller caller) {
+        error? ackResult = caller->basicAck();
+        if (ackResult is error) {
+            negativeAck = true;
+        }
+    }
+};
+
+Service ackTestService3 =
+@ServiceConfig {
+    queueName: ACK_QUEUE3,
+    autoAck: false
+}
+service object {
+    remote function onMessage(Message message, Caller caller) {
+        error? ackResult = caller->basicAck();
+        error? ackResult2 = caller->basicAck();
+        if (ackResult2 is error) {
+            negativeAck2 = true;
+        }
+    }
+};
+
+Service nackTestService2 =
+@ServiceConfig {
+    queueName: NACK_QUEUE2,
+    autoAck: true
+}
+service object {
+    remote function onMessage(Message message, Caller caller) {
+        error? ackResult = caller->basicNack(false, false);
+        if (ackResult is error) {
+            negativeNack = true;
+        }
+    }
+};
+
+Service nackTestService3 =
+@ServiceConfig {
+    queueName: NACK_QUEUE3,
+    autoAck: false
+}
+service object {
+    remote function onMessage(Message message, Caller caller) {
+        error? ackResult = caller->basicNack(false, false);
+        error? ackResult2 = caller->basicNack(false, false);
+        if (ackResult2 is error) {
+            negativeNack2 = true;
+        }
     }
 };
 
@@ -562,6 +781,22 @@ service object {
         string|error messageContent = 'string:fromBytes(message.content);
         if (messageContent is string) {
             replyMessage = messageContent;
+            log:printInfo("The reply message received: " + messageContent);
+        } else {
+            log:printError("Error occurred while retrieving the message content.", 'error = messageContent);
+        }
+    }
+};
+
+Service replyService2 =
+@ServiceConfig {
+    queueName: REQ_REPLYTO
+}
+service object {
+    remote function onMessage(Message message) {
+        string|error messageContent = 'string:fromBytes(message.content);
+        if (messageContent is string) {
+            reqReplyMessage = messageContent;
             log:printInfo("The reply message received: " + messageContent);
         } else {
             log:printError("Error occurred while retrieving the message content.", 'error = messageContent);
