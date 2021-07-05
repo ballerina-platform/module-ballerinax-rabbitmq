@@ -24,6 +24,14 @@ Listener? rabbitmqListener = ();
 const QUEUE = "MyQueue";
 const REQ_QUEUE = "OnRequestQueue";
 const ACK_QUEUE = "MyAckQueue";
+const ACK_QUEUE2 = "MyAckQueue2";
+const ACK_QUEUE3 = "MyAckQueue3";
+const NACK_QUEUE2 = "MyNackQueue2";
+const NACK_QUEUE3 = "MyNackQueue3";
+boolean negativeAck = false;
+boolean negativeAck2 = false;
+boolean negativeNack = false;
+boolean negativeNack2 = false;
 const NACK_QUEUE = "MyNackQueue";
 const MOCK_QUEUE = "MockQueue";
 const DIRECT_EXCHANGE_NAME = "MyDirectExchange";
@@ -50,6 +58,10 @@ function setup() returns error? {
         check clientObj->queueDeclare(DATA_BINDING_QUEUE);
         check clientObj->queueDeclare(SYNC_NEGATIVE_QUEUE);
         check clientObj->queueDeclare(ACK_QUEUE);
+        check clientObj->queueDeclare(ACK_QUEUE2);
+        check clientObj->queueDeclare(ACK_QUEUE3);
+        check clientObj->queueDeclare(NACK_QUEUE3);
+        check clientObj->queueDeclare(NACK_QUEUE2);
         check clientObj->queueDeclare(NACK_QUEUE);
         check clientObj->queueDeclare(REQ_QUEUE);
         check clientObj->queueDeclare(REQ_REPLYTO);
@@ -494,6 +506,66 @@ public function testAcknowledgements() returns error? {
     dependsOn: [testListener, testAsyncConsumer],
     groups: ["rabbitmq"]
 }
+public function testAcknowledgements2() returns error? {
+    string message = "Testing Negative Message Acknowledgements";
+    check produceMessage(message, ACK_QUEUE2);
+    Listener? channelListener = rabbitmqListener;
+    if (channelListener is Listener) {
+        check channelListener.attach(ackTestService2);
+        runtime:sleep(3);
+    }
+    test:assertTrue(negativeAck, msg = "Negative acknoeledgement failed.");
+}
+
+@test:Config {
+    dependsOn: [testListener, testAsyncConsumer],
+    groups: ["rabbitmq"]
+}
+public function testAcknowledgements3() returns error? {
+    string message = "Testing Negative Message Acknowledgements";
+    check produceMessage(message, ACK_QUEUE3);
+    Listener? channelListener = rabbitmqListener;
+    if (channelListener is Listener) {
+        check channelListener.attach(ackTestService3);
+        runtime:sleep(3);
+    }
+    test:assertTrue(negativeAck2, msg = "Negative acknoeledgement failed.");
+}
+
+@test:Config {
+    dependsOn: [testListener, testAsyncConsumer],
+    groups: ["rabbitmq"]
+}
+public function testAcknowledgements4() returns error? {
+    string message = "Testing Negative Message Acknowledgements";
+    check produceMessage(message, NACK_QUEUE2);
+    Listener? channelListener = rabbitmqListener;
+    if (channelListener is Listener) {
+        check channelListener.attach(nackTestService2);
+        runtime:sleep(3);
+    }
+    test:assertTrue(negativeNack, msg = "Negative acknoeledgement failed.");
+}
+
+@test:Config {
+    dependsOn: [testListener, testAsyncConsumer],
+    groups: ["rabbitmq"]
+}
+public function testAcknowledgements5() returns error? {
+    string message = "Testing Negative Message Acknowledgements";
+    check produceMessage(message, NACK_QUEUE3);
+    Listener? channelListener = rabbitmqListener;
+    if (channelListener is Listener) {
+        check channelListener.attach(nackTestService3);
+        runtime:sleep(3);
+    }
+    test:assertTrue(negativeNack2, msg = "Negative acknoeledgement failed.");
+}
+
+@test:Config {
+    dependsOn: [testListener, testAsyncConsumer],
+    groups: ["rabbitmq"]
+}
 public function testNegativeAcknowledgements() returns error? {
     string message = "Testing Message Rejection";
     check produceMessage(message, NACK_QUEUE);
@@ -572,6 +644,64 @@ Service ackTestService =
 service object {
     remote isolated function onMessage(Message message, Caller caller) {
         checkpanic caller->basicAck();
+    }
+};
+
+Service ackTestService2 =
+@ServiceConfig {
+    queueName: ACK_QUEUE2,
+    autoAck: true
+}
+service object {
+    remote function onMessage(Message message, Caller caller) {
+        error? ackResult = caller->basicAck();
+        if (ackResult is error) {
+            negativeAck = true;
+        }
+    }
+};
+
+Service ackTestService3 =
+@ServiceConfig {
+    queueName: ACK_QUEUE3,
+    autoAck: false
+}
+service object {
+    remote function onMessage(Message message, Caller caller) {
+        error? ackResult = caller->basicAck();
+        error? ackResult2 = caller->basicAck();
+        if (ackResult2 is error) {
+            negativeAck2 = true;
+        }
+    }
+};
+
+Service nackTestService2 =
+@ServiceConfig {
+    queueName: NACK_QUEUE2,
+    autoAck: true
+}
+service object {
+    remote function onMessage(Message message, Caller caller) {
+        error? ackResult = caller->basicNack(false, false);
+        if (ackResult is error) {
+            negativeNack = true;
+        }
+    }
+};
+
+Service nackTestService3 =
+@ServiceConfig {
+    queueName: NACK_QUEUE3,
+    autoAck: false
+}
+service object {
+    remote function onMessage(Message message, Caller caller) {
+        error? ackResult = caller->basicNack(false, false);
+        error? ackResult2 = caller->basicNack(false, false);
+        if (ackResult2 is error) {
+            negativeNack2 = true;
+        }
     }
 };
 
