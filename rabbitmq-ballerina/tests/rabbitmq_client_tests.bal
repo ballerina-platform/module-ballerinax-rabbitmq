@@ -22,6 +22,7 @@ import ballerina/test;
 Client? rabbitmqChannel = ();
 Listener? rabbitmqListener = ();
 const QUEUE = "MyQueue";
+const QUEUE2 = "MyQueue2";
 const REQ_QUEUE = "OnRequestQueue";
 const ACK_QUEUE = "MyAckQueue";
 const ACK_QUEUE2 = "MyAckQueue2";
@@ -40,6 +41,7 @@ const FANOUT_EXCHANGE_NAME = "MyFanoutExchange";
 const SYNC_NEGATIVE_QUEUE = "MySyncNegativeQueue";
 const DATA_BINDING_QUEUE = "MyDataQueue";
 string asyncConsumerMessage = "";
+string asyncConsumerMessage2 = "";
 string onRequestMessage = "";
 string replyMessage = "";
 string reqReplyMessage = "";
@@ -55,6 +57,7 @@ function setup() returns error? {
     Client? clientObj = rabbitmqChannel;
     if (clientObj is Client) {
         check clientObj->queueDeclare(QUEUE);
+        check clientObj->queueDeclare(QUEUE2);
         check clientObj->queueDeclare(DATA_BINDING_QUEUE);
         check clientObj->queueDeclare(SYNC_NEGATIVE_QUEUE);
         check clientObj->queueDeclare(ACK_QUEUE);
@@ -181,6 +184,22 @@ public function testAsyncConsumer() returns error? {
         check channelListener.'start();
         runtime:sleep(5);
         test:assertEquals(asyncConsumerMessage, message, msg = "Message received does not match.");
+    }
+}
+
+@test:Config {
+    dependsOn: [testListener, testSyncConsumer, testAsyncConsumer],
+    groups: ["rabbitmq"]
+}
+public function testAsyncConsumerWithoutServiceConfig() returns error? {
+    string message = "Testing Async Consumer Without Queue Config";
+    check produceMessage(message, QUEUE2);
+    Listener? channelListener = rabbitmqListener;
+    if (channelListener is Listener) {
+        check channelListener.attach(asyncTestService3, QUEUE2);
+        check channelListener.'start();
+        runtime:sleep(5);
+        test:assertEquals(asyncConsumerMessage2, message, msg = "Message received does not match.");
     }
 }
 
@@ -633,6 +652,19 @@ service object {
             log:printError("Error occurred while retrieving the message content.", 'error = messageContent);
         }
         return "Hello back from ballerina!";
+    }
+};
+
+Service asyncTestService3 =
+service object {
+    remote function onMessage(Message message) {
+        string|error messageContent = 'string:fromBytes(message.content);
+        if (messageContent is string) {
+            asyncConsumerMessage2 = messageContent;
+            log:printInfo("The message received in onRequest: " + messageContent);
+        } else {
+            log:printError("Error occurred while retrieving the message content.", 'error = messageContent);
+        }
     }
 };
 

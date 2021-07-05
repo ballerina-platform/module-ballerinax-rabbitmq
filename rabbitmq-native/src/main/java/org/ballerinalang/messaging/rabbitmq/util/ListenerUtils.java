@@ -208,13 +208,16 @@ public class ListenerUtils {
     }
 
     private static boolean getAckMode(BObject service) {
-        BMap serviceConfig = (BMap) ((AnnotatableType) service.getType())
+        @SuppressWarnings("unchecked")
+        BMap<BString, Object> serviceConfig = (BMap<BString, Object>) (service.getType())
                 .getAnnotation(StringUtils.fromString(ModuleUtils.getModule().getOrg() + ORG_NAME_SEPARATOR
                                                               + ModuleUtils.getModule().getName() + VERSION_SEPARATOR
                                                               + ModuleUtils.getModule().getVersion() + ":"
                                                               + RabbitMQConstants.SERVICE_CONFIG));
-        @SuppressWarnings(RabbitMQConstants.UNCHECKED)
-        boolean autoAck = serviceConfig.getBooleanValue(RabbitMQConstants.AUTO_ACK);
+        boolean autoAck = true;
+        if (serviceConfig != null && serviceConfig.containsKey(RabbitMQConstants.AUTO_ACK)) {
+            autoAck = serviceConfig.getBooleanValue(RabbitMQConstants.AUTO_ACK);
+        }
         return autoAck;
     }
 
