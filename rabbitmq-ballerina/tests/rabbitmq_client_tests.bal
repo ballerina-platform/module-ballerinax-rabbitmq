@@ -483,6 +483,21 @@ public isolated function testExchangeDelete() returns error? {
     dependsOn: [testClient],
     groups: ["rabbitmq"]
 }
+public isolated function testExchangeDeleteNegative() returns error? {
+    string exchange = "testExchangeDeleteNegative";
+    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    check newClient->exchangeDeclare(exchange, DIRECT_EXCHANGE);
+    check newClient.close(200, "Client closed");
+    Error? deleteExchange = newClient->exchangeDelete(exchange);
+    if !(deleteExchange is error) {
+        test:assertFail("Error expected when deleting with closed channel.");
+    }
+}
+
+@test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
 public isolated function testClientAbort() returns error? {
     Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
     Error? abortResult = newClient.'abort(200, "Client aborted");
