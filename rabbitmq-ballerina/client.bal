@@ -190,7 +190,7 @@ public isolated client class Client {
 
     # Closes the `rabbitmq:Client`.
     # ```ballerina
-    # check rabbitmqClient.close();
+    # check rabbitmqClient->close();
     # ```
     #
     # + closeCode - The close code (for information, go to the [Reply Codes]
@@ -205,7 +205,7 @@ public isolated client class Client {
     # Aborts the RabbitMQ `rabbitmq:Client`. Forces the `rabbitmq:Client` to close and waits for all the close operations
     # to complete. Any encountered exceptions in the close operations are discarded silently.
     # ```ballerina
-    # check rabbitmqClient.abort(320, "Client Aborted");
+    # check rabbitmqClient->abort(320, "Client Aborted");
     # ```
     #
     # + closeCode - The close code (for information, go to the [Reply Codes]
