@@ -197,7 +197,7 @@ public isolated client class Client {
     #               (#https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf))
     # + closeMessage - A message indicating the reason for closing the channel
     # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
-    isolated function close(int? closeCode = (), string? closeMessage = ()) returns Error? =
+    isolated remote function close(int? closeCode = (), string? closeMessage = ()) returns Error? =
     @java:Method {
         'class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
     } external;
@@ -212,7 +212,7 @@ public isolated client class Client {
     #               (#https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf))
     # + closeMessage - A message indicating the reason for closing the channel
     # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
-    isolated function 'abort(int? closeCode = (), string? closeMessage = ()) returns Error? =
+    isolated remote function 'abort(int? closeCode = (), string? closeMessage = ()) returns Error? =
     @java:Method {
         'class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
     } external;
