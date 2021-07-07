@@ -84,7 +84,7 @@ public function testClient() returns error? {
         flag = true;
     }
     Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
-    check newClient.close();
+    check newClient->close();
     test:assertTrue(flag, msg = "RabbitMQ Connection creation failed.");
 }
 
@@ -125,7 +125,7 @@ public isolated function testProducerTransactional() returns error? {
     } else {
         test:assertFail("Error when trying to consume messages using client.");
     }
-    check newClient.close();
+    check newClient->close();
 }
 
 @test:Config {
@@ -273,7 +273,7 @@ public isolated function testQueueAutoGenerate() returns error? {
     } else {
         log:printInfo("Auto generated queue name: " + queueResult);
     }
-    check newClient.close();
+    check newClient->close();
 }
 
 @test:Config {
@@ -286,7 +286,7 @@ public isolated function testDirectExchangeDeclare() returns error? {
     if result is error {
        test:assertFail("Error when trying to create a direct exchange.");
     }
-    check newClient.close();
+    check newClient->close();
 }
 
 @test:Config {
@@ -299,7 +299,7 @@ public isolated function testTopicExchangeDeclare() returns error? {
     if result is error {
        test:assertFail("Error when trying to create a topic exchange.");
     }
-    check newClient.close();
+    check newClient->close();
 }
 
 @test:Config {
@@ -312,7 +312,7 @@ public isolated function testFanoutExchangeDeclare() returns error? {
     if result is error {
        test:assertFail("Error when trying to create a fanout exchange.");
     }
-    check newClient.close();
+    check newClient->close();
 }
 
 @test:Config {
@@ -328,7 +328,7 @@ public isolated function testQueueConfig() returns error? {
        test:assertFail("Error when trying to create a queue with config.");
     }
     check newClient->queueDelete(queueName);
-    check newClient.close();
+    check newClient->close();
 }
 
 @test:Config {
@@ -344,7 +344,7 @@ public isolated function testExchangeConfig() returns error? {
        test:assertFail("Error when trying to create an exchange with options.");
     }
     check newClient->exchangeDelete(exchangeName);
-    check newClient.close();
+    check newClient->close();
 }
 
 @test:Config {
@@ -361,7 +361,7 @@ public isolated function testQueueBind() returns error? {
     if result is error {
         test:assertFail("Error when trying to bind a queue.");
     }
-    check newClient.close();
+    check newClient->close();
 }
 
 @test:Config {
@@ -377,7 +377,7 @@ public isolated function testAuthentication() returns error? {
     if newClient is Error {
         test:assertFail("Error when trying to initialize a client with auth.");
     } else {
-        check newClient.close();
+        check newClient->close();
     }
 }
 
@@ -403,7 +403,7 @@ public isolated function testClientBasicAck() returns error? {
     } else {
         test:assertFail("Error when trying to consume messages using client.");
     }
-    check newClient.close();
+    check newClient->close();
 }
 
 @test:Config {
@@ -423,7 +423,7 @@ public isolated function testConnectionConfig() returns error? {
     if newClient is error {
         test:assertFail("Error when trying to connect.");
     } else {
-        check newClient.close();
+        check newClient->close();
     }
 }
 
@@ -449,7 +449,7 @@ public isolated function testClientBasicNack() returns error? {
     } else {
         test:assertFail("Error when trying to consume messages using client.");
     }
-    check newClient.close();
+    check newClient->close();
 }
 
 @test:Config {
@@ -464,7 +464,7 @@ public isolated function testQueueDelete() returns error? {
     if deleteResult is Error {
         test:assertFail("Error when trying to delete a queue.");
     }
-    check newClient.close(200, "Client closed");
+    check newClient->close(200, "Client closed");
 }
 
 @test:Config {
@@ -476,7 +476,7 @@ public isolated function testExchangeDelete() returns error? {
     Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
     check newClient->exchangeDeclare(exchange, DIRECT_EXCHANGE);
     Error? deleteExchange = newClient->exchangeDelete(exchange);
-    check newClient.close(200, "Client closed");
+    check newClient->close(200, "Client closed");
 }
 
 @test:Config {
@@ -487,7 +487,7 @@ public isolated function testExchangeDeleteNegative() returns error? {
     string exchange = "testExchangeDeleteNegative";
     Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
     check newClient->exchangeDeclare(exchange, DIRECT_EXCHANGE);
-    check newClient.close(200, "Client closed");
+    check newClient->close(200, "Client closed");
     Error? deleteExchange = newClient->exchangeDelete(exchange);
     if !(deleteExchange is error) {
         test:assertFail("Error expected when deleting with closed channel.");
@@ -500,7 +500,7 @@ public isolated function testExchangeDeleteNegative() returns error? {
 }
 public isolated function testClientAbort() returns error? {
     Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
-    Error? abortResult = newClient.'abort(200, "Client aborted");
+    Error? abortResult = newClient->'abort(200, "Client aborted");
     if abortResult is Error {
         test:assertFail("Error when trying to abort a client.");
     }
