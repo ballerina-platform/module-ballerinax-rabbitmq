@@ -190,14 +190,14 @@ public isolated client class Client {
 
     # Closes the `rabbitmq:Client`.
     # ```ballerina
-    # check rabbitmqClient.close();
+    # check rabbitmqClient->close();
     # ```
     #
     # + closeCode - The close code (for information, go to the [Reply Codes]
     #               (#https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf))
     # + closeMessage - A message indicating the reason for closing the channel
     # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
-    isolated function close(int? closeCode = (), string? closeMessage = ()) returns Error? =
+    isolated remote function close(int? closeCode = (), string? closeMessage = ()) returns Error? =
     @java:Method {
         'class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
     } external;
@@ -205,14 +205,14 @@ public isolated client class Client {
     # Aborts the RabbitMQ `rabbitmq:Client`. Forces the `rabbitmq:Client` to close and waits for all the close operations
     # to complete. Any encountered exceptions in the close operations are discarded silently.
     # ```ballerina
-    # check rabbitmqClient.abort(320, "Client Aborted");
+    # check rabbitmqClient->'abort(320, "Client Aborted");
     # ```
     #
     # + closeCode - The close code (for information, go to the [Reply Codes]
     #               (#https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf))
     # + closeMessage - A message indicating the reason for closing the channel
     # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
-    isolated function 'abort(int? closeCode = (), string? closeMessage = ()) returns Error? =
+    isolated remote function 'abort(int? closeCode = (), string? closeMessage = ()) returns Error? =
     @java:Method {
         'class: "org.ballerinalang.messaging.rabbitmq.util.ChannelUtils"
     } external;

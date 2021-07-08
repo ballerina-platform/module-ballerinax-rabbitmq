@@ -39,6 +39,6 @@ public isolated function testSslConnection() returns error? {
     if newClient is Error {
         test:assertFail("Error when trying to create a client with secure connection.");
     } else {
-        check newClient.close();
+        check newClient->close();
     }
 }

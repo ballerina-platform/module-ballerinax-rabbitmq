@@ -44,7 +44,7 @@ public isolated function testConnectionNegative2() returns error? {
 public isolated function testQueueDeleteNegative() returns error? {
     string queue = "testQueueDeleteNegative";
     Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
-    check newClient.close(200, "Client closed");
+    check newClient->close(200, "Client closed");
     error? deleteResult = newClient->queueDelete(queue);
     if !(deleteResult is error) {
         test:assertFail("Error expected when trying to delete a non existent queue.");
@@ -59,7 +59,7 @@ public isolated function testQueueConfigNegative() returns error? {
     string queueName = "testQueueConfigNegative";
     Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
     QueueConfig queueConfig = { durable: true, exclusive: true, autoDelete: false };
-    check newClient.close();
+    check newClient->close();
     Error? result = newClient->queueDeclare(queueName, config = queueConfig);
     if !(result is error) {
        test:assertFail("Error expected when when trying to create a queue.");
@@ -73,7 +73,7 @@ public isolated function testQueueConfigNegative() returns error? {
 public isolated function testExchangeDeclareNegative() returns error? {
     string name = "testExchangeDeclareNegative";
     Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
-    check newClient.close();
+    check newClient->close();
     Error? result = newClient->exchangeDeclare(name, DIRECT_EXCHANGE);
     if !(result is error) {
        test:assertFail("Error expected when trying to create a direct exchange.");
@@ -86,7 +86,7 @@ public isolated function testExchangeDeclareNegative() returns error? {
 }
 public isolated function testQueueAutoGenerateNegative() returns error? {
     Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
-    check newClient.close();
+    check newClient->close();
     Error|string queueResult = newClient->queueAutoGenerate();
     if !(queueResult is error) {
         test:assertFail("Error expected when  when trying to create an auto generated queue.");
@@ -103,7 +103,7 @@ public isolated function testClientConsumeNegative() returns error? {
     Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
     check newClient->queueDeclare(queue);
     check newClient->publishMessage({ content: message.toBytes(), routingKey: queue });
-    check newClient.close();
+    check newClient->close();
     Message|Error consumeResult = newClient->consumeMessage(queue, false);
     if consumeResult is Message {
         test:assertFail("Error expected when trying to consume messages using client.");
@@ -125,7 +125,7 @@ public isolated function testClientBasicAckNegative() returns error? {
         string messageContent = check 'string:fromBytes(consumeResult.content);
         log:printInfo("The message received: " + messageContent);
         test:assertEquals(messageContent, message, msg = "Message received does not match.");
-        check newClient.close();
+        check newClient->close();
         Error? ackResult = newClient->basicAck(consumeResult, false);
         if !(ackResult is Error) {
             test:assertFail("Error expected when trying to acknowledge the message using client.");
@@ -150,7 +150,7 @@ public isolated function testClientBasicNackNegative() returns error? {
         string messageContent = check 'string:fromBytes(consumeResult.content);
         test:assertEquals(messageContent, message, msg = "Message received does not match.");
         log:printInfo("The message received: " + messageContent);
-        check newClient.close();
+        check newClient->close();
         Error? ackResult = newClient->basicNack(consumeResult, false, false);
         if !(ackResult is Error) {
             test:assertFail("Error expected when trying to acknowledge the message using client.");
@@ -170,7 +170,7 @@ public isolated function testQueueBindNegative() returns error? {
     Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
     check newClient->exchangeDeclare(exchange, DIRECT_EXCHANGE);
     check newClient->queueDeclare(queue);
-    check newClient.close();
+    check newClient->close();
     Error? result = newClient->queueBind(queue, exchange, "myBinding");
     if !(result is error) {
         test:assertFail("Error expected when trying to bind a queue.");
@@ -186,7 +186,7 @@ public isolated function testPublishNegative() returns error? {
     string message = "Test client publish negative";
     Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
     check newClient->queueDeclare(queue);
-    check newClient.close();
+    check newClient->close();
     error? pubResult = newClient->publishMessage({ content: message.toBytes(), routingKey: queue });
     if !(pubResult is error) {
         test:assertFail("Error expected when trying to publish messages using client.");
@@ -199,8 +199,8 @@ public isolated function testPublishNegative() returns error? {
 }
 public isolated function testCloseNegative() returns error? {
     Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
-    check newClient.close();
-    error? closeResult = newClient.close();
+    check newClient->close();
+    error? closeResult = newClient->close();
     if !(closeResult is error) {
        test:assertFail("Error expected when trying to close the client twice.");
     }
