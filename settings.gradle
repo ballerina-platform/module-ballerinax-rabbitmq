@@ -12,8 +12,14 @@ plugins {
 }
 
 rootProject.name = 'rabbitmq'
-include(':build-config:checkstyle')
+include(':checkstyle')
 include ':rabbitmq-ballerina', 'rabbitmq-native', 'rabbitmq-compiler-plugin', 'rabbitmq-compiler-plugin-tests'
+
+project(':checkstyle').projectDir = file("build-config${File.separator}checkstyle")
+project(':rabbitmq-native').projectDir = file('native')
+project(':rabbitmq-ballerina').projectDir = file('ballerina')
+project(':rabbitmq-compiler-plugin').projectDir = file('compiler-plugin')
+project(':rabbitmq-compiler-plugin-tests').projectDir = file('compiler-plugin-tests')
 
 gradleEnterprise {
     buildScan {

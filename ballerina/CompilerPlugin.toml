@@ -1,0 +1,6 @@
+[plugin]
+id = "rabbitmq-compiler-plugin"
+class = "io.ballerina.stdlib.rabbitmq.plugin.RabbitmqCompilerPlugin"
+
+[[dependency]]
+path = "../compiler-plugin/build/libs/rabbitmq-compiler-plugin-@project.version@.jar"
