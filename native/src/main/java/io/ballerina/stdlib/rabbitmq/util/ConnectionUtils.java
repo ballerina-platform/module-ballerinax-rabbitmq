@@ -24,10 +24,10 @@ import com.rabbitmq.client.impl.DefaultCredentialsProvider;
 import io.ballerina.runtime.api.values.BDecimal;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.stdlib.rabbitmq.observability.RabbitMQMetricsUtil;
-import io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityConstants;
 import io.ballerina.stdlib.rabbitmq.RabbitMQConstants;
 import io.ballerina.stdlib.rabbitmq.RabbitMQUtils;
+import io.ballerina.stdlib.rabbitmq.observability.RabbitMQMetricsUtil;
+import io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

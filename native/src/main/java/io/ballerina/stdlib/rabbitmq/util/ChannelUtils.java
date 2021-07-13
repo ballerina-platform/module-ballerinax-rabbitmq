@@ -33,12 +33,12 @@ import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.transactions.TransactionResourceManager;
-import io.ballerina.stdlib.rabbitmq.observability.RabbitMQMetricsUtil;
-import io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityConstants;
-import io.ballerina.stdlib.rabbitmq.observability.RabbitMQTracingUtil;
 import io.ballerina.stdlib.rabbitmq.RabbitMQConstants;
 import io.ballerina.stdlib.rabbitmq.RabbitMQTransactionContext;
 import io.ballerina.stdlib.rabbitmq.RabbitMQUtils;
+import io.ballerina.stdlib.rabbitmq.observability.RabbitMQMetricsUtil;
+import io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityConstants;
+import io.ballerina.stdlib.rabbitmq.observability.RabbitMQTracingUtil;
 
 import java.io.IOException;
 import java.util.HashMap;
