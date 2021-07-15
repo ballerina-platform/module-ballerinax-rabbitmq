@@ -70,15 +70,22 @@ public class RabbitMQConstants {
             "shutdownTimeout");
     public static final BString RABBITMQ_CONNECTION_HEARTBEAT = StringUtils.fromString("heartbeat");
     public static final BString RABBITMQ_CONNECTION_SECURE_SOCKET = StringUtils.fromString("secureSocket");
-    public static final BString CONNECTION_KEYSTORE = StringUtils.fromString("key");
-    public static final BString CONNECTION_TRUSTORE = StringUtils.fromString("cert");
-    public static final BString CONNECTION_VERIFY_HOST = StringUtils.fromString("verifyHostName");
-    public static final BString CONNECTION_PROTOCOL = StringUtils.fromString("protocol");
-    public static final BString CONNECTION_PROTOCOL_NAME = StringUtils.fromString("name");
-    public static final String KEY_STORE_TYPE = "PKCS12";
+
+    // SSL constants
+    public static final BString KEY = StringUtils.fromString("key");
+    public static final BString CERT = StringUtils.fromString("cert");
+    public static final BString VERIFY_HOST = StringUtils.fromString("verifyHostName");
+    public static final BString PROTOCOL = StringUtils.fromString("protocol");
+    public static final BString PROTOCOL_NAME = StringUtils.fromString("name");
+    public static final String PKCS12 = "PKCS12";
     public static final String DEFAULT_SSL_PROTOCOL = "TLSv1.2";
     public static final BString KEY_STORE_PASS = StringUtils.fromString("password");
     public static final BString KEY_STORE_PATH = StringUtils.fromString("path");
+    public static final BString CERT_FILE = StringUtils.fromString("certFile");
+    public static final BString KEY_FILE = StringUtils.fromString("keyFile");
+    public static final BString KEY_PASSWORD = StringUtils.fromString("keyPassword");
+    public static final String NATIVE_DATA_PUBLIC_KEY_CERTIFICATE = "NATIVE_DATA_PUBLIC_KEY_CERTIFICATE";
+    public static final String NATIVE_DATA_PRIVATE_KEY = "NATIVE_DATA_PRIVATE_KEY";
 
     // Channel listener constant fields
     public static final String CONSUMER_SERVICES = "consumer_services";
@@ -88,8 +95,6 @@ public class RabbitMQConstants {
     public static final BString AUTO_ACK = StringUtils.fromString("autoAck");
     public static final String MULTIPLE_ACK_ERROR = "Trying to acknowledge the same message multiple times";
     public static final String ACK_MODE_ERROR = "Trying to acknowledge messages in auto-ack mode";
-    static final String THREAD_INTERRUPTED = "Error occurred in RabbitMQ service. " +
-            "The current thread got interrupted";
     public static final String ACK_ERROR = "Error occurred while positively acknowledging the message: ";
     public static final String NACK_ERROR = "Error occurred while negatively acknowledging the message: ";
     static final String FUNC_ON_MESSAGE = "onMessage";

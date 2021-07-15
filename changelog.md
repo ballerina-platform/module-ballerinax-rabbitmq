@@ -5,13 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+- [Add public cert and private key support for RabbitMQ secure socket.](https://github.com/ballerina-platform/ballerina-standard-library/issues/1470)
+
 ### Changed
 - Mark close and abort functions in RabbitMQ client as remote 
 
 ## [1.1.0-alpha9] - 2021-04-22
 
 ### Added
-
 - [Add compiler plugin validations for RabbitMQ services.](https://github.com/ballerina-platform/ballerina-standard-library/issues/1236)
 
 ## [1.1.0-alpha7] - 2021-04-02

@@ -19,6 +19,7 @@
 module io.ballerina.stdlib.rabbitmq.runtime {
     requires com.rabbitmq.client;
     requires io.ballerina.runtime;
+    requires io.ballerina.stdlib.crypto;
     requires org.slf4j;
     requires java.transaction.xa;
     exports io.ballerina.stdlib.rabbitmq.util;
