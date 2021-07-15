@@ -42,3 +42,21 @@ public isolated function testSslConnection() returns error? {
         check newClient->close();
     }
 }
+
+@test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
+public isolated function testSslConnection2() returns error? {
+    SecureSocket secured = {
+        cert: "tests/server/certs/server.crt",
+        verifyHostName: false
+    };
+    Client|Error newClient = new(DEFAULT_HOST, 5671, secureSocket = secured);
+    if newClient is Error {
+        test:assertFail("Error when trying to create a client with secure connection.");
+    } else {
+        check newClient->close();
+    }
+}
+
