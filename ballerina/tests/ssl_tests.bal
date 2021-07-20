@@ -54,7 +54,7 @@ public isolated function testSslConnection2() returns error? {
             certFile: "tests/server/certs/client.crt",
             keyFile: "tests/server/certs/client.key"
         },
-        verifyHostName: false
+        verifyHostName: true
     };
     Client|Error newClient = new(DEFAULT_HOST, 5671, secureSocket = secured);
     if newClient is Error {
@@ -75,7 +75,7 @@ public isolated function testSslConnection3() returns error? {
             certFile: "tests/server/certs/client.crt",
             keyFile: "tests/server/certs/client.key"
         },
-        verifyHostName: false
+        verifyHostName: true
     };
     Client|Error newClient = new(DEFAULT_HOST, 5671, secureSocket = secured);
     if !(newClient is Error) {
@@ -95,7 +95,7 @@ public isolated function testSslConnection4() returns error? {
             certFile: "tests/server/certs/client1.crt",
             keyFile: "tests/server/certs/client1.key"
         },
-        verifyHostName: false
+        verifyHostName: true
     };
     Client|Error newClient = new(DEFAULT_HOST, 5671, secureSocket = secured);
     if !(newClient is Error) {
@@ -118,7 +118,7 @@ public isolated function testSslConnection5() returns error? {
             certFile: "tests/server/certs/client.crt",
             keyFile: "tests/server/certs/client.key"
         },
-        verifyHostName: false
+        verifyHostName: true
     };
     Client|Error newClient = new(DEFAULT_HOST, 5671, secureSocket = secured);
     if newClient is Error {
