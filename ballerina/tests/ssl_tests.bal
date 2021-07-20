@@ -50,6 +50,10 @@ public isolated function testSslConnection() returns error? {
 public isolated function testSslConnection2() returns error? {
     SecureSocket secured = {
         cert: "tests/server/certs/server.crt",
+        key: {
+            certFile: "tests/server/certs/client.crt",
+            keyFile: "tests/server/certs/client.key"
+        },
         verifyHostName: false
     };
     Client|Error newClient = new(DEFAULT_HOST, 5671, secureSocket = secured);
@@ -60,3 +64,66 @@ public isolated function testSslConnection2() returns error? {
     }
 }
 
+@test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
+public isolated function testSslConnection3() returns error? {
+    SecureSocket secured = {
+        cert: "tests/server/certs/server1.crt",
+        key: {
+            certFile: "tests/server/certs/client.crt",
+            keyFile: "tests/server/certs/client.key"
+        },
+        verifyHostName: false
+    };
+    Client|Error newClient = new(DEFAULT_HOST, 5671, secureSocket = secured);
+    if !(newClient is Error) {
+        test:assertFail("Error expected when trying to create a client with secure connection.");
+        check newClient->close();
+    }
+}
+
+@test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
+public isolated function testSslConnection4() returns error? {
+    SecureSocket secured = {
+        cert: "tests/server/certs/server.crt",
+        key: {
+            certFile: "tests/server/certs/client1.crt",
+            keyFile: "tests/server/certs/client1.key"
+        },
+        verifyHostName: false
+    };
+    Client|Error newClient = new(DEFAULT_HOST, 5671, secureSocket = secured);
+    if !(newClient is Error) {
+        test:assertFail("Error expected when trying to create a client with secure connection.");
+        check newClient->close();
+    }
+}
+
+@test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
+public isolated function testSslConnection5() returns error? {
+    SecureSocket secured = {
+        cert: {
+            path: "tests/server/certs/truststore.p12",
+            password: "password"
+        },
+        key: {
+            certFile: "tests/server/certs/client.crt",
+            keyFile: "tests/server/certs/client.key"
+        },
+        verifyHostName: false
+    };
+    Client|Error newClient = new(DEFAULT_HOST, 5671, secureSocket = secured);
+    if newClient is Error {
+        test:assertFail("Error when trying to create a client with secure connection.");
+    } else {
+        check newClient->close();
+    }
+}
