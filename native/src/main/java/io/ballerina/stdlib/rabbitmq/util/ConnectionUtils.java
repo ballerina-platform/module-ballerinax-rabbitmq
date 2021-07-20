@@ -22,8 +22,10 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.impl.DefaultCredentialsProvider;
 import io.ballerina.runtime.api.values.BDecimal;
+import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
+import io.ballerina.stdlib.crypto.nativeimpl.Decode;
 import io.ballerina.stdlib.rabbitmq.RabbitMQConstants;
 import io.ballerina.stdlib.rabbitmq.RabbitMQUtils;
 import io.ballerina.stdlib.rabbitmq.observability.RabbitMQMetricsUtil;
@@ -31,19 +33,14 @@ import io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityConstants
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedInputStream;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.math.BigDecimal;
-import java.security.KeyManagementException;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.SecureRandom;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Objects;
-import java.util.concurrent.TimeoutException;
+import java.util.UUID;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -75,9 +72,9 @@ public class ConnectionUtils {
             BMap<BString, Object> secureSocket = (BMap<BString, Object>) connectionConfig.getMapValue(
                     RabbitMQConstants.RABBITMQ_CONNECTION_SECURE_SOCKET);
             if (secureSocket != null) {
-                SSLContext sslContext = getSSLContext(secureSocket);
+                SSLContext sslContext = getSslContext(secureSocket);
                 connectionFactory.useSslProtocol(sslContext);
-                if (secureSocket.getBooleanValue(RabbitMQConstants.CONNECTION_VERIFY_HOST)) {
+                if (secureSocket.getBooleanValue(RabbitMQConstants.VERIFY_HOST)) {
                     connectionFactory.enableHostnameVerification();
                 }
                 LOGGER.info("TLS enabled for the connection.");
@@ -124,15 +121,10 @@ public class ConnectionUtils {
             Connection connection = connectionFactory.newConnection();
             RabbitMQMetricsUtil.reportNewConnection(connection);
             return connection;
-        } catch (IOException | TimeoutException exception) {
+        } catch (Exception exception) {
             RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_CONNECTION);
             return RabbitMQUtils.returnErrorValue(RabbitMQConstants.CREATE_CONNECTION_ERROR
                     + exception.getMessage());
-        } catch (CertificateException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException |
-                UnrecoverableKeyException e) {
-            String errorMsg = "error occurred while setting up the connection. " +
-                    (e.getMessage() != null ? e.getMessage() : "");
-            return RabbitMQUtils.returnErrorValue(errorMsg);
         }
     }
 
@@ -141,86 +133,146 @@ public class ConnectionUtils {
         return (valueInSeconds.multiply(MILLISECOND_MULTIPLIER)).intValue();
     }
 
-    /**
-     * Creates and retrieves the SSLContext from socket configuration.
-     *
-     * @param secureSocket secureSocket record.
-     * @return Initialized SSLContext.
-     */
-    private static SSLContext getSSLContext(BMap<BString, Object> secureSocket)
-            throws IOException, CertificateException, KeyStoreException,
-            UnrecoverableKeyException, KeyManagementException, NoSuchAlgorithmException {
-        // Keystore
-        String keyFilePath = null;
-        char[] keyPassphrase = null;
-        char[] trustPassphrase;
-        String trustFilePath;
-        if (secureSocket.containsKey(RabbitMQConstants.CONNECTION_KEYSTORE)) {
-            @SuppressWarnings("unchecked")
-            BMap<BString, Object> cryptoKeyStore =
-                    (BMap<BString, Object>) secureSocket.getMapValue(RabbitMQConstants.CONNECTION_KEYSTORE);
-            keyPassphrase = cryptoKeyStore.getStringValue(RabbitMQConstants.KEY_STORE_PASS).getValue().toCharArray();
-            keyFilePath = cryptoKeyStore.getStringValue(RabbitMQConstants.KEY_STORE_PATH).getValue();
-        }
-
-        // Truststore
-        @SuppressWarnings("unchecked")
-        BMap<BString, Object> cryptoTrustStore =
-                (BMap<BString, Object>) secureSocket.getMapValue(RabbitMQConstants.CONNECTION_TRUSTORE);
-        trustPassphrase = cryptoTrustStore.getStringValue(RabbitMQConstants.KEY_STORE_PASS).getValue()
-                .toCharArray();
-        trustFilePath = cryptoTrustStore.getStringValue(RabbitMQConstants.KEY_STORE_PATH).getValue();
-
+    private static SSLContext getSslContext(BMap<BString, ?> secureSocket) throws Exception {
         // protocol
         String protocol = null;
-        if (secureSocket.containsKey(RabbitMQConstants.CONNECTION_PROTOCOL)) {
+        if (secureSocket.containsKey(RabbitMQConstants.PROTOCOL)) {
             @SuppressWarnings("unchecked")
             BMap<BString, Object> protocolRecord =
-                    (BMap<BString, Object>) secureSocket.getMapValue(RabbitMQConstants.CONNECTION_PROTOCOL);
-            protocol = protocolRecord.getStringValue(RabbitMQConstants.CONNECTION_PROTOCOL_NAME).getValue();
+                    (BMap<BString, Object>) secureSocket.getMapValue(RabbitMQConstants.PROTOCOL);
+            protocol = protocolRecord.getStringValue(RabbitMQConstants.PROTOCOL_NAME).getValue();
         }
-        SSLContext sslContext = createSSLContext(trustFilePath, trustPassphrase, keyFilePath, keyPassphrase, protocol);
+
+        Object cert = secureSocket.get(RabbitMQConstants.CERT);
+        @SuppressWarnings("unchecked")
+        BMap<BString, BString> key = (BMap<BString, BString>) getBMapValueIfPresent(secureSocket,
+                RabbitMQConstants.KEY);
+
+        KeyManagerFactory kmf;
+        TrustManagerFactory tmf;
+        if (cert instanceof BString) {
+            if (key != null) {
+                if (key.containsKey(RabbitMQConstants.CERT_FILE)) {
+                    BString certFile = key.get(RabbitMQConstants.CERT_FILE);
+                    BString keyFile = key.get(RabbitMQConstants.KEY_FILE);
+                    BString keyPassword = getBStringValueIfPresent(key, RabbitMQConstants.KEY_PASSWORD);
+                    kmf = getKeyManagerFactory(certFile, keyFile, keyPassword);
+                } else {
+                    kmf = getKeyManagerFactory(key);
+                }
+                tmf = getTrustManagerFactory((BString) cert);
+                return buildSslContext(kmf.getKeyManagers(), tmf.getTrustManagers(), protocol);
+            } else {
+                tmf = getTrustManagerFactory((BString) cert);
+                return buildSslContext(null, tmf.getTrustManagers(), protocol);
+            }
+        }
+        if (cert instanceof BMap) {
+            BMap<BString, BString> trustStore = (BMap<BString, BString>) cert;
+            if (key != null) {
+                if (key.containsKey(RabbitMQConstants.CERT_FILE)) {
+                    BString certFile = key.get(RabbitMQConstants.CERT_FILE);
+                    BString keyFile = key.get(RabbitMQConstants.KEY_FILE);
+                    BString keyPassword = getBStringValueIfPresent(key, RabbitMQConstants.KEY_PASSWORD);
+                    kmf = getKeyManagerFactory(certFile, keyFile, keyPassword);
+                } else {
+                    kmf = getKeyManagerFactory(key);
+                }
+                tmf = getTrustManagerFactory(trustStore);
+                return buildSslContext(kmf.getKeyManagers(), tmf.getTrustManagers(), protocol);
+            } else {
+                tmf = getTrustManagerFactory(trustStore);
+                return buildSslContext(null, tmf.getTrustManagers(), protocol);
+            }
+        }
+        return null;
+    }
+
+    private static TrustManagerFactory getTrustManagerFactory(BString cert) throws Exception {
+        Object publicKeyMap = Decode.decodeRsaPublicKeyFromCertFile(cert);
+        if (publicKeyMap instanceof BMap) {
+            X509Certificate x509Certificate = (X509Certificate) ((BMap<BString, Object>) publicKeyMap).getNativeData(
+                    RabbitMQConstants.NATIVE_DATA_PUBLIC_KEY_CERTIFICATE);
+            KeyStore ts = KeyStore.getInstance(RabbitMQConstants.PKCS12);
+            ts.load(null, "".toCharArray());
+            ts.setCertificateEntry(UUID.randomUUID().toString(), x509Certificate);
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init(ts);
+            return tmf;
+        } else {
+            throw new Exception("Failed to get the public key from Crypto API. " +
+                    ((BError) publicKeyMap).getErrorMessage().getValue());
+        }
+    }
+
+    private static TrustManagerFactory getTrustManagerFactory(BMap<BString, BString> trustStore) throws Exception {
+        BString trustStorePath = trustStore.getStringValue(RabbitMQConstants.KEY_STORE_PATH);
+        BString trustStorePassword = trustStore.getStringValue(RabbitMQConstants.KEY_STORE_PASS);
+        KeyStore ts = getKeyStore(trustStorePath, trustStorePassword);
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        tmf.init(ts);
+        return tmf;
+    }
+
+    private static KeyManagerFactory getKeyManagerFactory(BMap<BString, BString> keyStore) throws Exception {
+        BString keyStorePath = keyStore.getStringValue(RabbitMQConstants.KEY_STORE_PATH);
+        BString keyStorePassword = keyStore.getStringValue(RabbitMQConstants.KEY_STORE_PASS);
+        KeyStore ks = getKeyStore(keyStorePath, keyStorePassword);
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        kmf.init(ks, keyStorePassword.getValue().toCharArray());
+        return kmf;
+    }
+
+    private static KeyManagerFactory getKeyManagerFactory(BString certFile, BString keyFile, BString keyPassword)
+            throws Exception {
+        Object publicKey = Decode.decodeRsaPublicKeyFromCertFile(certFile);
+        if (publicKey instanceof BMap) {
+            X509Certificate publicCert = (X509Certificate) ((BMap<BString, Object>) publicKey).getNativeData(
+                    RabbitMQConstants.NATIVE_DATA_PUBLIC_KEY_CERTIFICATE);
+            Object privateKeyMap = Decode.decodeRsaPrivateKeyFromKeyFile(keyFile, keyPassword);
+            if (privateKeyMap instanceof BMap) {
+                PrivateKey privateKey = (PrivateKey) ((BMap<BString, Object>) privateKeyMap).getNativeData(
+                        RabbitMQConstants.NATIVE_DATA_PRIVATE_KEY);
+                KeyStore ks = KeyStore.getInstance(RabbitMQConstants.PKCS12);
+                ks.load(null, "".toCharArray());
+                ks.setKeyEntry(UUID.randomUUID().toString(), privateKey, "".toCharArray(),
+                        new X509Certificate[]{publicCert});
+                KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+                kmf.init(ks, "".toCharArray());
+                return kmf;
+            } else {
+                throw new Exception("Failed to get the private key from Crypto API. " +
+                        ((BError) privateKeyMap).getErrorMessage().getValue());
+            }
+        } else {
+            throw new Exception("Failed to get the public key from Crypto API. " +
+                    ((BError) publicKey).getErrorMessage().getValue());
+        }
+    }
+
+    private static KeyStore getKeyStore(BString path, BString password) throws Exception {
+        try (FileInputStream is = new FileInputStream(path.getValue())) {
+            char[] passphrase = password.getValue().toCharArray();
+            KeyStore ks = KeyStore.getInstance(RabbitMQConstants.PKCS12);
+            ks.load(is, passphrase);
+            return ks;
+        }
+    }
+
+    private static SSLContext buildSslContext(KeyManager[] keyManagers, TrustManager[] trustManagers,
+                                              String protocol) throws Exception {
+        SSLContext sslContext =
+                SSLContext.getInstance(Objects.requireNonNullElse(protocol, RabbitMQConstants.DEFAULT_SSL_PROTOCOL));
+        sslContext.init(keyManagers, trustManagers, new SecureRandom());
         return sslContext;
     }
 
-
-    public static KeyStore loadKeystore(String path, char[] pass) throws KeyStoreException, IOException,
-            CertificateException, NoSuchAlgorithmException {
-        KeyStore store = KeyStore.getInstance(RabbitMQConstants.KEY_STORE_TYPE);
-
-        try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(path))) {
-            store.load(in, pass);
-        }
-        return store;
+    private static BMap<BString, ?> getBMapValueIfPresent(BMap<BString, ?> config, BString key) {
+        return config.containsKey(key) ? (BMap<BString, ?>) config.getMapValue(key) : null;
     }
 
-    public static KeyManager[] createKeyManagers(String keyStorePath, char[] keyStorePass)
-            throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException,
-            UnrecoverableKeyException {
-        KeyStore store = loadKeystore(keyStorePath, keyStorePass);
-        KeyManagerFactory factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        factory.init(store, keyStorePass);
-        return factory.getKeyManagers();
-    }
-
-    public static TrustManager[] createTrustManagers(String trustStorePath, char[] trustStorePass)
-            throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        KeyStore store = loadKeystore(trustStorePath, trustStorePass);
-        TrustManagerFactory factory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        factory.init(store);
-        return factory.getTrustManagers();
-    }
-
-    public static SSLContext createSSLContext(String trustStorePath, char[] trustStorePass, String keyStorePath,
-                                              char[] keyStorePass, String protocol)
-            throws UnrecoverableKeyException, CertificateException, KeyStoreException, IOException,
-            NoSuchAlgorithmException, KeyManagementException {
-
-        SSLContext ctx =
-                SSLContext.getInstance(Objects.requireNonNullElse(protocol, RabbitMQConstants.DEFAULT_SSL_PROTOCOL));
-        ctx.init(keyStorePath != null ? createKeyManagers(keyStorePath, keyStorePass) : null,
-                createTrustManagers(trustStorePath, trustStorePass), new SecureRandom());
-        return ctx;
+    private static BString getBStringValueIfPresent(BMap<BString, ?> config, BString key) {
+        return config.containsKey(key) ? config.getStringValue(key) : null;
     }
 
     private ConnectionUtils() {

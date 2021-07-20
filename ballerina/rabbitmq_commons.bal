@@ -112,17 +112,28 @@ public type QosSettings record {|
 
 # Configurations for facilitating secure connections.
 #
-# + cert - Configurations associated with `crypto:TrustStore`
-# + key - Configurations associated with `crypto:KeyStore`
+# + cert - Configurations associated with `crypto:TrustStore` or single certificate file that the client trusts
+# + key - Configurations associated with `crypto:KeyStore` or combination of certificate and private key of the client
 # + protocol - SSL/TLS protocol related options
 # + verifyHostName - Enable/disable host name verification
 public type SecureSocket record {|
-    crypto:TrustStore cert;
-    crypto:KeyStore key?;
+    crypto:TrustStore|string cert;
+    crypto:KeyStore|CertKey key?;
     record {|
         Protocol name;
     |} protocol?;
     boolean verifyHostName = true;
+|};
+
+# Represents combination of certificate, private key and private key password if encrypted.
+#
+# + certFile - A file containing the certificate
+# + keyFile - A file containing the private key in PKCS8 format
+# + keyPassword - Password of the private key if it is encrypted
+public type CertKey record {|
+    string certFile;
+    string keyFile;
+    string keyPassword?;
 |};
 
 # Represents protocol options.
