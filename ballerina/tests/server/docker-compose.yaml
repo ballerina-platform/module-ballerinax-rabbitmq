@@ -21,6 +21,5 @@ services:
         ports:
             - 5673:5672
             - 15673:15672
-        environment:
-            RABBITMQ_DEFAULT_USER: "user"
-            RABBITMQ_DEFAULT_PASS: "pass"
+        volumes:
+            - ./rabbitmq-auth.conf:/etc/rabbitmq/rabbitmq.conf
