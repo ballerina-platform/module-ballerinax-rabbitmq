@@ -2,6 +2,7 @@
 org = "ballerinax"
 name = "rabbitmq"
 version = "@toml.version@"
+distribution = "slbeta3"
 
 [[platform.java11.dependency]]
 path = "./lib/amqp-client-@amqp.client.version@.jar"
