@@ -17,18 +17,10 @@
 import ballerina/websubhub;
 import ballerina/log;
 import ballerina/http;
-import rabbitmqHub.security;
 import rabbitmqHub.persistence as persist;
-import rabbitmqHub.config;
 import rabbitmqHub.util;
 
-websubhub:Service hubService = @websubhub:ServiceConfig { 
-    webHookConfig: {
-        secureSocket: {
-            cert: "./resources/server.crt"
-        }
-    }
-}
+websubhub:Service hubService =
 service object {
 
     # Registers a `topic` in the hub.
@@ -39,9 +31,6 @@ service object {
     #            if topic registration failed or `error` if there is any unexpected error
     isolated remote function onRegisterTopic(websubhub:TopicRegistration message, http:Headers headers)
                                 returns websubhub:TopicRegistrationSuccess|websubhub:TopicRegistrationError|error {
-        if config:SECURITY_ON {
-            check security:authorize(headers, ["register_topic"]);
-        }
         check self.registerTopic(message);
         return websubhub:TOPIC_REGISTRATION_SUCCESS;
     }
@@ -67,9 +56,6 @@ service object {
     #            if topic deregistration failed or `error` if there is any unexpected error
     isolated remote function onDeregisterTopic(websubhub:TopicDeregistration message, http:Headers headers)
                         returns websubhub:TopicDeregistrationSuccess|websubhub:TopicDeregistrationError|error {
-        if config:SECURITY_ON {
-            check security:authorize(headers, ["deregister_topic"]);
-        }
         check self.deregisterTopic(message);
         return websubhub:TOPIC_DEREGISTRATION_SUCCESS;
     }
@@ -95,9 +81,6 @@ service object {
     #            if subscription is denied from the hub or `error` if there is any unexpected error
     isolated remote function onSubscription(websubhub:Subscription message, http:Headers headers)
                 returns websubhub:SubscriptionAccepted|websubhub:BadSubscriptionError|error {
-        if config:SECURITY_ON {
-            check security:authorize(headers, ["subscribe"]);
-        }
         return websubhub:SUBSCRIPTION_ACCEPTED;
     }
 
@@ -148,9 +131,6 @@ service object {
     #            if unsubscription is denied from the hub or `error` if there is any unexpected error
     isolated remote function onUnsubscription(websubhub:Unsubscription message, http:Headers headers)
                returns websubhub:UnsubscriptionAccepted|websubhub:BadUnsubscriptionError|error {
-        if config:SECURITY_ON {
-            check security:authorize(headers, ["subscribe"]);
-        }
         return websubhub:UNSUBSCRIPTION_ACCEPTED;
     }
 
@@ -200,10 +180,7 @@ service object {
     # + return - `websubhub:Acknowledgement` if publish content is successful, `websubhub:UpdateMessageError`
     #            if publish content failed or `error` if there is any unexpected error
     isolated remote function onUpdateMessage(websubhub:UpdateMessage message, http:Headers headers)
-               returns websubhub:Acknowledgement|websubhub:UpdateMessageError|error {  
-        if config:SECURITY_ON {
-            check security:authorize(headers, ["update_content"]);
-        }
+               returns websubhub:Acknowledgement|websubhub:UpdateMessageError|error {
         check self.updateMessage(message);
         return websubhub:ACKNOWLEDGEMENT;
     }

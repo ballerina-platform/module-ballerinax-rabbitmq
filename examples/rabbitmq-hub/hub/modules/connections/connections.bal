@@ -26,13 +26,8 @@ public final rabbitmq:Client statePersistProducer = check new (rabbitmq:DEFAULT_
 public final rabbitmq:Client subscribersConsumer = check new (rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
 
 // Consumer which reads the persisted subscriber details
-// TODO: NO AVAILABLE WAY TO DO THIS IN RABBITMQ! PERSISTING MESSAGES???
-//kafka:ConsumerConfiguration registeredTopicsConsumerConfig = {
-//    groupId: "consolidated--websub-topics-group-" + config:CONSTRUCTED_SERVER_ID,
-//    offsetReset: "earliest",
-//    topics: [ config:CONSOLIDATED_WEBSUB_TOPICS_TOPIC ]
-//};
-//public final kafka:Consumer registeredTopicsConsumer = check new (config:KAFKA_BOOTSTRAP_NODE, registeredTopicsConsumerConfig);
+    //topics: [ config:CONSOLIDATED_WEBSUB_TOPICS_TOPIC ]
+rabbitmq:Client registeredTopicsConsumer = check new(rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
 
 # Creates a `rabbitmq:Client` for a subscriber.
 # 

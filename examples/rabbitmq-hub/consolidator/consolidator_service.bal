@@ -26,15 +26,27 @@ import consolidatorService.persistence as persist;
 isolated function startConsolidator() returns error? {
     do {
         while true {
-            rabbitmq:Message lastRecord = check conn:websubEventConsumer->consumeMessage();
-            string lastPersistedData = check string:fromBytes(lastRecord.content);
-            error? result = processPersistedData(lastPersistedData);
-            if result is error {
-                log:printError("Error occurred while processing received event ", 'error = result);
+            rabbitmq:Message? lastRecord = ();
+            rabbitmq:Message|error registeredTopic = conn:websubEventConsumer->consumeMessage(config:REGISTERED_WEBSUB_TOPICS_QUEUE);
+            if (registeredTopic is error) {
+                rabbitmq:Message|error subscriber = conn:websubEventConsumer->consumeMessage(config:WEBSUB_SUBSCRIBERS_QUEUE);
+                if (subscriber is rabbitmq:Message) {
+                    lastRecord = subscriber;
+                }
+            } else {
+                lastRecord = registeredTopic;
+            }
+            if (lastRecord is rabbitmq:Message) {
+                string lastPersistedData = check string:fromBytes(lastRecord.content);
+                error? result = processPersistedData(lastPersistedData);
+                if result is error {
+                    log:printError("Error occurred while processing received event ", 'error = result);
+                }
+            } else {
+                log:printError("Error occurred while processing received event");
             }
         }
     } on fail var e {
-        _ = check conn:websubEventConsumer->close(config:GRACEFUL_CLOSE_PERIOD);
         return e;
     }
 }

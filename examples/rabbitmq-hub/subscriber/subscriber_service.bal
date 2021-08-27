@@ -17,38 +17,10 @@
 import ballerina/websub;
 import ballerina/log;
 
-listener websub:Listener securedSubscriber = new(9100,
-    host = "localhost",
-    secureSocket = {
-        key: {
-            certFile: "../_resources/server.crt",
-            keyFile: "../_resources/server.key"
-        }
-    }
-);
+listener websub:Listener securedSubscriber = new(9100, host = "localhost");
 
-@websub:SubscriberServiceConfig { 
-    target: ["https://localhost:9000/hub", "test"],
-    leaseSeconds: 36000,
-    httpConfig: {
-        auth : {
-            tokenUrl: "https://localhost:9443/oauth2/token",
-            clientId: "8EsaVTsN64t4sMDhGvBqJoqMi8Ea",
-            clientSecret: "QC71AIfbBjhgAibpi0mpfIEK_bMa",
-            scopes: ["subscribe"],
-            clientConfig: {
-                secureSocket: {
-                    cert: {
-                        path: "../_resources/client-truststore.jks",
-                        password: "wso2carbon"
-                    }
-                }
-            }
-        },
-        secureSocket : {
-            cert: "../_resources/server.crt"
-        }
-    }
+@websub:SubscriberServiceConfig {
+    target: ["http://localhost:9000/hub", "test"], leaseSeconds: 36000
 } 
 service on securedSubscriber {
     remote function onSubscriptionValidationDenied(websub:SubscriptionDeniedError msg) returns websub:Acknowledgement? {

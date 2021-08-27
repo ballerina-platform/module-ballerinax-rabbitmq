@@ -28,11 +28,14 @@ isolated map<websubhub:VerifiedSubscription> subscribersCache = {};
 public function main() returns error? {
     // Initialize consolidator-service state
     check syncRegsisteredTopicsCache();
-    _ = check conn:consolidatedTopicsConsumer->close(config:GRACEFUL_CLOSE_PERIOD);
     check syncSubscribersCache();
-    _ = check conn:consolidatedSubscriberConsumer->close(config:GRACEFUL_CLOSE_PERIOD);
     log:printInfo("Starting Event Consolidator Service");
-
+    rabbitmq:Client rabbitmqClient = check new(rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
+    // declares all queues
+    check rabbitmqClient->queueDeclare(config:REGISTERED_WEBSUB_TOPICS_QUEUE);
+    check rabbitmqClient->queueDeclare(config:CONSOLIDATED_WEBSUB_TOPICS_QUEUE);
+    check rabbitmqClient->queueDeclare(config:WEBSUB_SUBSCRIBERS_QUEUE);
+    check rabbitmqClient->queueDeclare(config:CONSOLIDATED_WEBSUB_SUBSCRIBERS_QUEUE);
     // start the consolidator-service
     check startConsolidator();
 }
@@ -44,13 +47,12 @@ isolated function syncRegsisteredTopicsCache() returns error? {
             refreshTopicCache(persistedTopics);
         }
     } on fail var e {
-        _ = check conn:consolidatedTopicsConsumer->close(config:GRACEFUL_CLOSE_PERIOD);
         return e;
     }
 }
 
 isolated function getPersistedTopics() returns websubhub:TopicRegistration[]|error? {
-    rabbitmq:Message lastRecord = check conn:consolidatedTopicsConsumer->consumeMessage();
+    rabbitmq:Message lastRecord = check conn:consolidatedTopicsConsumer->consumeMessage(config:CONSOLIDATED_WEBSUB_TOPICS_QUEUE);
     string|error lastPersistedData = string:fromBytes(lastRecord.content);
     if lastPersistedData is string {
         return deSerializeTopicsMessage(lastPersistedData);
@@ -86,13 +88,12 @@ isolated function syncSubscribersCache() returns error? {
             refreshSubscribersCache(persistedSubscribers);
         }
     } on fail var e {
-        _ = check conn:consolidatedSubscriberConsumer->close(config:GRACEFUL_CLOSE_PERIOD);
         return e;
     } 
 }
 
 isolated function getPersistedSubscribers() returns websubhub:VerifiedSubscription[]|error? {
-    rabbitmq:Message lastRecord = check conn:consolidatedSubscriberConsumer->consumeMessage();
+    rabbitmq:Message lastRecord = check conn:consolidatedSubscriberConsumer->consumeMessage(config:CONSOLIDATED_WEBSUB_SUBSCRIBERS_QUEUE);
     string|error lastPersistedData = string:fromBytes(lastRecord.content);
     if lastPersistedData is string {
         return deSerializeSubscribersMessage(lastPersistedData);

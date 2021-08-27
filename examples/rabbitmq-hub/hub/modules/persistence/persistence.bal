@@ -18,7 +18,6 @@ import ballerina/websubhub;
 import rabbitmqHub.config;
 import rabbitmqHub.connections as conn;
 
-// TODO
 public isolated function addRegsiteredTopic(websubhub:TopicRegistration message) returns error? {
     check updateTopicDetails(message, "register");
 }

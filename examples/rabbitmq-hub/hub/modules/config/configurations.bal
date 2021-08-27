@@ -16,29 +16,23 @@
 
 import rabbitmqHub.util;
 
-# Flag to check whether to enable/disable security
-public configurable boolean SECURITY_ON = true;
-
 # Server ID is is used to uniquely identify each server 
 # Each server must have a unique ID
 public configurable string SERVER_ID = "server-1";
 
 # RabbitMQ queue which will get notified for websub topic registration/deregistration
 # All the hubs must be pointed to the same RabbitMQ queue to notify websub topic registration/deregistration
-public configurable string REGISTERED_WEBSUB_TOPICS_TOPIC = "registered-websub-topics";
+public configurable string REGISTERED_WEBSUB_TOPICS_QUEUE = "registered-websub-topics";
 
 # RabbitMQ queue which stores consolidated websub topics for the hub
-public configurable string CONSOLIDATED_WEBSUB_TOPICS_TOPIC = "consolidated-websub-topics";
+public configurable string CONSOLIDATED_WEBSUB_TOPICS_QUEUE = "consolidated-websub-topics";
 
 # RabbitMQ queue which will get notified for websub subscription/unsubscription
 # All the hubs must be pointed to the same RabbitMQ queue to notify websub subscription/unsubscription
-public configurable string WEBSUB_SUBSCRIBERS_TOPIC = "registered-websub-subscribers";
+public configurable string WEBSUB_SUBSCRIBERS_QUEUE = "registered-websub-subscribers";
 
 # RabbitMQ queue which is stores consolidated websub subscribers for this server
-public configurable string CONSOLIDATED_WEBSUB_SUBSCRIBERS_TOPIC = "consolidated-websub-subscribers";
-
-# The interval in which RabbitMQ consumers wait for new messages
-public configurable decimal POLLING_INTERVAL = 10;
+public configurable string CONSOLIDATED_WEBSUB_SUBSCRIBERS_QUEUE = "consolidated-websub-subscribers";
 
 # The port that is used to start the hub
 public configurable int HUB_PORT = 9000;
@@ -51,11 +45,5 @@ public configurable int MESSAGE_DELIVERY_COUNT = 3;
 
 # The message delivery timeout
 public configurable decimal MESSAGE_DELIVERY_TIMEOUT = 10;
-
-# The base URL of IDP
-public configurable string MOSIP_AUTH_BASE_URL = "https://host/";
-
-# The token validation URL of IDP
-public configurable string MOSIP_AUTH_VALIDATE_TOKEN_URL = "https://host/oauth2/token";
 
 public final string CONSTRUCTED_SERVER_ID = string `${SERVER_ID}-${util:generateRandomString()}`;

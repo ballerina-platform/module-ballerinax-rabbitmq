@@ -24,7 +24,7 @@ public isolated function persistTopicRegistrations(map<websubhub:TopicRegistrati
         availableTopics.push(topic);
     }
     json[] jsonData = <json[]> availableTopics.toJson();
-    check produceKafkaMessage(config:CONSOLIDATED_WEBSUB_TOPICS_TOPIC, jsonData);
+    check produceRabbitmqMessage(config:CONSOLIDATED_WEBSUB_TOPICS_QUEUE, jsonData);
 }
 
 public isolated function persistSubscriptions(map<websubhub:VerifiedSubscription> subscribersCache) returns error? {
@@ -33,11 +33,10 @@ public isolated function persistSubscriptions(map<websubhub:VerifiedSubscription
         availableSubscriptions.push(subscriber);
     }
     json[] jsonData = <json[]> availableSubscriptions.toJson();
-    check produceKafkaMessage(config:CONSOLIDATED_WEBSUB_SUBSCRIBERS_TOPIC, jsonData);
+    check produceRabbitmqMessage(config:CONSOLIDATED_WEBSUB_SUBSCRIBERS_QUEUE, jsonData);
 }
 
-isolated function produceKafkaMessage(string topicName, json payload) returns error? {
+isolated function produceRabbitmqMessage(string queue, json payload) returns error? {
     byte[] serializedContent = payload.toJsonString().toBytes();
-    check conn:statePersistProducer->send({ topic: topicName, value: serializedContent });
-    check conn:statePersistProducer->'flush();
+    check conn:statePersistProducer->publishMessage({ content: serializedContent, routingKey: queue });
 }
