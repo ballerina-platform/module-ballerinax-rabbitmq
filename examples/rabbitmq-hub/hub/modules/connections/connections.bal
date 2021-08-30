@@ -16,7 +16,6 @@
 
 import ballerinax/rabbitmq;
 import ballerina/websubhub;
-import rabbitmqHub.config;
 import rabbitmqHub.util;
 
 // Producer which persist the current in-memory state of the Hub
@@ -26,8 +25,7 @@ public final rabbitmq:Client statePersistProducer = check new (rabbitmq:DEFAULT_
 public final rabbitmq:Client subscribersConsumer = check new (rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
 
 // Consumer which reads the persisted subscriber details
-    //topics: [ config:CONSOLIDATED_WEBSUB_TOPICS_TOPIC ]
-rabbitmq:Client registeredTopicsConsumer = check new(rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
+public final rabbitmq:Client registeredTopicsConsumer = check new(rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
 
 # Creates a `rabbitmq:Client` for a subscriber.
 # 
@@ -35,6 +33,7 @@ rabbitmq:Client registeredTopicsConsumer = check new(rabbitmq:DEFAULT_HOST, rabb
 # + return - `rabbitmq:Client` if succcessful or else `error`
 public isolated function createMessageConsumer(websubhub:VerifiedSubscription message) returns rabbitmq:Client|error {
     string topicName = util:sanitizeTopicName(message.hubTopic);
-    string groupName = util:generateGroupName(message.hubTopic, message.hubCallback);
-    return check new (rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
+    rabbitmq:Client newClient = check new (rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
+    check newClient->queueDeclare(topicName);
+    return newClient;
 }

@@ -46,13 +46,12 @@ function syncRegsisteredTopicsCache() returns error? {
             }
         }
     } on fail var e {
-        _ = check conn:registeredTopicsConsumer->close(config:GRACEFUL_CLOSE_PERIOD);
         return e;
     }
 }
 
 function getPersistedTopics() returns websubhub:TopicRegistration[]|error? {
-    rabbitmq:Message lastRecord = check conn:registeredTopicsConsumer->consumeMessage();
+    rabbitmq:Message lastRecord = check conn:registeredTopicsConsumer->consumeMessage(config:CONSOLIDATED_WEBSUB_TOPICS_QUEUE);
     string|error lastPersistedData = string:fromBytes(lastRecord.content);
     if lastPersistedData is string {
         return deSerializeTopicsMessage(lastPersistedData);
@@ -94,13 +93,12 @@ function syncSubscribersCache() returns error? {
             }
         }
     } on fail var e {
-        _ = check conn:subscribersConsumer->close(config:GRACEFUL_CLOSE_PERIOD);
         return e;
     }
 }
 
 function getPersistedSubscribers() returns websubhub:VerifiedSubscription[]|error? {
-    rabbitmq:Message lastRecord = check conn:subscribersConsumer->consumeMessage();
+    rabbitmq:Message lastRecord = check conn:subscribersConsumer->consumeMessage(config:CONSOLIDATED_WEBSUB_SUBSCRIBERS_QUEUE);
     string|error lastPersistedData = string:fromBytes(lastRecord.content);
     if lastPersistedData is string {
         return deSerializeSubscribersMessage(lastPersistedData);
@@ -158,7 +156,7 @@ function startMissingSubscribers(websubhub:VerifiedSubscription[] persistedSubsc
 isolated function pollForNewUpdates(websubhub:HubClient clientEp, rabbitmq:Client consumerEp, string topicName, string groupName) returns error? {
     do {
         while true {
-            rabbitmq:Message records = check consumerEp->consumeMessage();
+            rabbitmq:Message records = check consumerEp->consumeMessage(topicName);
             if !isValidConsumer(topicName, groupName) {
                 fail error(string `Consumer with group name ${groupName} or topic ${topicName} is invalid`);
             }
@@ -171,7 +169,6 @@ isolated function pollForNewUpdates(websubhub:HubClient clientEp, rabbitmq:Clien
             }
         }
     } on fail var e {
-        _ = check consumerEp->close();
         return e;
     }
 }
@@ -194,8 +191,6 @@ isolated function notifySubscribers(rabbitmq:Message records, websubhub:HubClien
         var response = clientEp->notifyContentDistribution(message);
         if (response is error) {
             return response;
-        } else {
-            _ = check consumerEp->commit();
         }
     } else {
         log:printError("Error occurred while retrieving message data", err = message.message());

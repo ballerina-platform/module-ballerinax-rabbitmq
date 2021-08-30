@@ -31,7 +31,7 @@ isolated function updateTopicDetails(websubhub:TopicRegistration|websubhub:Topic
         topic: message.topic,
         hubMode: hubMode
     };
-    check produceRabbitmqMessage(config:REGISTERED_WEBSUB_TOPICS_TOPIC, jsonData);
+    check produceRabbitmqMessage(config:REGISTERED_WEBSUB_TOPICS_QUEUE, jsonData);
 }
 
 public isolated function addSubscription(websubhub:VerifiedSubscription message) returns error? {
@@ -44,7 +44,7 @@ public isolated function removeSubscription(websubhub:VerifiedUnsubscription mes
 
 isolated function updateSubscriptionDetails(websubhub:VerifiedSubscription|websubhub:VerifiedUnsubscription message) returns error? {
     json jsonData = message.toJson();
-    check produceRabbitmqMessage(config:WEBSUB_SUBSCRIBERS_TOPIC, jsonData);
+    check produceRabbitmqMessage(config:WEBSUB_SUBSCRIBERS_QUEUE, jsonData);
 }
 
 public isolated function addUpdateMessage(string topicName, websubhub:UpdateMessage message) returns error? {
@@ -54,6 +54,5 @@ public isolated function addUpdateMessage(string topicName, websubhub:UpdateMess
 
 isolated function produceRabbitmqMessage(string topicName, json payload) returns error? {
     byte[] serializedContent = payload.toJsonString().toBytes();
-    check conn:statePersistProducer->send({ topic: topicName, value: serializedContent });
-    check conn:statePersistProducer->'flush();
+    check conn:statePersistProducer->publishMessage({ content: serializedContent, routingKey: topicName });
 }
