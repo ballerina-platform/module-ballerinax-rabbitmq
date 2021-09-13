@@ -1,14 +1,14 @@
 [package]
 org = "ballerinax"
 name = "rabbitmq"
-version = "2.0.0"
+version = "@toml.version@"
 distribution = "slbeta3"
 
 [[platform.java11.dependency]]
-path = "./lib/amqp-client-5.10.0.jar"
+path = "./lib/amqp-client-@amqp.client.version@.jar"
 
 [[platform.java11.dependency]]
-path = "../native/build/libs/rabbitmq-native-2.0.0-SNAPSHOT.jar"
+path = "../native/build/libs/rabbitmq-native-@project.version@.jar"
 
 [build-options]
 observabilityIncluded=true
