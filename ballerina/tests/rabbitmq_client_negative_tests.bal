@@ -25,6 +25,7 @@ public isolated function testConnectionNegative() returns error? {
     if !(newClient is error) {
         test:assertFail("Error expected for connection with incorrect port.");
     }
+    return;
 }
 
 @test:Config {
@@ -35,6 +36,7 @@ public isolated function testConnectionNegative2() returns error? {
     if !(newLis is error) {
         test:assertFail("Error expected for connection with incorrect port.");
     }
+    return;
 }
 
 @test:Config {
@@ -49,6 +51,7 @@ public isolated function testQueueDeleteNegative() returns error? {
     if !(deleteResult is error) {
         test:assertFail("Error expected when trying to delete a non existent queue.");
     }
+    return;
 }
 
 @test:Config {
@@ -64,6 +67,7 @@ public isolated function testQueueConfigNegative() returns error? {
     if !(result is error) {
        test:assertFail("Error expected when when trying to create a queue.");
     }
+    return;
 }
 
 @test:Config {
@@ -78,6 +82,7 @@ public isolated function testExchangeDeclareNegative() returns error? {
     if !(result is error) {
        test:assertFail("Error expected when trying to create a direct exchange.");
     }
+    return;
 }
 
 @test:Config {
@@ -91,6 +96,7 @@ public isolated function testQueueAutoGenerateNegative() returns error? {
     if !(queueResult is error) {
         test:assertFail("Error expected when  when trying to create an auto generated queue.");
     }
+    return;
 }
 
 @test:Config {
@@ -108,6 +114,7 @@ public isolated function testClientConsumeNegative() returns error? {
     if consumeResult is Message {
         test:assertFail("Error expected when trying to consume messages using client.");
     }
+    return;
 }
 
 @test:Config {
@@ -133,6 +140,7 @@ public isolated function testClientBasicAckNegative() returns error? {
     } else {
         test:assertFail("Error when trying to consume messages using client.");
     }
+    return;
 }
 
 @test:Config {
@@ -158,6 +166,7 @@ public isolated function testClientBasicNackNegative() returns error? {
     } else {
         test:assertFail("Error when trying to consume messages using client.");
     }
+    return;
 }
 
 @test:Config {
@@ -175,6 +184,7 @@ public isolated function testQueueBindNegative() returns error? {
     if !(result is error) {
         test:assertFail("Error expected when trying to bind a queue.");
     }
+    return;
 }
 
 @test:Config {
@@ -191,6 +201,7 @@ public isolated function testPublishNegative() returns error? {
     if !(pubResult is error) {
         test:assertFail("Error expected when trying to publish messages using client.");
     }
+    return;
 }
 
 @test:Config {
@@ -204,6 +215,7 @@ public isolated function testCloseNegative() returns error? {
     if !(closeResult is error) {
        test:assertFail("Error expected when trying to close the client twice.");
     }
+    return;
 }
 
 
