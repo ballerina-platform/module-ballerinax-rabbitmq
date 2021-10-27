@@ -72,6 +72,7 @@ function setup() returns error? {
     }
     Listener lis = check new(DEFAULT_HOST, DEFAULT_PORT);
     rabbitmqListener = lis;
+    return;
 }
 
 @test:Config {
@@ -86,6 +87,7 @@ public function testClient() returns error? {
     Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
     check newClient->close();
     test:assertTrue(flag, msg = "RabbitMQ Connection creation failed.");
+    return;
 }
 
 @test:Config {
@@ -99,6 +101,7 @@ public function testProducer() returns error? {
         check channelObj->publishMessage({ content: message.toBytes(), routingKey: QUEUE });
         check channelObj->queuePurge(QUEUE);
     }
+    return;
 }
 
 @test:Config {
@@ -126,6 +129,7 @@ public isolated function testProducerTransactional() returns error? {
         test:assertFail("Error when trying to consume messages using client.");
     }
     check newClient->close();
+    return;
 }
 
 @test:Config {
@@ -168,6 +172,7 @@ public function testSyncConsumer() returns error? {
         string messageContent = check 'string:fromBytes(getResult.content);
         test:assertEquals(messageContent, message, msg = "Message received does not match.");
     }
+    return;
 }
 
 @test:Config {
@@ -185,6 +190,7 @@ public function testAsyncConsumer() returns error? {
         runtime:sleep(5);
         test:assertEquals(asyncConsumerMessage, message, msg = "Message received does not match.");
     }
+    return;
 }
 
 @test:Config {
@@ -201,6 +207,7 @@ public function testAsyncConsumerWithoutServiceConfig() returns error? {
         runtime:sleep(5);
         test:assertEquals(asyncConsumerMessage2, message, msg = "Message received does not match.");
     }
+    return;
 }
 
 @test:Config {
@@ -220,6 +227,7 @@ public function testAsyncConsumer2() returns error? {
         test:assertEquals(onRequestMessage, message, msg = "Message received does not match.");
         test:assertEquals(reqReplyMessage, replyMsg, msg = "Message received does not match.");
     }
+    return;
 }
 
 @test:Config {
@@ -232,6 +240,7 @@ public isolated function testGracefulStop() returns error? {
     if stopResult is error {
         test:assertFail("Error when trying to close the listener gracefully.");
     }
+    return;
 }
 
 @test:Config {
@@ -244,6 +253,7 @@ public isolated function testImmediateStop() returns error? {
     if stopResult is error {
         test:assertFail("Error when trying to close the listener immediately.");
     }
+    return;
 }
 
 @test:Config {
@@ -259,6 +269,7 @@ public function testListenerDetach() returns error? {
         test:assertFail("Error when trying to detach a service from the listener.");
     }
     check channelListener.immediateStop();
+    return;
 }
 
 @test:Config {
@@ -274,6 +285,7 @@ public isolated function testQueueAutoGenerate() returns error? {
         log:printInfo("Auto generated queue name: " + queueResult);
     }
     check newClient->close();
+    return;
 }
 
 @test:Config {
@@ -287,6 +299,7 @@ public isolated function testDirectExchangeDeclare() returns error? {
        test:assertFail("Error when trying to create a direct exchange.");
     }
     check newClient->close();
+    return;
 }
 
 @test:Config {
@@ -300,6 +313,7 @@ public isolated function testTopicExchangeDeclare() returns error? {
        test:assertFail("Error when trying to create a topic exchange.");
     }
     check newClient->close();
+    return;
 }
 
 @test:Config {
@@ -313,6 +327,7 @@ public isolated function testFanoutExchangeDeclare() returns error? {
        test:assertFail("Error when trying to create a fanout exchange.");
     }
     check newClient->close();
+    return;
 }
 
 @test:Config {
@@ -329,6 +344,7 @@ public isolated function testQueueConfig() returns error? {
     }
     check newClient->queueDelete(queueName);
     check newClient->close();
+    return;
 }
 
 @test:Config {
@@ -345,6 +361,7 @@ public isolated function testExchangeConfig() returns error? {
     }
     check newClient->exchangeDelete(exchangeName);
     check newClient->close();
+    return;
 }
 
 @test:Config {
@@ -362,6 +379,7 @@ public isolated function testQueueBind() returns error? {
         test:assertFail("Error when trying to bind a queue.");
     }
     check newClient->close();
+    return;
 }
 
 @test:Config {
@@ -379,6 +397,7 @@ public isolated function testAuthentication() returns error? {
     } else {
         check newClient->close();
     }
+    return;
 }
 
 @test:Config {
@@ -404,6 +423,7 @@ public isolated function testClientBasicAck() returns error? {
         test:assertFail("Error when trying to consume messages using client.");
     }
     check newClient->close();
+    return;
 }
 
 @test:Config {
@@ -425,6 +445,7 @@ public isolated function testConnectionConfig() returns error? {
     } else {
         check newClient->close();
     }
+    return;
 }
 
 @test:Config {
@@ -450,6 +471,7 @@ public isolated function testClientBasicNack() returns error? {
         test:assertFail("Error when trying to consume messages using client.");
     }
     check newClient->close();
+    return;
 }
 
 @test:Config {
@@ -465,6 +487,7 @@ public isolated function testQueueDelete() returns error? {
         test:assertFail("Error when trying to delete a queue.");
     }
     check newClient->close(200, "Client closed");
+    return;
 }
 
 @test:Config {
@@ -477,6 +500,7 @@ public isolated function testExchangeDelete() returns error? {
     check newClient->exchangeDeclare(exchange, DIRECT_EXCHANGE);
     Error? deleteExchange = newClient->exchangeDelete(exchange);
     check newClient->close(200, "Client closed");
+    return;
 }
 
 @test:Config {
@@ -492,6 +516,7 @@ public isolated function testExchangeDeleteNegative() returns error? {
     if !(deleteExchange is error) {
         test:assertFail("Error expected when deleting with closed channel.");
     }
+    return;
 }
 
 @test:Config {
@@ -504,6 +529,7 @@ public isolated function testClientAbort() returns error? {
     if abortResult is Error {
         test:assertFail("Error when trying to abort a client.");
     }
+    return;
 }
 
 @test:Config {
@@ -520,6 +546,7 @@ public function testQueuePurge() returns error? {
     if deleteResult is Error {
         test:assertFail("Error when trying to purge a queue.");
     }
+    return;
 }
 
 @test:Config {
@@ -534,6 +561,7 @@ public function testAcknowledgements() returns error? {
         check channelListener.attach(ackTestService);
         runtime:sleep(2);
     }
+    return;
 }
 
 @test:Config {
@@ -549,6 +577,7 @@ public function testAcknowledgements2() returns error? {
         runtime:sleep(3);
     }
     test:assertTrue(negativeAck, msg = "Negative acknoeledgement failed.");
+    return;
 }
 
 @test:Config {
@@ -564,6 +593,7 @@ public function testAcknowledgements3() returns error? {
         runtime:sleep(3);
     }
     test:assertTrue(negativeAck2, msg = "Negative acknoeledgement failed.");
+    return;
 }
 
 @test:Config {
@@ -579,6 +609,7 @@ public function testAcknowledgements4() returns error? {
         runtime:sleep(3);
     }
     test:assertTrue(negativeNack, msg = "Negative acknoeledgement failed.");
+    return;
 }
 
 @test:Config {
@@ -594,6 +625,7 @@ public function testAcknowledgements5() returns error? {
         runtime:sleep(3);
     }
     test:assertTrue(negativeNack2, msg = "Negative acknoeledgement failed.");
+    return;
 }
 
 @test:Config {
@@ -608,6 +640,7 @@ public function testNegativeAcknowledgements() returns error? {
         check channelListener.attach(nackTestService);
         runtime:sleep(2);
     }
+    return;
 }
 
 @test:Config {
@@ -624,6 +657,7 @@ public function testOnRequest() returns error? {
         test:assertEquals(replyMessage, "Hello Back!!", msg = "Reply message received does not match.");
 
     }
+    return;
 }
 
 Service asyncTestService =
@@ -814,4 +848,5 @@ function produceMessage(string message, string queueName, string? replyToQueue =
             check clientObj->publishMessage({ content: message.toBytes(), routingKey: queueName });
         }
     }
+    return;
 }

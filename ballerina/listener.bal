@@ -44,6 +44,7 @@ public isolated class Listener {
         } else {
             return initResult;
         }
+        return;
     }
 
     # Attaches the service to the `rabbitmq:Listener` endpoint.
