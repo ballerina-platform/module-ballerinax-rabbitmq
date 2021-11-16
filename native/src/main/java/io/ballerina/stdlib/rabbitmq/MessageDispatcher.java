@@ -103,7 +103,6 @@ public class MessageDispatcher {
      * @param listener Listener object value.
      */
     public void receiveMessages(BObject listener) {
-        console.println("[ballerinax/rabbitmq] Consumer service started for queue " + queueName);
         DefaultConsumer consumer = new DefaultConsumer(channel) {
             @Override
             public void handleDelivery(String consumerTag,
