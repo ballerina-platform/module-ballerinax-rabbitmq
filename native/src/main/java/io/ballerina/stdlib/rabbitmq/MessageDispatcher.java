@@ -29,6 +29,7 @@ import io.ballerina.runtime.api.async.StrandMetadata;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.AnnotatableType;
 import io.ballerina.runtime.api.types.MethodType;
+import io.ballerina.runtime.api.types.Parameter;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
@@ -129,7 +130,7 @@ public class MessageDispatcher {
     private void handleDispatch(byte[] message, Envelope envelope, AMQP.BasicProperties properties) {
         if (properties.getReplyTo() != null && getAttachedFunctionType(service, FUNC_ON_REQUEST) != null) {
             MethodType onRequestFunction = getAttachedFunctionType(service, FUNC_ON_REQUEST);
-            Type[] paramTypes = onRequestFunction.getParameterTypes();
+            Parameter[] paramTypes = onRequestFunction.getParameters();
             Type returnType = onRequestFunction.getReturnType();
             int paramSize = paramTypes.length;
             if (paramSize == 2) {
@@ -283,11 +284,22 @@ public class MessageDispatcher {
     private void executeResource(String function, Callback callback, StrandMetadata metaData, Type returnType,
                                  Object... args) {
         if (ObserveUtils.isTracingEnabled()) {
-            runtime.invokeMethodAsync(service, function, null, metaData, callback, getNewObserverContextInProperties(),
-                                      returnType, args);
+            if (service.getType().isIsolated() && service.getType().isIsolated(function)) {
+                runtime.invokeMethodAsyncConcurrently(service, function, null, metaData, callback,
+                        getNewObserverContextInProperties(), returnType, args);
+            } else {
+                runtime.invokeMethodAsyncSequentially(service, function, null, metaData, callback,
+                        getNewObserverContextInProperties(), returnType, args);
+            }
             return;
         }
-        runtime.invokeMethodAsync(service, function, null, metaData, callback, args);
+        if (service.getType().isIsolated() && service.getType().isIsolated(function)) {
+            runtime.invokeMethodAsyncConcurrently(service, function, null, metaData, callback, null,
+                    returnType, args);
+        } else {
+            runtime.invokeMethodAsyncSequentially(service, function, null, metaData, callback, null,
+                    returnType, args);
+        }
     }
 
     private Map<String, Object> getNewObserverContextInProperties() {
