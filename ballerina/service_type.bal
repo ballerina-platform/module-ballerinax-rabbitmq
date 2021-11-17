@@ -15,6 +15,6 @@
 // under the License.
 
 # The RabbitMQ service type.
-public type Service service object {
+public type Service distinct service object {
     // TBD when support for optional params in remote functions is available in lang
 };
