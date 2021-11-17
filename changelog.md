@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Changed
+- [Mark RabbitMQ service type as distinct.](https://github.com/ballerina-platform/ballerina-standard-library/issues/2398)
+
 ### Added
 - [Add public cert and private key support for RabbitMQ secure socket.](https://github.com/ballerina-platform/ballerina-standard-library/issues/1470)
 
