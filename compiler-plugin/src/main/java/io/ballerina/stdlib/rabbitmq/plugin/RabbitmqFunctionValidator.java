@@ -21,12 +21,10 @@ package io.ballerina.stdlib.rabbitmq.plugin;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.MethodSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
-import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
-import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
+import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
-import io.ballerina.compiler.api.symbols.SymbolKind;
-import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
+import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
@@ -43,7 +41,6 @@ import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -163,27 +160,15 @@ public class RabbitmqFunctionValidator {
 
     private void validateFirstParam(ParameterNode parameterNode) {
         RequiredParameterNode requiredParameterNode = (RequiredParameterNode) parameterNode;
-        Node parameterTypeNode = requiredParameterNode.typeName();
         SemanticModel semanticModel = context.semanticModel();
-        Optional<Symbol> paramSymbol = semanticModel.symbol(parameterTypeNode);
-        if (paramSymbol.isPresent()) {
-            Optional<ModuleSymbol> moduleSymbol = paramSymbol.get().getModule();
-            if (moduleSymbol.isPresent()) {
-                String paramName = paramSymbol.get().getName().isPresent() ?
-                        paramSymbol.get().getName().get() : "";
-                if (!validateModuleId(moduleSymbol.get())) {
+        Optional<Symbol> symbol = semanticModel.symbol(requiredParameterNode);
+        if (symbol.isPresent()) {
+            ParameterSymbol parameterSymbol = (ParameterSymbol) symbol.get();
+            if (parameterSymbol.typeDescriptor().typeKind() == TypeDescKind.TYPE_REFERENCE) {
+                if (!isValidParamTypeMessage((TypeReferenceTypeSymbol) parameterSymbol.typeDescriptor())) {
                     context.reportDiagnostic(PluginUtils.getDiagnostic(
                             CompilationErrors.INVALID_FUNCTION_PARAM_MESSAGE,
                             DiagnosticSeverity.ERROR, requiredParameterNode.location()));
-                } else {
-                    if (!paramName.equals(PluginConstants.MESSAGE)) {
-                        String typeName = getTypeDefinitionNameForMessage();
-                        if (!paramName.equals(typeName)) {
-                            context.reportDiagnostic(PluginUtils.getDiagnostic(
-                                    CompilationErrors.INVALID_FUNCTION_PARAM_MESSAGE,
-                                    DiagnosticSeverity.ERROR, requiredParameterNode.location()));
-                        }
-                    }
                 }
             } else {
                 context.reportDiagnostic(PluginUtils.getDiagnostic(
@@ -193,27 +178,26 @@ public class RabbitmqFunctionValidator {
         }
     }
 
-    private String getTypeDefinitionNameForMessage() {
-        SemanticModel semanticModel = context.semanticModel();
-        List<Symbol> moduleSymbols = semanticModel.moduleSymbols();
-        for (Symbol symbol: moduleSymbols) {
-            if (symbol.kind() == SymbolKind.TYPE_DEFINITION) {
-                TypeDefinitionSymbol definitionSymbol = (TypeDefinitionSymbol) symbol;
-                if (definitionSymbol.typeDescriptor().typeKind() == TypeDescKind.RECORD) {
-                    Map<String, RecordFieldSymbol> record =
-                            ((RecordTypeSymbol) definitionSymbol.typeDescriptor()).fieldDescriptors();
-                    if (record.size() == 5 &&
-                            record.containsKey(PluginConstants.CONTENT_FIELD) &&
-                            record.containsKey(PluginConstants.ROUTING_KEY_FIELD) &&
-                            record.containsKey(PluginConstants.EXCHANGE_FIELD) &&
-                            record.containsKey(PluginConstants.DELIVERY_TAG_FIELD) &&
-                            record.containsKey(PluginConstants.PROPS_FIELD)) {
-                        return definitionSymbol.getName().get();
+    private boolean isValidParamTypeMessage(TypeReferenceTypeSymbol typeReferenceTypeSymbol) {
+        boolean validFlag = false;
+        Optional<ModuleSymbol> moduleSymbol = typeReferenceTypeSymbol.getModule();
+        if (moduleSymbol.isPresent()) {
+            if (!validateModuleId(moduleSymbol.get())) {
+                if (typeReferenceTypeSymbol.typeDescriptor().typeKind() == TypeDescKind.TYPE_REFERENCE) {
+                    TypeReferenceTypeSymbol typeReferenceTypeSymbolNext =
+                            (TypeReferenceTypeSymbol) typeReferenceTypeSymbol.typeDescriptor();
+                    return isValidParamTypeMessage(typeReferenceTypeSymbolNext);
+                }
+            } else {
+                if (typeReferenceTypeSymbol.getName().isPresent()) {
+                    String paramName = typeReferenceTypeSymbol.getName().get();
+                    if (paramName.equals(PluginConstants.MESSAGE)) {
+                        validFlag = true;
                     }
                 }
             }
         }
-        return null;
+        return validFlag;
     }
 
     private void validateSecondParam(ParameterNode parameterNode) {
