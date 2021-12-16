@@ -63,22 +63,16 @@ public class RabbitMQObservabilityConstants {
     public static final String ERROR_TYPE_EXCHANGE_DECLARE = "exchange_declare";
     public static final String ERROR_TYPE_EXCHANGE_DELETE = "exchange_delete";
     public static final String ERROR_TYPE_ABORT = "abort";
-    public static final String ERROR_TYPE_GET_CONNECTION = "get_connection";
     public static final String ERROR_TYPE_BASIC_GET = "basic_get";
     public static final String ERROR_TYPE_REGISTER = "register";
-    public static final String ERROR_TYPE_START = "start";
     public static final String ERROR_TYPE_STOP = "stop";
     public static final String ERROR_TYPE_DETACH = "detach";
-    public static final String ERROR_TYPE_GET_CHANNEL = "get_channel";
     public static final String ERROR_TYPE_SET_QOS = "set_qos";
     public static final String ERROR_TYPE_ACK = "ack";
     public static final String ERROR_TYPE_NACK = "nack";
-    public static final String ERROR_TYPE_GET_MSG_CONTENT = "get_message_content";
     public static final String ERROR_TYPE_DISPATCH = "dispatch";
-    public static final String ERROR_TYPE_ERROR_DISPATCH = "error_dispatch";
 
     public static final String CONSUME_TYPE_SERVICE = "service";
-    public static final String CONSUME_TYPE_CHANNEL = "channel";
 
     public static final String ACK = "ack";
     public static final String NACK = "nack";
