@@ -149,7 +149,6 @@ public class ListenerUtils {
         String queueName = (String) service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue());
         try {
             channel.basicCancel(serviceName);
-            console.println("[ballerinax/rabbitmq] Consumer service unsubscribed from the queue " + queueName);
         } catch (IOException e) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_DETACH);
             return RabbitMQUtils.returnErrorValue("Error occurred while detaching the service");

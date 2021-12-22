@@ -41,6 +41,7 @@ public isolated function testSslConnection() returns error? {
     } else {
         check newClient->close();
     }
+    return;
 }
 
 @test:Config {
@@ -62,6 +63,7 @@ public isolated function testSslConnection2() returns error? {
     } else {
         check newClient->close();
     }
+    return;
 }
 
 @test:Config {
@@ -80,8 +82,8 @@ public isolated function testSslConnection3() returns error? {
     Client|Error newClient = new(DEFAULT_HOST, 5671, secureSocket = secured);
     if !(newClient is Error) {
         test:assertFail("Error expected when trying to create a client with secure connection.");
-        check newClient->close();
     }
+    return;
 }
 
 @test:Config {
@@ -100,8 +102,8 @@ public isolated function testSslConnection4() returns error? {
     Client|Error newClient = new(DEFAULT_HOST, 5671, secureSocket = secured);
     if !(newClient is Error) {
         test:assertFail("Error expected when trying to create a client with secure connection.");
-        check newClient->close();
     }
+    return;
 }
 
 @test:Config {
@@ -126,4 +128,5 @@ public isolated function testSslConnection5() returns error? {
     } else {
         check newClient->close();
     }
+    return;
 }
