@@ -112,6 +112,14 @@ public class RabbitmqCompilerPluginTest {
     }
 
     @Test
+    public void testValidService6() {
+        Package currentPackage = loadPackage("valid_service_6");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errors().size(), 0);
+    }
+
+    @Test
     public void testInvalidService4() {
         Package currentPackage = loadPackage("invalid_service_4");
         PackageCompilation compilation = currentPackage.getCompilation();
