@@ -72,17 +72,6 @@ service object {
             }
         }
     }
-    
-    # Subscribes a `subscriber` to the hub.
-    # 
-    # + message - Details of the subscription
-    # + headers - `http:Headers` of the original `http:Request`
-    # + return - `websubhub:SubscriptionAccepted` if subscription is accepted from the hub, `websubhub:BadSubscriptionError`
-    #            if subscription is denied from the hub or `error` if there is any unexpected error
-    isolated remote function onSubscription(websubhub:Subscription message, http:Headers headers)
-                returns websubhub:SubscriptionAccepted|websubhub:BadSubscriptionError|error {
-        return websubhub:SUBSCRIPTION_ACCEPTED;
-    }
 
     # Validates a incomming subscription request.
     # 
@@ -121,17 +110,6 @@ service object {
                 log:printError("Error occurred while persisting the subscription ", err = persistingResult.message());
             }
         }
-    }
-
-    # Unsubscribes a `subscriber` from the hub.
-    # 
-    # + message - Details of the unsubscription
-    # + headers - `http:Headers` of the original `http:Request`
-    # + return - `websubhub:UnsubscriptionAccepted` if unsubscription is accepted from the hub, `websubhub:BadUnsubscriptionError`
-    #            if unsubscription is denied from the hub or `error` if there is any unexpected error
-    isolated remote function onUnsubscription(websubhub:Unsubscription message, http:Headers headers)
-               returns websubhub:UnsubscriptionAccepted|websubhub:BadUnsubscriptionError|error {
-        return websubhub:UNSUBSCRIPTION_ACCEPTED;
     }
 
     # Validates a incomming unsubscription request.

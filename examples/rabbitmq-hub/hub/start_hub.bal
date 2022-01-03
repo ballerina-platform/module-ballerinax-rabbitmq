@@ -28,7 +28,7 @@ isolated map<websubhub:VerifiedSubscription> subscribersCache = {};
 
 public function main() returns error? {
     // Initialize the Hub
-    _ = @strand { thread: "any" } start syncRegsisteredTopicsCache();
+    _ = @strand { thread: "any" } start syncRegisteredTopicsCache();
     _ = @strand { thread: "any" } start syncSubscribersCache();
 
     // Start the Hub
@@ -37,10 +37,10 @@ public function main() returns error? {
     check hubListener.'start();
 }
 
-function syncRegsisteredTopicsCache() returns error? {
+function syncRegisteredTopicsCache() returns error? {
     do {
         while true {
-            websubhub:TopicRegistration[]|error? persistedTopics = getPersistedTopics();
+            websubhub:TopicRegistration[]? persistedTopics = check getPersistedTopics();
             if persistedTopics is websubhub:TopicRegistration[] {
                 refreshTopicCache(persistedTopics);
             }
@@ -51,7 +51,7 @@ function syncRegsisteredTopicsCache() returns error? {
 }
 
 function getPersistedTopics() returns websubhub:TopicRegistration[]|error? {
-    rabbitmq:Message lastRecord = check conn:registeredTopicsConsumer->consumeMessage(config:CONSOLIDATED_WEBSUB_TOPICS_QUEUE);
+    rabbitmq:Message lastRecord = check conn:registeredTopicsConsumer->consumeMessage(config:REGISTERED_WEBSUB_TOPICS_QUEUE);
     string|error lastPersistedData = string:fromBytes(lastRecord.content);
     if lastPersistedData is string {
         return deSerializeTopicsMessage(lastPersistedData);
@@ -86,7 +86,7 @@ function refreshTopicCache(websubhub:TopicRegistration[] persistedTopics) {
 function syncSubscribersCache() returns error? {
     do {
         while true {
-            websubhub:VerifiedSubscription[]|error? persistedSubscribers = getPersistedSubscribers();
+            websubhub:VerifiedSubscription[]? persistedSubscribers = check getPersistedSubscribers();
             if persistedSubscribers is websubhub:VerifiedSubscription[] {
                 refreshSubscribersCache(persistedSubscribers);
                 check startMissingSubscribers(persistedSubscribers);
@@ -98,7 +98,7 @@ function syncSubscribersCache() returns error? {
 }
 
 function getPersistedSubscribers() returns websubhub:VerifiedSubscription[]|error? {
-    rabbitmq:Message lastRecord = check conn:subscribersConsumer->consumeMessage(config:CONSOLIDATED_WEBSUB_SUBSCRIBERS_QUEUE);
+    rabbitmq:Message lastRecord = check conn:subscribersConsumer->consumeMessage(config:WEBSUB_SUBSCRIBERS_QUEUE);
     string|error lastPersistedData = string:fromBytes(lastRecord.content);
     if lastPersistedData is string {
         return deSerializeSubscribersMessage(lastPersistedData);
@@ -119,7 +119,7 @@ function deSerializeSubscribersMessage(string lastPersistedData) returns websubh
 }
 
 function refreshSubscribersCache(websubhub:VerifiedSubscription[] persistedSubscribers) {
-    string[] groupNames = persistedSubscribers.'map(sub => util:generateGroupName(sub.hubTopic, sub.hubCallback));
+    final readonly & string[] groupNames = persistedSubscribers.'map(sub => util:generateGroupName(sub.hubTopic, sub.hubCallback)).cloneReadOnly();
     lock {
         string[] unsubscribedSubscribers = subscribersCache.keys().filter('key => groupNames.indexOf('key) is ());
         foreach var sub in unsubscribedSubscribers {
@@ -156,7 +156,8 @@ function startMissingSubscribers(websubhub:VerifiedSubscription[] persistedSubsc
 isolated function pollForNewUpdates(websubhub:HubClient clientEp, rabbitmq:Client consumerEp, string topicName, string groupName) returns error? {
     do {
         while true {
-            rabbitmq:Message records = check consumerEp->consumeMessage(topicName);
+            // Set autoAck mode to false.
+            rabbitmq:Message records = check consumerEp->consumeMessage(topicName, false);
             if !isValidConsumer(topicName, groupName) {
                 fail error(string `Consumer with group name ${groupName} or topic ${topicName} is invalid`);
             }
@@ -187,10 +188,13 @@ isolated function isValidConsumer(string topicName, string groupName) returns bo
 
 isolated function notifySubscribers(rabbitmq:Message records, websubhub:HubClient clientEp, rabbitmq:Client consumerEp) returns error? {
     var message = deSerializeRecord(records);
-    if (message is websubhub:ContentDistributionMessage) {
+    if message is websubhub:ContentDistributionMessage {
         var response = clientEp->notifyContentDistribution(message);
-        if (response is error) {
+        if response is error {
             return response;
+        } else {
+            // Manually ack the message.
+            check consumerEp->basicAck(records);
         }
     } else {
         log:printError("Error occurred while retrieving message data", err = message.message());

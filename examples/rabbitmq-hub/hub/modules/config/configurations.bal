@@ -24,15 +24,9 @@ public configurable string SERVER_ID = "server-1";
 # All the hubs must be pointed to the same RabbitMQ queue to notify websub topic registration/deregistration
 public configurable string REGISTERED_WEBSUB_TOPICS_QUEUE = "registered-websub-topics";
 
-# RabbitMQ queue which stores consolidated websub topics for the hub
-public configurable string CONSOLIDATED_WEBSUB_TOPICS_QUEUE = "consolidated-websub-topics";
-
 # RabbitMQ queue which will get notified for websub subscription/unsubscription
 # All the hubs must be pointed to the same RabbitMQ queue to notify websub subscription/unsubscription
 public configurable string WEBSUB_SUBSCRIBERS_QUEUE = "registered-websub-subscribers";
-
-# RabbitMQ queue which is stores consolidated websub subscribers for this server
-public configurable string CONSOLIDATED_WEBSUB_SUBSCRIBERS_QUEUE = "consolidated-websub-subscribers";
 
 # The port that is used to start the hub
 public configurable int HUB_PORT = 9000;

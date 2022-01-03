@@ -12,12 +12,6 @@ This is a websub hub implementation is based on message brokers. In this case we
 
 Follow the guide [Downloading and Installing RabbitMQ](https://www.rabbitmq.com/download.html), to install and start the RabbitMQ server.
 
-## Starting the Consolidator Service
-Once the server is up and running the `Event Consolidator Service` could be started. Go into `consolidator` directory and run following command.
-```shell
-bal run
-```
-
 ## Starting the Hub
 Once those servers are up and running the hub can be started using the following commands. Go into `hub` directory and run following command to build the project.
 ```shell
@@ -26,12 +20,12 @@ bal build
 
 Then to run the project execute the below command.
 ```shell
-bal run target/bin/kafka_hub_service.jar
+bal run target/bin/rabbitmqHub.jar
 ```
 
 ### Starting Multiple Hub Instances
 
-* Copy the `kafka_hub_service.jar` to another location.
+* Copy the `rabbitmqHub.jar` to another location.
 
 * Copy the `Config.toml` which you could find in the project root directory.
 
@@ -39,7 +33,7 @@ bal run target/bin/kafka_hub_service.jar
 
 * Go into that location and run the following command.
 ```shell
-bal run kafka_hub_service.jar
+bal run rabbitmqHub.jar
 ```
 
 ## Registering Topics

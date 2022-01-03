@@ -19,19 +19,15 @@ import rabbitmqHub.config;
 import rabbitmqHub.connections as conn;
 
 public isolated function addRegsiteredTopic(websubhub:TopicRegistration message) returns error? {
-    check updateTopicDetails(message, "register");
+    check updateTopicDetails(message);
 }
 
 public isolated function removeRegsiteredTopic(websubhub:TopicDeregistration message) returns error? {
-    check updateTopicDetails(message, "deregister");
+    check updateTopicDetails(message);
 }
 
-isolated function updateTopicDetails(websubhub:TopicRegistration|websubhub:TopicDeregistration message, string hubMode) returns error? {
-    json jsonData = {
-        topic: message.topic,
-        hubMode: hubMode
-    };
-    check produceRabbitmqMessage(config:REGISTERED_WEBSUB_TOPICS_QUEUE, jsonData);
+isolated function updateTopicDetails(websubhub:TopicRegistration|websubhub:TopicDeregistration message) returns error? {
+    check produceRabbitmqMessage(config:REGISTERED_WEBSUB_TOPICS_QUEUE, message.toJson());
 }
 
 public isolated function addSubscription(websubhub:VerifiedSubscription message) returns error? {
@@ -43,8 +39,7 @@ public isolated function removeSubscription(websubhub:VerifiedUnsubscription mes
 }
 
 isolated function updateSubscriptionDetails(websubhub:VerifiedSubscription|websubhub:VerifiedUnsubscription message) returns error? {
-    json jsonData = message.toJson();
-    check produceRabbitmqMessage(config:WEBSUB_SUBSCRIBERS_QUEUE, jsonData);
+    check produceRabbitmqMessage(config:WEBSUB_SUBSCRIBERS_QUEUE, message.toJson());
 }
 
 public isolated function addUpdateMessage(string topicName, websubhub:UpdateMessage message) returns error? {

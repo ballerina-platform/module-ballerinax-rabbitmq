@@ -3,22 +3,13 @@
 # Each server must have a unique ID
 SERVER_ID = "server-1"
 
-# IP and Port of the RabbitMQ node
-RABBIT_NODE = "localhost:9092"
-
 # RabbitMQ queue which will get notified for websub topic registration/deregistration
 # All the hubs must be pointed to the same RabbitMQ queue to notify websub topic registration/deregistration
 REGISTERED_WEBSUB_TOPICS_TOPIC = "registered-websub-topics"
 
-# RabbitMQ queue which stores consolidated websub topics for the hub
-CONSOLIDATED_WEBSUB_TOPICS_TOPIC = "consolidated-websub-topics"
-
 # RabbitMQ queue which will get notified for websub subscription/unsubscription
 # All the hubs must be pointed to the same RabbitMQ queue to notify websub subscription/unsubscription
 WEBSUB_SUBSCRIBERS_TOPIC = "registered-websub-subscribers"
-
-# RabbitMQ queue which is stores consolidated websub subscribers for this server
-CONSOLIDATED_WEBSUB_SUBSCRIBERS_TOPIC = "consolidated-websub-subscribers"
 
 # The interval in which RabbitMQ consumers wait for new messages
 POLLING_INTERVAL = 10.0
