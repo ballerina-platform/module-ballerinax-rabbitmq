@@ -54,8 +54,8 @@ public class RabbitmqServiceValidator {
         FunctionDefinitionNode onError = null;
 
         for (Node node : memberNodes) {
-            FunctionDefinitionNode functionDefinitionNode = (FunctionDefinitionNode) node;
             if (node.kind() == SyntaxKind.OBJECT_METHOD_DEFINITION) {
+                FunctionDefinitionNode functionDefinitionNode = (FunctionDefinitionNode) node;
                 MethodSymbol methodSymbol = PluginUtils.getMethodSymbol(context, functionDefinitionNode);
                 Optional<String> functionName = methodSymbol.getName();
                 if (functionName.isPresent()) {
@@ -65,28 +65,17 @@ public class RabbitmqServiceValidator {
                         onRequest = functionDefinitionNode;
                     } else if (functionName.get().equals(PluginConstants.ON_ERROR_FUNC)) {
                         onError = functionDefinitionNode;
-                    } else {
-                        validateNonRabbitmqFunction(functionDefinitionNode, context);
+                    } else if (PluginUtils.isRemoteFunction(context, functionDefinitionNode)) {
+                        context.reportDiagnostic(PluginUtils.getDiagnostic(CompilationErrors.INVALID_REMOTE_FUNCTION,
+                                DiagnosticSeverity.ERROR, functionDefinitionNode.location()));
                     }
                 }
-            }  else {
-                validateNonRabbitmqFunction(functionDefinitionNode, context);
+            } else if (node.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
+                context.reportDiagnostic(PluginUtils.getDiagnostic(CompilationErrors.INVALID_FUNCTION,
+                        DiagnosticSeverity.ERROR, node.location()));
             }
         }
         new RabbitmqFunctionValidator(context, onMessage, onRequest, onError).validate();
-    }
-
-    public void validateNonRabbitmqFunction(FunctionDefinitionNode functionDefinitionNode,
-                                            SyntaxNodeAnalysisContext context) {
-        if (functionDefinitionNode.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
-            context.reportDiagnostic(PluginUtils.getDiagnostic(CompilationErrors.INVALID_FUNCTION,
-                    DiagnosticSeverity.ERROR, functionDefinitionNode.location()));
-        } else {
-            if (PluginUtils.isRemoteFunction(context, functionDefinitionNode)) {
-                context.reportDiagnostic(PluginUtils.getDiagnostic(CompilationErrors.INVALID_REMOTE_FUNCTION,
-                        DiagnosticSeverity.ERROR, functionDefinitionNode.location()));
-            }
-        }
     }
 
     private void validateAttachPoint(SyntaxNodeAnalysisContext context) {
