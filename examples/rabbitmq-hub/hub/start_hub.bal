@@ -38,15 +38,11 @@ public function main() returns error? {
 }
 
 function syncRegisteredTopicsCache() returns error? {
-    do {
-        while true {
-            websubhub:TopicRegistration[]? persistedTopics = check getPersistedTopics();
-            if persistedTopics is websubhub:TopicRegistration[] {
-                refreshTopicCache(persistedTopics);
-            }
+    while true {
+        websubhub:TopicRegistration[]? persistedTopics = check getPersistedTopics();
+        if persistedTopics is websubhub:TopicRegistration[] {
+            refreshTopicCache(persistedTopics);
         }
-    } on fail var e {
-        return e;
     }
 }
 
@@ -84,16 +80,12 @@ function refreshTopicCache(websubhub:TopicRegistration[] persistedTopics) {
 }
 
 function syncSubscribersCache() returns error? {
-    do {
-        while true {
-            websubhub:VerifiedSubscription[]? persistedSubscribers = check getPersistedSubscribers();
-            if persistedSubscribers is websubhub:VerifiedSubscription[] {
-                refreshSubscribersCache(persistedSubscribers);
-                check startMissingSubscribers(persistedSubscribers);
-            }
+    while true {
+        websubhub:VerifiedSubscription[]? persistedSubscribers = check getPersistedSubscribers();
+        if persistedSubscribers is websubhub:VerifiedSubscription[] {
+            refreshSubscribersCache(persistedSubscribers);
+            check startMissingSubscribers(persistedSubscribers);
         }
-    } on fail var e {
-        return e;
     }
 }
 

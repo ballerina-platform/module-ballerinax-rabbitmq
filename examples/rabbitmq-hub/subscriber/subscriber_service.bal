@@ -17,10 +17,11 @@
 import ballerina/websub;
 import ballerina/log;
 
-listener websub:Listener securedSubscriber = new(9100, host = "localhost");
+listener websub:Listener securedSubscriber = new(9100);
 
 @websub:SubscriberServiceConfig {
-    target: ["http://localhost:9000/hub", "test"], leaseSeconds: 36000
+    target: ["http://localhost:9000/hub", "test"], 
+    leaseSeconds: 36000
 } 
 service on securedSubscriber {
     remote function onSubscriptionValidationDenied(websub:SubscriptionDeniedError msg) returns websub:Acknowledgement? {
