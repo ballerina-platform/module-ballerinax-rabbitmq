@@ -19,6 +19,6 @@ import ballerina/io;
 
 public function main() returns error? {
     websubhub:PublisherClient websubHubClientEP = check new("http://localhost:9000/hub");
-    var registrationResponse = websubHubClientEP->registerTopic("test");
+    websubhub:TopicRegistrationSuccess registrationResponse = check websubHubClientEP->registerTopic("test");
     io:println("Receieved topic registration result : ", registrationResponse);
 }
