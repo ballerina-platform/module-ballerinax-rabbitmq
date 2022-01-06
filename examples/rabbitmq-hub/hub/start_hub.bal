@@ -17,6 +17,7 @@
 import ballerina/log;
 import ballerina/websubhub;
 import ballerinax/rabbitmq;
+import ballerina/lang.runtime;
 import ballerina/lang.value;
 import rabbitmqHub.util;
 import rabbitmqHub.connections as conn;
@@ -28,42 +29,23 @@ isolated map<websubhub:VerifiedSubscription> subscribersCache = {};
 
 public function main() returns error? {
     // Initialize the Hub
-    _ = @strand { thread: "any" } start syncRegisteredTopicsCache();
-    _ = @strand { thread: "any" } start syncSubscribersCache();
+    rabbitmq:Listener newTopicsListener = check new(rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
+    check newTopicsListener.attach(topicService);
+    check newTopicsListener.attach(subscribersService);
+    check newTopicsListener.'start();
 
     // Start the Hub
     websubhub:Listener hubListener = check new (config:HUB_PORT);
     check hubListener.attach(hubService, "hub");
     check hubListener.'start();
-}
-
-function syncRegisteredTopicsCache() returns error? {
-    while true {
-        websubhub:TopicRegistration[]? persistedTopics = check getPersistedTopics();
-        if persistedTopics is websubhub:TopicRegistration[] {
-            refreshTopicCache(persistedTopics);
-        }
-    }
-}
-
-function getPersistedTopics() returns websubhub:TopicRegistration[]|error? {
-    rabbitmq:Message lastRecord = check conn:registeredTopicsConsumer->consumeMessage(config:REGISTERED_WEBSUB_TOPICS_QUEUE);
-    string|error lastPersistedData = string:fromBytes(lastRecord.content);
-    if lastPersistedData is string {
-        return deSerializeTopicsMessage(lastPersistedData);
-    } else {
-        log:printError("Error occurred while retrieving topic-details ", err = lastPersistedData.message());
-        return lastPersistedData;
-    }
+    runtime:registerListener(hubListener);
 }
 
 function deSerializeTopicsMessage(string lastPersistedData) returns websubhub:TopicRegistration[]|error {
     websubhub:TopicRegistration[] currentTopics = [];
-    json[] payload = <json[]> check value:fromJsonString(lastPersistedData);
-    foreach var data in payload {
-        websubhub:TopicRegistration topic = check data.cloneWithType(websubhub:TopicRegistration);
-        currentTopics.push(topic);
-    }
+    map<json> payload = <map<json>> check value:fromJsonString(lastPersistedData);
+    websubhub:TopicRegistration topic = check payload.cloneWithType(websubhub:TopicRegistration);
+    currentTopics.push(topic);
     return currentTopics;
 }
 
@@ -79,34 +61,11 @@ function refreshTopicCache(websubhub:TopicRegistration[] persistedTopics) {
     }
 }
 
-function syncSubscribersCache() returns error? {
-    while true {
-        websubhub:VerifiedSubscription[]? persistedSubscribers = check getPersistedSubscribers();
-        if persistedSubscribers is websubhub:VerifiedSubscription[] {
-            refreshSubscribersCache(persistedSubscribers);
-            check startMissingSubscribers(persistedSubscribers);
-        }
-    }
-}
-
-function getPersistedSubscribers() returns websubhub:VerifiedSubscription[]|error? {
-    rabbitmq:Message lastRecord = check conn:subscribersConsumer->consumeMessage(config:WEBSUB_SUBSCRIBERS_QUEUE);
-    string|error lastPersistedData = string:fromBytes(lastRecord.content);
-    if lastPersistedData is string {
-        return deSerializeSubscribersMessage(lastPersistedData);
-    } else {
-        log:printError("Error occurred while retrieving subscriber-data ", err = lastPersistedData.message());
-        return lastPersistedData;
-    }
-}
-
 function deSerializeSubscribersMessage(string lastPersistedData) returns websubhub:VerifiedSubscription[]|error {
     websubhub:VerifiedSubscription[] currentSubscriptions = [];
-    json[] payload =  <json[]> check value:fromJsonString(lastPersistedData);
-    foreach var data in payload {
-        websubhub:VerifiedSubscription subscription = check data.cloneWithType(websubhub:VerifiedSubscription);
-        currentSubscriptions.push(subscription);
-    }
+    map<json> payload = <map<json>> check value:fromJsonString(lastPersistedData);
+    websubhub:VerifiedSubscription subscription = check payload.cloneWithType(websubhub:VerifiedSubscription);
+    currentSubscriptions.push(subscription);
     return currentSubscriptions;
 }
 
@@ -149,16 +108,18 @@ isolated function pollForNewUpdates(websubhub:HubClient clientEp, rabbitmq:Clien
     do {
         while true {
             // Set autoAck mode to false.
-            rabbitmq:Message records = check consumerEp->consumeMessage(topicName, false);
-            if !isValidConsumer(topicName, groupName) {
-                fail error(string `Consumer with group name ${groupName} or topic ${topicName} is invalid`);
-            }
-            var result = notifySubscribers(records, clientEp, consumerEp);
-            if result is error {
-                lock {
-                    _ = subscribersCache.remove(groupName);
+            rabbitmq:Message|error records = consumerEp->consumeMessage(topicName, false);
+            if (records is rabbitmq:Message) {
+                if !isValidConsumer(topicName, groupName) {
+                    fail error(string `Consumer with group name ${groupName} or topic ${topicName} is invalid`);
                 }
-                log:printError("Error occurred while sending notification to subscriber ", err = result.message());
+                var result = notifySubscribers(records, clientEp, consumerEp);
+                if result is error {
+                    lock {
+                        _ = subscribersCache.remove(groupName);
+                    }
+                    log:printError("Error occurred while sending notification to subscriber ", err = result.message());
+                }
             }
         }
     } on fail var e {
@@ -203,3 +164,40 @@ isolated function deSerializeRecord(rabbitmq:Message records) returns websubhub:
     };
     return distributionMsg;
 }
+
+rabbitmq:Service topicService =
+@rabbitmq:ServiceConfig {
+    queueName: config:REGISTERED_WEBSUB_TOPICS_QUEUE
+}
+service object {
+    remote function onMessage(rabbitmq:Message message) {
+        string|error messageContent = string:fromBytes(message.content);
+        if messageContent is string {
+            websubhub:TopicRegistration[]|error persistedTopics = deSerializeTopicsMessage(messageContent);
+            if (persistedTopics is websubhub:TopicRegistration[]) {
+                refreshTopicCache(persistedTopics);
+            }
+        } else {
+              log:printError("Error occurred while retrieving topic-details ", err = messageContent.message());
+          }
+    }
+};
+
+rabbitmq:Service subscribersService =
+@rabbitmq:ServiceConfig {
+    queueName: config:WEBSUB_SUBSCRIBERS_QUEUE
+}
+service object {
+     remote function onMessage(rabbitmq:Message message) returns error? {
+        string|error messageContent = string:fromBytes(message.content);
+        if messageContent is string {
+            websubhub:VerifiedSubscription[]|error persistedSubscribers = deSerializeSubscribersMessage(messageContent);
+            if (persistedSubscribers is websubhub:VerifiedSubscription[]) {
+                refreshSubscribersCache(persistedSubscribers);
+                check startMissingSubscribers(persistedSubscribers);
+            }
+        } else {
+              log:printError("Error occurred while retrieving topic-details ", err = messageContent.message());
+          }
+    }
+};

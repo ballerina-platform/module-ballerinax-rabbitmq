@@ -5,11 +5,11 @@ SERVER_ID = "server-1"
 
 # RabbitMQ queue which will get notified for websub topic registration/deregistration
 # All the hubs must be pointed to the same RabbitMQ queue to notify websub topic registration/deregistration
-REGISTERED_WEBSUB_TOPICS_TOPIC = "registered-websub-topics"
+REGISTERED_WEBSUB_TOPICS_QUEUE = "registered-websub-topics"
 
 # RabbitMQ queue which will get notified for websub subscription/unsubscription
 # All the hubs must be pointed to the same RabbitMQ queue to notify websub subscription/unsubscription
-WEBSUB_SUBSCRIBERS_TOPIC = "registered-websub-subscribers"
+WEBSUB_SUBSCRIBERS_QUEUE = "registered-websub-subscribers"
 
 # The interval in which RabbitMQ consumers wait for new messages
 POLLING_INTERVAL = 10.0
@@ -29,8 +29,3 @@ MESSAGE_DELIVERY_COUNT = 3
 # The message delivery timeout
 MESSAGE_DELIVERY_TIMEOUT = 10.0
 
-# The base URL of IDP
-MOSIP_AUTH_BASE_URL = "https://host/"
-
-# The token validation URL of IDP
-MOSIP_AUTH_VALIDATE_TOKEN_URL = "https://host/oauth2/token"

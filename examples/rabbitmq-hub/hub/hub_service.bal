@@ -48,7 +48,7 @@ service object {
         }
     }
 
-    # Deregisters a `topic` in the hub.
+    # De-registers a `topic` in the hub.
     # 
     # + message - Details related to the topic-deregistration
     # + headers - `http:Headers` of the original `http:Request`
