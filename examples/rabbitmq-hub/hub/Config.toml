@@ -1,0 +1,25 @@
+[rabbitmqHub.config]
+# Server ID is is used to uniquely identify each server 
+# Each server must have a unique ID
+SERVER_ID = "server-1"
+
+# RabbitMQ queue which will get notified for websub topic registration/deregistration
+# All the hubs must be pointed to the same RabbitMQ queue to notify websub topic registration/deregistration
+REGISTERED_WEBSUB_TOPICS_QUEUE = "registered-websub-topics"
+
+# RabbitMQ queue which will get notified for websub subscription/unsubscription
+# All the hubs must be pointed to the same RabbitMQ queue to notify websub subscription/unsubscription
+WEBSUB_SUBSCRIBERS_QUEUE = "registered-websub-subscribers"
+
+# The port that is used to start the hub
+HUB_PORT = 9000
+
+# The period between retry requests
+MESSAGE_DELIVERY_RETRY_INTERVAL = 3.0
+
+# The maximum retry count
+MESSAGE_DELIVERY_COUNT = 3
+
+# The message delivery timeout
+MESSAGE_DELIVERY_TIMEOUT = 10.0
+
