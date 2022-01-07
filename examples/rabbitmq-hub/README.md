@@ -2,7 +2,9 @@
 
 # Overview
 
-This is a websub hub implementation is based on message brokers. In this case we have used RabbitMQ message broker to implement the websubhub APIs. Message brokers are a natural fit for the implementation of websub hubs as they serve a similar purpose. However, regardless of the APIs used to publish messages to the hub, websubhub APIs can be used to implement websub hubs which are fully compliant with the websub specification.
+The purpose of this example is to demonstrate the usage of ballerina RabbbitMQ package in a production ready application. 
+
+This is a websub hub implementation based on message brokers. In this case hub is backed by RabbitMQ message broker. Message brokers are a natural fit for the implementation of websub hubs as they serve a similar purpose.
 
 # Implementation and Usage
 

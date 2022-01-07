@@ -16,7 +16,6 @@
 
 import ballerina/websubhub;
 import ballerina/log;
-import ballerina/http;
 import rabbitmqHub.persistence as persist;
 import rabbitmqHub.util;
 
@@ -26,10 +25,9 @@ service object {
     # Registers a `topic` in the hub.
     # 
     # + message - Details related to the topic-registration
-    # + headers - `http:Headers` of the original `http:Request`
     # + return - `websubhub:TopicRegistrationSuccess` if topic registration is successful, `websubhub:TopicRegistrationError`
     #            if topic registration failed or `error` if there is any unexpected error
-    isolated remote function onRegisterTopic(websubhub:TopicRegistration message, http:Headers headers)
+    isolated remote function onRegisterTopic(websubhub:TopicRegistration message)
                                 returns websubhub:TopicRegistrationSuccess|websubhub:TopicRegistrationError|error {
         check self.registerTopic(message);
         return websubhub:TOPIC_REGISTRATION_SUCCESS;
@@ -51,10 +49,9 @@ service object {
     # De-registers a `topic` in the hub.
     # 
     # + message - Details related to the topic-deregistration
-    # + headers - `http:Headers` of the original `http:Request`
     # + return - `websubhub:TopicDeregistrationSuccess` if topic deregistration is successful, `websubhub:TopicDeregistrationError`
     #            if topic deregistration failed or `error` if there is any unexpected error
-    isolated remote function onDeregisterTopic(websubhub:TopicDeregistration message, http:Headers headers)
+    isolated remote function onDeregisterTopic(websubhub:TopicDeregistration message)
                         returns websubhub:TopicDeregistrationSuccess|websubhub:TopicDeregistrationError|error {
         check self.deregisterTopic(message);
         return websubhub:TOPIC_DEREGISTRATION_SUCCESS;
@@ -152,10 +149,9 @@ service object {
     # Publishes content to the hub.
     # 
     # + message - Details of the published content
-    # + headers - `http:Headers` of the original `http:Request`
     # + return - `websubhub:Acknowledgement` if publish content is successful, `websubhub:UpdateMessageError`
     #            if publish content failed or `error` if there is any unexpected error
-    isolated remote function onUpdateMessage(websubhub:UpdateMessage message, http:Headers headers)
+    isolated remote function onUpdateMessage(websubhub:UpdateMessage message)
                returns websubhub:Acknowledgement|websubhub:UpdateMessageError|error {
         check self.updateMessage(message);
         return websubhub:ACKNOWLEDGEMENT;
