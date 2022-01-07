@@ -11,12 +11,6 @@ REGISTERED_WEBSUB_TOPICS_QUEUE = "registered-websub-topics"
 # All the hubs must be pointed to the same RabbitMQ queue to notify websub subscription/unsubscription
 WEBSUB_SUBSCRIBERS_QUEUE = "registered-websub-subscribers"
 
-# The interval in which RabbitMQ consumers wait for new messages
-POLLING_INTERVAL = 10.0
-
-# The period in which RabbitMQ close method waits to complete
-GRACEFUL_CLOSE_PERIOD = 5.0
-
 # The port that is used to start the hub
 HUB_PORT = 9000
 
