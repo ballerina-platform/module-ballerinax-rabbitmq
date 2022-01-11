@@ -137,8 +137,19 @@ public isolated function testProducerTransactional() returns error? {
     groups: ["rabbitmq"]
 }
 public isolated function testProducerTransactionalRollback() returns error? {
-    string queue = "testProducerTransactional";
-    string message = "Test producing transactionally and rollback";
+    string queue = "testProducerTransactionalRollback";
+    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    error? rollbackError = rabbitMQTransactionFail(queue);
+    Message|Error consumeResult = newClient->consumeMessage(queue, false);
+    if consumeResult is Message {
+        test:assertFail("Rolled back message is in queue.");
+    }
+    check newClient->close();
+    return;
+}
+
+isolated function rabbitMQTransactionFail(string queue) returns error? {
+    string message = "Test producing transactional and rollback";
     Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
     check newClient->queueDeclare(queue);
     do {
@@ -150,13 +161,9 @@ public isolated function testProducerTransactionalRollback() returns error? {
             check commit;
         }
     } on fail var e {
-        log:printInfo("Transaction failed!");
+        check newClient->close();
+        return e;
     }
-    Message|Error consumeResult = newClient->consumeMessage(queue, false);
-    if consumeResult is Message {
-        test:assertFail("Rolled back message is in queue.");
-    }
-    check newClient->close();
     return;
 }
 
