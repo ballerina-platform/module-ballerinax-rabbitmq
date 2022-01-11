@@ -133,6 +133,38 @@ public isolated function testProducerTransactional() returns error? {
 }
 
 @test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
+public isolated function testProducerTransactionalRollback() returns error? {
+    string queue = "testProducerTransactional";
+    string message = "Test producing transactionally and rollback";
+    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    check newClient->queueDeclare(queue);
+    do {
+        transaction {
+            check newClient->publishMessage({ content: message.toBytes(), routingKey: queue });
+            check newClient->publishMessage({ content: message.toBytes(), routingKey: queue });
+            check newClient->publishMessage({ content: message.toBytes(), routingKey: queue });
+            check failTransaction();
+            check commit;
+        }
+    } on fail var e {
+        log:printInfo("Transaction failed!");
+    }
+    Message|Error consumeResult = newClient->consumeMessage(queue, false);
+    if consumeResult is Message {
+        test:assertFail("Rolled back message is in queue.");
+    }
+    check newClient->close();
+    return;
+}
+
+isolated function failTransaction() returns error {
+    return error("Fail!");
+}
+
+@test:Config {
     groups: ["rabbitmq"]
 }
 public function testListener() {
