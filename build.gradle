@@ -116,6 +116,8 @@ subprojects {
         ballerinaStdLibs "io.ballerina.stdlib:url-ballerina:${stdlibUrlVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:cache-ballerina:${stdlibCacheVersion}"
         ballerinaStdLibs "io.ballerina.stdlib:auth-ballerina:${stdlibAuthVersion}"
+        ballerinaStdLibs "io.ballerina.stdlib:observe-ballerina:${observeVersion}"
+        ballerinaStdLibs "io.ballerina:observe-ballerina:${observeInternalVersion}"
     }
 }
 def moduleVersion = project.version
