@@ -29,6 +29,10 @@ const ACK_QUEUE2 = "MyAckQueue2";
 const ACK_QUEUE3 = "MyAckQueue3";
 const NACK_QUEUE2 = "MyNackQueue2";
 const NACK_QUEUE3 = "MyNackQueue3";
+const READONLY_MESSAGE_QUEUE = "ReadOnlyMessage";
+const READONLY_MESSAGE_QUEUE_CALLER = "ReadOnlyMessageCaller";
+const READONLY_REQUEST_QUEUE = "ReadOnlyRequest";
+const READONLY_REQUEST_QUEUE_CALLER = "ReadOnlyRequestCaller";
 boolean negativeAck = false;
 boolean negativeAck2 = false;
 boolean negativeNack = false;
@@ -58,6 +62,10 @@ function setup() returns error? {
     if clientObj is Client {
         check clientObj->queueDeclare(QUEUE);
         check clientObj->queueDeclare(QUEUE2);
+        check clientObj->queueDeclare(READONLY_MESSAGE_QUEUE);
+        check clientObj->queueDeclare(READONLY_MESSAGE_QUEUE_CALLER);
+        check clientObj->queueDeclare(READONLY_REQUEST_QUEUE);
+        check clientObj->queueDeclare(READONLY_REQUEST_QUEUE_CALLER);
         check clientObj->queueDeclare(DATA_BINDING_QUEUE);
         check clientObj->queueDeclare(SYNC_NEGATIVE_QUEUE);
         check clientObj->queueDeclare(ACK_QUEUE);

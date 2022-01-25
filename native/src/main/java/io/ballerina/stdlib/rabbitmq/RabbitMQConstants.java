@@ -105,8 +105,13 @@ public class RabbitMQConstants {
 
     // Message constant fields
     public static final String MESSAGE_RECORD = "Message";
+    public static final String MESSAGE_CONTENT_FIELD = "content";
+    public static final String MESSAGE_ROUTINE_KEY_FIELD = "routingKey";
+    public static final String MESSAGE_EXCHANGE_FIELD = "exchange";
+    public static final String MESSAGE_DELIVERY_TAG_FIELD = "deliveryTag";
+    public static final String MESSAGE_PROPERTIES_FIELD = "properties";
     public static final String CALLER_OBJECT = "Caller";
-    public static final  String ACK_STATUS = "ackStatus";
+    public static final String ACK_STATUS = "ackStatus";
     public static final String ACK_MODE = "ackMode";
     public static final BString MESSAGE_CONTENT = StringUtils.fromString("content");
     public static final BString DELIVERY_TAG = StringUtils.fromString("deliveryTag");
