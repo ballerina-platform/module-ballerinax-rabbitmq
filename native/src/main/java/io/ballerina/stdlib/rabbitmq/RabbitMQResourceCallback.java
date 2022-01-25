@@ -20,6 +20,7 @@ package io.ballerina.stdlib.rabbitmq;
 
 import com.rabbitmq.client.Channel;
 import io.ballerina.runtime.api.async.Callback;
+import io.ballerina.runtime.api.values.BError;
 import io.ballerina.stdlib.rabbitmq.observability.RabbitMQMetricsUtil;
 import io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityConstants;
 import io.ballerina.stdlib.rabbitmq.util.MessageUtils;
@@ -60,7 +61,9 @@ public class RabbitMQResourceCallback implements Callback {
 
     @Override
     public void notifySuccess(Object obj) {
-        if (replyTo != null) {
+        if (obj instanceof BError) {
+            ((BError) obj).printStackTrace();
+        } else if (replyTo != null) {
             try {
                 channel.basicPublish(exchange, replyTo, null, MessageUtils.convertDataIntoByteArray(obj));
             } catch (IOException e) {
