@@ -66,7 +66,7 @@ public type QueueConfig record {|
 # Additional configurations used to declare an exchange.
 #
 # + durable - Set to `true` if a durable exchange is declared
-# + autoDelete - Set to `true` if an autodelete exchange is declared
+# + autoDelete - Set to `true` if an auto-delete exchange is declared
 # + arguments - Other properties (construction arguments) for the queue
 public type ExchangeConfig record {|
     boolean durable = false;
@@ -84,7 +84,7 @@ public type ExchangeConfig record {|
 #                     this timeout, then any remaining queued deliveries (and other Consumer callbacks) will be lost
 # + heartbeat - The initially-requested heartbeat timeout in seconds and zero for none
 # + secureSocket - Configurations for facilitating secure connections
-# + auth - Configurations releated to authentication
+# + auth - Configurations related to authentication
 public type ConnectionConfiguration record {|
     string username?;
     string password?;

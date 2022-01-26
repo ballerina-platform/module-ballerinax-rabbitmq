@@ -34,7 +34,7 @@ public isolated client class Client {
         return createChannel(host, port, self, connectionData);
     }
 
-    # Declares a non-exclusive, auto-delete, or non-durable queue with the given configurations.
+    # Declares a non-exclusive, auto-delete, and non-durable queue with the given configurations.
     # ```ballerina
     # check rabbitmqClient->queueDeclare("MyQueue");
     # ```
