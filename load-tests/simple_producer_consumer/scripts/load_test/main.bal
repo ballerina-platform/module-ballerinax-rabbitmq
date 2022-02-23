@@ -27,7 +27,7 @@ public function main(string label, string output_csv_path) returns error? {
     if response {
         log:printInfo("Started producing messages");
     } else {
-        log:printError("Error occured while producing messages");
+        log:printError("Error occurred while producing messages");
     }
 
     map<string> testResults = {};
@@ -36,7 +36,7 @@ public function main(string label, string output_csv_path) returns error? {
     while !finished {
         boolean|map<string>|error res = loadTestClient->get("/rabbitmq/getResults");
         if res is error {
-            log:printError("Error occured", res);
+            log:printError("Error occurred", res);
         } else if res is boolean {
             log:printInfo(res.toString());
         } else {
