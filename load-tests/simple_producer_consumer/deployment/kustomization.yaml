@@ -1,0 +1,4 @@
+resources:
+  - rabbitmq-broker-deployment.yml
+  - simple_producer_consumer.yaml
+  - ingress.yaml
