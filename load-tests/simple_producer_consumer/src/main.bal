@@ -79,7 +79,7 @@ function publishMessages() returns error? {
     startedTime = time:utcNow();
     // Sending messages for only 2 minutes to test the setup
     int endingTimeInSecs = startedTime[0] + 120;
-    rabbitmq:Client|error rabbitmqClient = new("localhost", 5672);
+    rabbitmq:Client|error rabbitmqClient = new("rabbitmq", 5672);
     if (rabbitmqClient is error) {
         log:printInfo("Error occurred when creating the rabbitmq client connection.");
     } else {
@@ -109,7 +109,7 @@ function publishMessages() returns error? {
 }
 
 function startListener() returns error? {
-    rabbitmq:Listener|error rabbitmqListener = new("localhost", 5672);
+    rabbitmq:Listener|error rabbitmqListener = new("rabbitmq", 5672);
     if (rabbitmqListener is error) {
         log:printInfo("Error occurred when creating the rabbitmq listener connection.");
     } else {
