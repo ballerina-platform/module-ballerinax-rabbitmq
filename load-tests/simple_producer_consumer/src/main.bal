@@ -79,13 +79,14 @@ function publishMessages() returns error? {
     startedTime = time:utcNow();
     // Sending messages for only 2 minutes to test the setup
     int endingTimeInSecs = startedTime[0] + 120;
-    rabbitmq:Client|error rabbitmqClient = new(DEFAULT_HOST, 5672);
+    rabbitmq:Client|error rabbitmqClient = new("rabbitmq", 5672);
     if (rabbitmqClient is error) {
         log:printInfo("Error occurred when creating the rabbitmq client connection.");
     } else {
         check rabbitmqClient->queueDeclare(QUEUE_NAME);
         while time:utcNow()[0] <= endingTimeInSecs {
-            error? result = rabbitmqClient->publishMessage(SENDING_MESSAGE.toString().toBytes(), QUEUE_NAME);
+            error? result = rabbitmqClient->publishMessage({ content:SENDING_MESSAGE.toString().toBytes(),
+                                routingKey:QUEUE_NAME });
             if result is error {
                 lock {
                     errorCount += 1;
@@ -95,7 +96,8 @@ function publishMessages() returns error? {
             }
             runtime:sleep(0.1);
         }
-        error? result = rabbitmqClient->publishMessage(FINAL_MESSAGE.toString().toBytes(), QUEUE_NAME);
+        error? result = rabbitmqClient->publishMessage({ content:FINAL_MESSAGE.toString().toBytes(),
+                                            routingKey:QUEUE_NAME });
         if result is error {
             lock {
                 errorCount += 1;
@@ -107,7 +109,7 @@ function publishMessages() returns error? {
 }
 
 function startListener() returns error? {
-    rabbitmq:Listener|error rabbitmqListener = new(DEFAULT_HOST, 5672);
+    rabbitmq:Listener|error rabbitmqListener = new("rabbitmq", 5672);
     if (rabbitmqListener is error) {
         log:printInfo("Error occurred when creating the rabbitmq listener connection.");
     } else {
