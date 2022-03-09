@@ -77,8 +77,8 @@ service /rabbitmq on new http:Listener(9100) {
 
 function publishMessages() returns error? {
     startedTime = time:utcNow();
-    // Sending messages for only 2 minutes to test the setup
-    int endingTimeInSecs = startedTime[0] + 120;
+    // Publishing messages for 1 hour
+    int endingTimeInSecs = startedTime[0] + 3600;
     rabbitmq:Client|error rabbitmqClient = new("rabbitmq", 5672);
     if (rabbitmqClient is error) {
         log:printInfo("Error occurred when creating the rabbitmq client connection.");
