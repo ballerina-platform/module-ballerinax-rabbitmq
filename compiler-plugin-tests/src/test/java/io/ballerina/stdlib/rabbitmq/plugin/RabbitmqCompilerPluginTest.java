@@ -21,25 +21,21 @@ package io.ballerina.stdlib.rabbitmq.plugin;
 import io.ballerina.projects.DiagnosticResult;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.PackageCompilation;
-import io.ballerina.projects.ProjectEnvironmentBuilder;
 import io.ballerina.projects.directory.BuildProject;
-import io.ballerina.projects.environment.Environment;
-import io.ballerina.projects.environment.EnvironmentBuilder;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
+
+import static io.ballerina.stdlib.rabbitmq.plugin.CompilerPluginTestUtils.BALLERINA_SOURCES;
+import static io.ballerina.stdlib.rabbitmq.plugin.CompilerPluginTestUtils.RESOURCE_DIRECTORY;
+import static io.ballerina.stdlib.rabbitmq.plugin.CompilerPluginTestUtils.getEnvironmentBuilder;
 
 /**
  * Tests for NATS package compiler plugin.
  */
 public class RabbitmqCompilerPluginTest {
-    private static final Path RESOURCE_DIRECTORY = Paths.get("src", "test", "resources", "ballerina_sources")
-            .toAbsolutePath();
-    private static final Path DISTRIBUTION_PATH = Paths.get("../", "target", "ballerina-runtime")
-            .toAbsolutePath();
 
     @Test
     public void testValidService1() {
@@ -285,7 +281,7 @@ public class RabbitmqCompilerPluginTest {
     }
 
     private Package loadPackage(String path) {
-        Path projectDirPath = RESOURCE_DIRECTORY.resolve(path);
+        Path projectDirPath = RESOURCE_DIRECTORY.resolve(BALLERINA_SOURCES).resolve(path);
         BuildProject project = BuildProject.load(getEnvironmentBuilder(), projectDirPath);
         return project.currentPackage();
     }
@@ -294,10 +290,5 @@ public class RabbitmqCompilerPluginTest {
         Assert.assertEquals(diagnostic.diagnosticInfo().code(), error.getErrorCode());
         Assert.assertEquals(diagnostic.diagnosticInfo().messageFormat(),
                 error.getError());
-    }
-
-    private static ProjectEnvironmentBuilder getEnvironmentBuilder() {
-        Environment environment = EnvironmentBuilder.getBuilder().setBallerinaHome(DISTRIBUTION_PATH).build();
-        return ProjectEnvironmentBuilder.getBuilder(environment);
     }
 }
