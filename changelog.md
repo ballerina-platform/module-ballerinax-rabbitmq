@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+- [Add code-actions to generate rabbitmq:Service template.](https://github.com/ballerina-platform/ballerina-standard-library/issues/2770)
+
+## [2.2.1] - 2022-03-01
+
 ### Changed
 - [Mark RabbitMQ service type as distinct.](https://github.com/ballerina-platform/ballerina-standard-library/issues/2398)
 
