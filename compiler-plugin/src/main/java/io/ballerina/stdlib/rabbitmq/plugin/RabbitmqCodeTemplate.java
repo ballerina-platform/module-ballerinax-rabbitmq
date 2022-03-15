@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Code action to add resource code snippet.
+ * Code action to add remote function code snippet.
  */
 public class RabbitmqCodeTemplate implements CodeAction {
 
