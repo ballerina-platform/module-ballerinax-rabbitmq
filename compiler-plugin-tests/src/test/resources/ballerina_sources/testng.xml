@@ -22,6 +22,7 @@
     <test name="UnitTests">
         <classes>
             <class name="io.ballerina.stdlib.rabbitmq.plugin.RabbitmqCompilerPluginTest"/>
+            <class name="io.ballerina.stdlib.rabbitmq.plugin.CodeSnippetGenerationCodeActionTest"/>
         </classes>
     </test>
 </suite>

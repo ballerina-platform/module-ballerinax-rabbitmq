@@ -33,6 +33,8 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.projects.plugins.SyntaxNodeAnalysisContext;
 import io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors;
+import io.ballerina.tools.diagnostics.DiagnosticFactory;
+import io.ballerina.tools.diagnostics.DiagnosticInfo;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import io.ballerina.tools.diagnostics.Location;
 
@@ -47,6 +49,19 @@ public class RabbitmqServiceValidator {
     public void validate(SyntaxNodeAnalysisContext context) {
         ServiceDeclarationNode serviceDeclarationNode = (ServiceDeclarationNode) context.node();
         NodeList<Node> memberNodes = serviceDeclarationNode.members();
+
+        boolean hasRemoteFunction = serviceDeclarationNode.members().stream().anyMatch(child ->
+                child.kind() == SyntaxKind.OBJECT_METHOD_DEFINITION &&
+                        PluginUtils.isRemoteFunction(context, (FunctionDefinitionNode) child));
+
+        if (serviceDeclarationNode.members().isEmpty() || !hasRemoteFunction) {
+            DiagnosticInfo diagnosticInfo = new DiagnosticInfo(
+                    PluginConstants.CompilationErrors.TEMPLATE_CODE_GENERATION_HINT.getErrorCode(),
+                    PluginConstants.CompilationErrors.TEMPLATE_CODE_GENERATION_HINT.getError(),
+                    DiagnosticSeverity.INTERNAL);
+            context.reportDiagnostic(DiagnosticFactory.createDiagnostic(diagnosticInfo,
+                    serviceDeclarationNode.location()));
+        }
 
         validateAttachPoint(context);
         FunctionDefinitionNode onMessage = null;

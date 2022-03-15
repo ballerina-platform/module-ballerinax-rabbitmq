@@ -29,5 +29,6 @@ public class RabbitmqCompilerPlugin extends CompilerPlugin {
     @Override
     public void init(CompilerPluginContext compilerPluginContext) {
         compilerPluginContext.addCodeAnalyzer(new RabbitmqCodeAnalyzer());
+        compilerPluginContext.addCodeAction(new RabbitmqCodeTemplate());
     }
 }

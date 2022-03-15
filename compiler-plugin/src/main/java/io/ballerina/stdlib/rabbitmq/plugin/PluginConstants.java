@@ -91,7 +91,8 @@ public class PluginConstants {
         INVALID_ANNOTATION("Invalid service config annotation. Only @rabbitmq:ServiceConfig{} is allowed.",
                 "RABBITMQ_118"),
         INVALID_SERVICE_ATTACH_POINT("Invalid service attach point. Only string literals are allowed.",
-                "RABBITMQ_119");
+                "RABBITMQ_119"),
+        TEMPLATE_CODE_GENERATION_HINT("Template generation for empty service", "RABBITMQ_120");
 
         private final String error;
         private final String errorCode;
