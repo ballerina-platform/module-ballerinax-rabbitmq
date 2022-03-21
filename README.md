@@ -10,9 +10,9 @@ This library provides the capability to send and receive messages by connecting 
 
 RabbitMQ gives your applications a common platform to send and receive messages and a safe place for your messages to live until received. RabbitMQ is one of the most popular open-source message brokers. It is lightweight and easy to deploy on-premise and in the cloud.
 
-### Basic Usage
+### Basic usage
 
-#### Setting Up the Connection
+#### Set up the connection
 
 First, you need to set up the connection with the RabbitMQ server. The following ways can be used to connect to a
 RabbitMQ server.
@@ -38,7 +38,7 @@ RabbitMQ server.
 
 The `rabbitmq:Client` can now be used to send and receive messages as described in the subsequent sections.
 
-#### Using Exchanges and Queues
+#### Exchanges and queues
 
 Client applications work with exchanges and queues, which are the high-level building blocks of the AMQP protocol. These must be declared before they can be used. The following code declares an exchange and a server-named queue and then binds them together.
 
@@ -66,7 +66,7 @@ This sample code will declare,
 - a durable auto-delete exchange of the type `rabbitmq:DIRECT_EXCHANGE`
 - a durable, non-exclusive, non-auto-delete queue with a well-known name
 
-#### Deleting Entities and Purging Queues
+#### Delete entities and purge queues
 
 - Delete a queue:
 ```ballerina
@@ -89,7 +89,7 @@ This sample code will declare,
     check rabbitmqClient->queuePurge("MyQueue");
 ```
 
-#### Publishing Messages
+#### Publish messages
 
 To publish a message to an exchange, use the `publishMessage()` function as follows:
 
@@ -107,7 +107,7 @@ Setting other properties of the message such as routing headers can be done by u
     check rabbitmqClient->publishMessage({ content: message.toBytes(), routingKey: queueName, properties: props });
 ```
 
-#### Consuming Messages using Consumer Services
+#### Consume messages using consumer services
 
 The most efficient way to receive messages is to set up a subscription using a Ballerina RabbitMQ `rabbitmq:Listener` and any number of consumer services. The messages will then be delivered automatically as they arrive rather than having to be explicitly requested. Multiple consumer services can be bound to one Ballerina RabbitMQ `rabbitmq:Listener`. The queue to which the service is listening is configured in the `rabbitmq:ServiceConfig` annotation of the service or else as the name of the service.
 
@@ -142,9 +142,9 @@ The most efficient way to receive messages is to set up a subscription using a B
 
 The `rabbitmq:Message` record received can be used to retrieve its contents.
 
-### Advanced Usage
+### Advanced usage
 
-#### Client Acknowledgements
+#### Client acknowledgements
 
 The message consuming is supported by mainly two types of acknowledgement modes, which are auto acknowledgements and client acknowledgements.
 Client acknowledgements can further be divided into two different types as positive and negative acknowledgements.
@@ -183,15 +183,15 @@ The default acknowledgement mode is auto-ack (messages are acknowledged immediat
 
 The negatively-acknowledged (rejected) messages can be re-queued by setting the `requeue` to `true`.
 
-## Issues and Projects 
+## Issues and projects 
 
 Issues and Projects tabs are disabled for this repository as this is part of the Ballerina Standard Library. To report bugs, request new features, start new discussions, view project boards, etc. please visit Ballerina Standard Library [parent repository](https://github.com/ballerina-platform/ballerina-standard-library). 
 
 This repository only contains the source code for the library.
 
-## Building from the Source
+## Build from the source
 
-### Setting Up the Prerequisites
+### Set up the prerequisites
 
 * Download and install Java SE Development Kit (JDK) version 11 (from one of the following locations).
 
@@ -214,7 +214,7 @@ This repository only contains the source code for the library.
   
    * For information on installing Docker on Windows, goo to <a target="_blank" href="https://docs.docker.com/docker-for-windows/">Get Started with Docker for Windows</a>.
 
-### Building the Source
+### Build the source
 
 Execute the commands below to build from source.
 
@@ -252,17 +252,17 @@ Execute the commands below to build from source.
    ./gradlew clean build -PpublishToCentral=true
    ```
 
-## Contributing to Ballerina
+## Contribute to Ballerina
 
 As an open source project, Ballerina welcomes contributions from the community. 
 
 For more information, go to the [contribution guidelines](https://github.com/ballerina-platform/ballerina-lang/blob/master/CONTRIBUTING.md).
 
-## Code of Conduct
+## Code of conduct
 
 All contributors are encouraged to read the [Ballerina Code of Conduct](https://ballerina.io/code-of-conduct).
 
-## Useful Links
+## Useful links
 
 * For more information go to the [`rabbitmq` library](https://lib.ballerina.io/ballerinax/rabbitmq/latest).
 * For example demonstrations of the usage, go to [Ballerina By Examples](https://ballerina.io/learn/by-example/).

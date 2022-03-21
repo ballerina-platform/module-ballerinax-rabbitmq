@@ -4,9 +4,9 @@ This module provides the capability to send and receive messages by connecting t
 
 RabbitMQ gives your applications a common platform to send and receive messages and a safe place for your messages to live until received. RabbitMQ is one of the most popular open-source message brokers. It is lightweight and easy to deploy on-premise and in the cloud.
 
-### Basic Usage
+### Basic usage
 
-#### Setting Up the Connection
+#### Set up the connection
 
 First, you need to set up the connection with the RabbitMQ server. The following ways can be used to connect to a
 RabbitMQ server.
@@ -32,7 +32,7 @@ RabbitMQ server.
 
 The `rabbitmq:Client` can now be used to send and receive messages as described in the subsequent sections.
 
-#### Using Exchanges and Queues
+#### Exchanges and queues
 
 Client applications work with exchanges and queues, which are the high-level building blocks of the AMQP protocol. These must be declared before they can be used. The following code declares an exchange and a server-named queue and then binds them together.
 
@@ -60,7 +60,7 @@ This sample code will declare,
 - a durable auto-delete exchange of the type `rabbitmq:DIRECT_EXCHANGE`
 - a durable, non-exclusive, non-auto-delete queue with a well-known name
 
-#### Deleting Entities and Purging Queues
+#### Delete entities and purge queues
 
 - Delete a queue:
 ```ballerina
@@ -83,7 +83,7 @@ This sample code will declare,
     check rabbitmqClient->queuePurge("MyQueue");
 ```
 
-#### Publishing Messages
+#### Publish messages
 
 To publish a message to an exchange, use the `publishMessage()` function as follows:
 
@@ -101,7 +101,7 @@ Setting other properties of the message such as routing headers can be done by u
     check rabbitmqClient->publishMessage({ content: message.toBytes(), routingKey: queueName, properties: props });
 ```
 
-#### Consuming Messages using Consumer Services
+#### Consume messages using consumer services
 
 The most efficient way to receive messages is to set up a subscription using a Ballerina RabbitMQ `rabbitmq:Listener` and any number of consumer services. The messages will then be delivered automatically as they arrive rather than having to be explicitly requested. Multiple consumer services can be bound to one Ballerina RabbitMQ `rabbitmq:Listener`. The queue to which the service is listening is configured in the `rabbitmq:ServiceConfig` annotation of the service or else as the name of the service.
 
@@ -136,9 +136,9 @@ The most efficient way to receive messages is to set up a subscription using a B
 
 The `rabbitmq:Message` record received can be used to retrieve its contents.
 
-### Advanced Usage
+### Advanced usage
 
-#### Client Acknowledgements
+#### Client acknowledgements
 
 The message consuming is supported by mainly two types of acknowledgement modes, which are auto acknowledgements and client acknowledgements.
 Client acknowledgements can further be divided into two different types as positive and negative acknowledgements.
