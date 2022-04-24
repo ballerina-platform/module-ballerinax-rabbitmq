@@ -21,10 +21,34 @@
 # + exchange - The exchange to which the message is sent. The default exchange is a direct exchange with no name (empty string) pre-declared by the broker.
 # + deliveryTag - The delivery tag of the message
 # + properties - Basic properties of the message - routing headers etc.
+@deprecated
 public type Message record {|
    byte[] content;
    string routingKey;
    string exchange = "";
    int deliveryTag?;
    BasicProperties properties?;
+|};
+
+# Represents the anydata message, which a RabbitMQ server sends to its subscribed services.
+#
+# + content - The content of the message
+# + routingKey - The routing key to which the message is sent
+# + exchange - The exchange to which the message is sent. The default exchange is a direct exchange with no name (empty string) pre-declared by the broker.
+# + deliveryTag - The delivery tag of the message
+# + properties - Basic properties of the message - routing headers etc.
+public type AnydataMessage record {|
+    anydata content;
+    string routingKey;
+    string exchange = "";
+    int deliveryTag?;
+    BasicProperties properties?;
+|};
+
+# Represents the subtype of `AnydataMessage` record where the message content is a byte array.
+#
+# + content - Message content in bytes
+public type BytesMessage record {|
+    *AnydataMessage;
+    byte[] content;
 |};

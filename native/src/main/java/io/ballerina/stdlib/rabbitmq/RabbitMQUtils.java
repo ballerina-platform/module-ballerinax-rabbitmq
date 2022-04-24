@@ -20,12 +20,23 @@ package io.ballerina.stdlib.rabbitmq;
 
 import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.ErrorCreator;
+import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.types.ArrayType;
+import io.ballerina.runtime.api.types.IntersectionType;
+import io.ballerina.runtime.api.types.RecordType;
+import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.TypeUtils;
+import io.ballerina.runtime.api.utils.XmlUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BObject;
+import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.stdlib.rabbitmq.util.ModuleUtils;
+import org.ballerinalang.langlib.value.CloneWithType;
+import org.ballerinalang.langlib.value.FromJsonWithType;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 /**
@@ -69,6 +80,50 @@ public class RabbitMQUtils {
         if (transactionContext != null) {
             transactionContext.handleTransactionBlock();
         }
+    }
+
+    public static RecordType getRecordType(BTypedesc bTypedesc) {
+        RecordType recordType;
+        if (bTypedesc.getDescribingType().isReadOnly()) {
+            recordType = (RecordType)
+                    ((IntersectionType) (bTypedesc.getDescribingType())).getConstituentTypes().get(0);
+        } else {
+            recordType = (RecordType) bTypedesc.getDescribingType();
+        }
+        return recordType;
+    }
+
+    public static Object getValueWithIntendedType(Type type, byte[] value) throws BError {
+        String strValue = new String(value, StandardCharsets.UTF_8);
+        try {
+            switch (type.getTag()) {
+                case TypeTags.STRING_TAG:
+                    return StringUtils.fromString(strValue);
+                case TypeTags.XML_TAG:
+                    return XmlUtils.parse(strValue);
+                case TypeTags.ANYDATA_TAG:
+                    return ValueCreator.createArrayValue(value);
+                case TypeTags.RECORD_TYPE_TAG:
+                    return CloneWithType.convert(type, JsonUtils.parse(strValue));
+                case TypeTags.ARRAY_TAG:
+                    if (((ArrayType) type).getElementType().getTag() == TypeTags.BYTE_TAG) {
+                        return ValueCreator.createArrayValue(value);
+                    }
+                    /*-fallthrough*/
+                default:
+                    BTypedesc typeDesc = ValueCreator.createTypedescValue(type);
+                    return FromJsonWithType.fromJsonWithType(JsonUtils.parse(strValue), typeDesc);
+            }
+        } catch (BError bError) {
+            throw returnErrorValue(String.format("Data binding failed: %s", bError.getMessage()));
+        }
+    }
+
+    public static RecordType getRecordType(Type type) {
+        if (type.getTag() == TypeTags.INTERSECTION_TAG) {
+            return (RecordType) ((IntersectionType) (type)).getConstituentTypes().get(0);
+        }
+        return (RecordType) type;
     }
 
     private RabbitMQUtils() {

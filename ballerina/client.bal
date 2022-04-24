@@ -98,22 +98,41 @@ public isolated client class Client {
     #
     # + message - The message to be published
     # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
-    isolated remote function publishMessage(Message message) returns Error? =
-    @java:Method {
-        'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
-    } external;
+    isolated remote function publishMessage(AnydataMessage message) returns Error? {
+        byte[] messageContent;
+        anydata anydataContent = message.content;
+        if anydataContent is byte[] {
+            messageContent = anydataContent;
+        } else if anydataContent is xml {
+            messageContent = anydataContent.toString().toBytes();
+        } else if anydataContent is string {
+            messageContent = anydataContent.toBytes();
+        } else {
+            messageContent = anydataContent.toJsonString().toBytes();
+        }
+        int? tag = message.deliveryTag;
+        BasicProperties? props = message.properties;
+        if tag !is int && props !is BasicProperties {
+            return publishNative(self, { content: messageContent, routingKey: message.routingKey, exchange: message.exchange});
+        } else if tag !is int && props is BasicProperties {
+            return publishNative(self, { content: messageContent, routingKey: message.routingKey, exchange: message.exchange, properties: props});
+        } else if tag is int && props !is BasicProperties {
+            return publishNative(self, { content: messageContent, routingKey: message.routingKey, exchange: message.exchange, deliveryTag: tag});
+        }
+        return;
+    }
 
     # Retrieves a message synchronously from the given queue providing direct access to the messages in the queue.
     # ```ballerina
-    # rabbitmq:Message message = check rabbitmqClient->consumeMessage("MyQueue");
+    # rabbitmq:AnydataMessage message = check rabbitmqClient->consumeMessage("MyQueue");
     # ```
     #
     # + queueName - The name of the queue
     # + autoAck - If false, should manually acknowledge
     # + return - A `rabbitmq:Message` object containing the retrieved message data or else a`rabbitmq:Error` if an
     #            I/O error occurred
-    isolated remote function consumeMessage(string queueName, boolean autoAck = true)
-        returns Message|Error =
+    isolated remote function consumeMessage(string queueName, boolean autoAck = true, typedesc<AnydataMessage> T = <>)
+        returns T|Error =
     @java:Method {
         'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
     } external;
@@ -220,5 +239,10 @@ public isolated client class Client {
 
 isolated function createChannel(string host, int port, Client channelObj, *ConnectionConfiguration config)
 returns Error? = @java:Method {
+    'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
+} external;
+
+isolated function publishNative(Client clientObj, AnydataMessage message) returns Error? =
+@java:Method {
     'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
 } external;
