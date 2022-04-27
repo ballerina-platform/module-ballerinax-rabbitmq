@@ -31,6 +31,7 @@ import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.AnnotatableType;
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.Parameter;
+import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BError;
@@ -45,7 +46,6 @@ import io.ballerina.stdlib.rabbitmq.observability.RabbitMQObserverContext;
 import io.ballerina.stdlib.rabbitmq.util.ModuleUtils;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -55,9 +55,15 @@ import static io.ballerina.runtime.api.constants.RuntimeConstants.ORG_NAME_SEPAR
 import static io.ballerina.runtime.api.constants.RuntimeConstants.VERSION_SEPARATOR;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.FUNC_ON_MESSAGE;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.FUNC_ON_REQUEST;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.MESSAGE_CONTENT_FIELD;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.MESSAGE_DELIVERY_TAG_FIELD;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.MESSAGE_EXCHANGE_FIELD;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.MESSAGE_PROPERTIES_FIELD;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.MESSAGE_ROUTINE_KEY_FIELD;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.ORG_NAME;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.RABBITMQ;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.getRecordType;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.getValueWithIntendedType;
 
 /**
  * Handles and dispatched messages with data binding.
@@ -66,7 +72,6 @@ import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.RABBITMQ;
  */
 public class MessageDispatcher {
     private final String consumerTag;
-    private static final PrintStream console;
     private final Channel channel;
     private final boolean autoAck;
     private final BObject service;
@@ -137,9 +142,9 @@ public class MessageDispatcher {
             int paramSize = paramTypes.length;
             if (paramSize == 2) {
                 dispatchMessageToOnRequest(message, getCallerBObject(envelope.getDeliveryTag()), envelope, properties,
-                        returnType, paramTypes[0].type.getTag());
+                        returnType, paramTypes[0].type);
             } else if (paramSize == 1) {
-                dispatchMessageToOnRequest(message, envelope, properties, returnType, paramTypes[0].type.getTag());
+                dispatchMessageToOnRequest(message, envelope, properties, returnType, paramTypes[0].type);
             } else {
                 throw RabbitMQUtils.returnErrorValue("Invalid remote function signature");
             }
@@ -150,9 +155,9 @@ public class MessageDispatcher {
             int paramSize = paramTypes.length;
             if (paramSize == 2) {
                 dispatchMessage(message, getCallerBObject(envelope.getDeliveryTag()), envelope, properties, returnType,
-                        paramTypes[0].type.getTag());
+                        paramTypes[0].type);
             } else if (paramSize == 1) {
-                dispatchMessage(message, envelope, properties, returnType, paramTypes[0].type.getTag());
+                dispatchMessage(message, envelope, properties, returnType, paramTypes[0].type);
             } else {
                 throw RabbitMQUtils.returnErrorValue("Invalid remote function signature");
             }
@@ -161,14 +166,14 @@ public class MessageDispatcher {
 
     // dispatch only Message
     private void dispatchMessageToOnRequest(byte[] message, Envelope envelope, AMQP.BasicProperties properties,
-                                            Type returnType, int typeTag) {
+                                            Type returnType, Type type) {
         CountDownLatch countDownLatch = new CountDownLatch(1);
         try {
             Callback callback = new RabbitMQResourceCallback(countDownLatch, channel, queueName,
                                                              message.length, properties.getReplyTo(),
                                                              envelope.getExchange());
             Object[] values = new Object[2];
-            values[0] = createAndPopulateMessageRecord(message, envelope, properties, typeTag);
+            values[0] = createAndPopulateMessageRecord(message, envelope, properties, type);
             values[1] = true;
             executeResourceOnRequest(callback, returnType, values);
             countDownLatch.await();
@@ -179,14 +184,14 @@ public class MessageDispatcher {
 
     // dispatch Message and Caller
     private void dispatchMessageToOnRequest(byte[] message, BObject caller, Envelope envelope,
-                                            AMQP.BasicProperties properties, Type returnType, int typeTag) {
+                                            AMQP.BasicProperties properties, Type returnType, Type type) {
         CountDownLatch countDownLatch = new CountDownLatch(1);
         try {
             Callback callback = new RabbitMQResourceCallback(countDownLatch, channel, queueName,
                                                              message.length, properties.getReplyTo(),
                                                              envelope.getExchange());
             Object[] values = new Object[4];
-            values[0] = createAndPopulateMessageRecord(message, envelope, properties, typeTag);
+            values[0] = createAndPopulateMessageRecord(message, envelope, properties, type);
             values[1] = true;
             values[2] = caller;
             values[3] = true;
@@ -199,13 +204,13 @@ public class MessageDispatcher {
 
     // dispatch only Message
     private void dispatchMessage(byte[] message, Envelope envelope, AMQP.BasicProperties properties, Type returnType,
-                                 int typeTag) {
+                                 Type type) {
         CountDownLatch countDownLatch = new CountDownLatch(1);
         try {
             Callback callback = new RabbitMQResourceCallback(countDownLatch, channel, queueName,
                                                              message.length);
             Object[] values = new Object[2];
-            values[0] = createAndPopulateMessageRecord(message, envelope, properties, typeTag);
+            values[0] = createAndPopulateMessageRecord(message, envelope, properties, type);
             values[1] = true;
             executeResourceOnMessage(callback, returnType, values);
             countDownLatch.await();
@@ -216,13 +221,13 @@ public class MessageDispatcher {
 
     // dispatch Message and Caller
     private void dispatchMessage(byte[] message, BObject caller, Envelope envelope, AMQP.BasicProperties properties,
-                                 Type returnType, int typeTag) {
+                                 Type returnType, Type type) {
         CountDownLatch countDownLatch = new CountDownLatch(1);
         try {
             Callback callback = new RabbitMQResourceCallback(countDownLatch, channel, queueName,
                                                              message.length);
             Object[] values = new Object[4];
-            values[0] = createAndPopulateMessageRecord(message, envelope, properties, typeTag);
+            values[0] = createAndPopulateMessageRecord(message, envelope, properties, type);
             values[1] = true;
             values[2] = caller;
             values[3] = true;
@@ -234,12 +239,16 @@ public class MessageDispatcher {
     }
 
     private static BMap<BString, Object> createAndPopulateMessageRecord(byte[] message, Envelope envelope,
-                                                                        AMQP.BasicProperties properties, int tag) {
-        Map<String, Object> valueMap = new HashMap<>();
-        valueMap.put(RabbitMQConstants.MESSAGE_CONTENT_FIELD, ValueCreator.createArrayValue(message));
-        valueMap.put(RabbitMQConstants.MESSAGE_ROUTINE_KEY_FIELD, StringUtils.fromString(envelope.getRoutingKey()));
-        valueMap.put(RabbitMQConstants.MESSAGE_EXCHANGE_FIELD, StringUtils.fromString(envelope.getExchange()));
-        valueMap.put(RabbitMQConstants.MESSAGE_DELIVERY_TAG_FIELD, envelope.getDeliveryTag());
+                                                                        AMQP.BasicProperties properties, Type type) {
+        RecordType recordType = getRecordType(type);
+        Type type1 = recordType.getFields().get(MESSAGE_CONTENT_FIELD).getFieldType();
+        BMap<BString, Object> messageRecord = ValueCreator.createRecordValue(recordType);
+        messageRecord.put(StringUtils.fromString(MESSAGE_CONTENT_FIELD), getValueWithIntendedType(type1, message));
+        messageRecord.put(StringUtils.fromString(MESSAGE_ROUTINE_KEY_FIELD), StringUtils.fromString(
+                envelope.getRoutingKey()));
+        messageRecord.put(StringUtils.fromString(MESSAGE_EXCHANGE_FIELD), StringUtils.fromString(
+                envelope.getExchange()));
+        messageRecord.put(StringUtils.fromString(MESSAGE_DELIVERY_TAG_FIELD), envelope.getDeliveryTag());
 
         if (properties != null) {
             String replyTo = properties.getReplyTo();
@@ -254,15 +263,13 @@ public class MessageDispatcher {
             propValues[1] = contentType;
             propValues[2] = contentEncoding;
             propValues[3] = correlationId;
-            valueMap.put(MESSAGE_PROPERTIES_FIELD, ValueCreator.createRecordValue(basicProperties, propValues));
+            messageRecord.put(StringUtils.fromString(MESSAGE_PROPERTIES_FIELD), ValueCreator
+                    .createRecordValue(basicProperties, propValues));
         }
-        if (tag == TypeTags.INTERSECTION_TAG) {
-            return ValueCreator.createReadonlyRecordValue(ModuleUtils.getModule(), RabbitMQConstants.MESSAGE_RECORD,
-                    valueMap);
-        } else {
-            return ValueCreator.createRecordValue(ModuleUtils.getModule(),
-                    RabbitMQConstants.MESSAGE_RECORD, valueMap);
+        if (type.getTag() == TypeTags.INTERSECTION_TAG) {
+            messageRecord.freezeDirect();
         }
+        return messageRecord;
     }
 
     private BObject getCallerBObject(long deliveryTag) {
@@ -329,9 +336,5 @@ public class MessageDispatcher {
             }
         }
         return function;
-    }
-
-    static {
-        console = System.out;
     }
 }
