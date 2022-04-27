@@ -1,3 +1,19 @@
+// Copyright (c) 2022 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+//
+// WSO2 Inc. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 import ballerina/test;
 
 @test:Config {}
@@ -96,5 +112,19 @@ function jsonConsumeTest() returns error? {
     Client 'client = check new(DEFAULT_HOST, DEFAULT_PORT);
     JsonMessage receivedMessage = check 'client->consumeMessage(DATA_BINDING_JSON_CONSUME_QUEUE);
     test:assertEquals(receivedMessage.content, message);
+    check 'client->close();
+}
+
+@test:Config {}
+function dataBindingErrorConsumeTest() returns error? {
+    json message = personMap.toJson();
+    check produceMessage(message.toString(), DATA_BINDING_JSON_CONSUME_QUEUE);
+    Client 'client = check new(DEFAULT_HOST, DEFAULT_PORT);
+    IntMessage|Error result = 'client->consumeMessage(DATA_BINDING_JSON_CONSUME_QUEUE);
+    if result is Error {
+        test:assertTrue(result.message().startsWith("error occurred while retrieving the message:"));
+    } else {
+        test:assertFail("Expected an error");
+    }
     check 'client->close();
 }
