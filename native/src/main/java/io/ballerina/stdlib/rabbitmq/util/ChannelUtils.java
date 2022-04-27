@@ -133,7 +133,7 @@ public class ChannelUtils {
 
             return createAndPopulateMessageRecord(response.getBody(), response.getEnvelope(),
                                                                     response.getProps(), msgRecord, contentType);
-        } catch (IOException | ShutdownSignalException e) {
+        } catch (IOException | ShutdownSignalException | BError e) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_BASIC_GET);
             return RabbitMQUtils.returnErrorValue("error occurred while retrieving the message: " +
                                                           e.getMessage());
@@ -145,7 +145,11 @@ public class ChannelUtils {
                                                                         BMap<BString, Object> msgRecord,
                                                                         Type content) {
         Object[] values = new Object[5];
-        values[0] = RabbitMQUtils.getValueWithIntendedType(content, message);
+        Object messageContent = RabbitMQUtils.getValueWithIntendedType(content, message);
+        if (messageContent instanceof BError) {
+            throw (BError) messageContent;
+        }
+        values[0] = messageContent;
         values[1] = envelope.getRoutingKey();
         values[2] = envelope.getExchange();
         values[3] = envelope.getDeliveryTag();
