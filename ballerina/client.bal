@@ -129,6 +129,7 @@ public isolated client class Client {
     #
     # + queueName - The name of the queue
     # + autoAck - If false, should manually acknowledge
+    # + T - Optional type description of the required data type
     # + return - A `rabbitmq:Message` object containing the retrieved message data or else a`rabbitmq:Error` if an
     #            I/O error occurred
     isolated remote function consumeMessage(string queueName, boolean autoAck = true, typedesc<AnydataMessage> T = <>)
