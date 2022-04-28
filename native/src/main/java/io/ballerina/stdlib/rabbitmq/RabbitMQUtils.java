@@ -131,6 +131,14 @@ public class RabbitMQUtils {
         return messageRecord;
     }
 
+    public static Object createPayload(byte[] message, Type payloadType) {
+        Object messageContent = getValueWithIntendedType(payloadType, message);
+        if (messageContent instanceof BError) {
+            throw (BError) messageContent;
+        }
+        return messageContent;
+    }
+
     public static Object getValueWithIntendedType(Type type, byte[] value) throws BError {
         String strValue = new String(value, StandardCharsets.UTF_8);
         try {

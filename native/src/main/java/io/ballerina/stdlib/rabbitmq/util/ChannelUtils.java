@@ -46,6 +46,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
 import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.createAndPopulateMessageRecord;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.createPayload;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.getRecordType;
 
 /**
@@ -130,6 +131,21 @@ public class ChannelUtils {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_BASIC_GET);
             return RabbitMQUtils.returnErrorValue("error occurred while retrieving the message: " +
                                                           e.getMessage());
+        }
+    }
+
+    public static Object consumePayload(BObject clientObj, BString queueName, boolean ackMode, BTypedesc bTypedesc) {
+        Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
+        try {
+            GetResponse response = channel.basicGet(queueName.getValue(), ackMode);
+            if (Objects.isNull(response)) {
+                return RabbitMQUtils.returnErrorValue("No messages are found in the queue.");
+            }
+            return createPayload(response.getBody(), bTypedesc.getDescribingType());
+        } catch (IOException | ShutdownSignalException | BError e) {
+            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_BASIC_GET);
+            return RabbitMQUtils.returnErrorValue("error occurred while retrieving the message: " +
+                    e.getMessage());
         }
     }
 
