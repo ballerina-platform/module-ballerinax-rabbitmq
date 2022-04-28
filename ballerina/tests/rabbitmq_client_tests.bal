@@ -53,7 +53,6 @@ const DATA_BINDING_RECORD_LISTENER_QUEUE = "RecordListenerQueue";
 const DATA_BINDING_TABLE_LISTENER_QUEUE = "TableListenerQueue";
 const DATA_BINDING_XML_LISTENER_QUEUE = "XmlListenerQueue";
 const DATA_BINDING_JSON_LISTENER_QUEUE = "JsonListenerQueue";
-const DATA_BINDING_ERROR_QUEUE = "ErrorQueue";
 const DATA_BINDING_STRING_PUBLISH_QUEUE = "StringPublishQueue";
 const DATA_BINDING_INT_PUBLISH_QUEUE = "IntPublishQueue";
 const DATA_BINDING_DECIMAL_PUBLISH_QUEUE = "DecimalPublishQueue";
@@ -77,6 +76,17 @@ const DATA_BINDING_XML_CONSUME_QUEUE = "XmlConsumeQueue";
 const DATA_BINDING_JSON_CONSUME_QUEUE = "JsonConsumeQueue";
 const DATA_BINDING_BYTES_CONSUME_QUEUE = "BytesConsumeQueue";
 const DATA_BINDING_ANYDATA_CONSUME_QUEUE = "AnydataConsumeQueue";
+const DATA_BINDING_STRING_PAYLOAD_QUEUE = "StringPayloadQueue";
+const DATA_BINDING_INT_PAYLOAD_QUEUE = "IntPayloadQueue";
+const DATA_BINDING_DECIMAL_PAYLOAD_QUEUE = "DecimalPayloadQueue";
+const DATA_BINDING_FLOAT_PAYLOAD_QUEUE = "FloatPayloadQueue";
+const DATA_BINDING_BOOLEAN_PAYLOAD_QUEUE = "BooleanPayloadQueue";
+const DATA_BINDING_MAP_PAYLOAD_QUEUE = "MapPayloadQueue";
+const DATA_BINDING_RECORD_PAYLOAD_QUEUE = "RecordPayloadQueue";
+const DATA_BINDING_TABLE_PAYLOAD_QUEUE = "TablePayloadQueue";
+const DATA_BINDING_XML_PAYLOAD_QUEUE = "XmlPayloadQueue";
+const DATA_BINDING_JSON_PAYLOAD_QUEUE = "JsonPayloadQueue";
+const DATA_BINDING_ERROR_QUEUE = "ErrorQueue";
 const DATA_BINDING_REPLY_QUEUE = "DataBindingReplyQueue";
 string asyncConsumerMessage = "";
 string asyncConsumerMessage2 = "";
@@ -89,7 +99,7 @@ string REQ_REPLYTO = "onReqReply";
 @test:BeforeSuite
 function setup() returns error? {
     log:printInfo("Creating a ballerina RabbitMQ channel.");
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     rabbitmqChannel = newClient;
     Client? clientObj = rabbitmqChannel;
     if clientObj is Client {
@@ -126,27 +136,41 @@ function setup() returns error? {
         check clientObj->queueDeclare(DATA_BINDING_FLOAT_CONSUME_QUEUE);
         check clientObj->queueDeclare(DATA_BINDING_BOOLEAN_CONSUME_QUEUE);
         check clientObj->queueDeclare(DATA_BINDING_MAP_CONSUME_QUEUE);
-        check clientObj->queueDeclare(DATA_BINDING_RECORD_CONSUME_QUEUE);
-        check clientObj->queueDeclare(DATA_BINDING_TABLE_CONSUME_QUEUE);
-        check clientObj->queueDeclare(DATA_BINDING_XML_CONSUME_QUEUE);
-        check clientObj->queueDeclare(DATA_BINDING_JSON_CONSUME_QUEUE);
-        check clientObj->queueDeclare(DATA_BINDING_BYTES_CONSUME_QUEUE);
-        check clientObj->queueDeclare(DATA_BINDING_ANYDATA_CONSUME_QUEUE);
-        check clientObj->queueDeclare(DATA_BINDING_ERROR_QUEUE);
-        check clientObj->queueDeclare(SYNC_NEGATIVE_QUEUE);
-        check clientObj->queueDeclare(ACK_QUEUE);
-        check clientObj->queueDeclare(ACK_QUEUE2);
-        check clientObj->queueDeclare(ACK_QUEUE3);
-        check clientObj->queueDeclare(NACK_QUEUE3);
-        check clientObj->queueDeclare(NACK_QUEUE2);
-        check clientObj->queueDeclare(NACK_QUEUE);
-        check clientObj->queueDeclare(REQ_QUEUE);
-        check clientObj->queueDeclare(REQ_REPLYTO);
-        check clientObj->queueDeclare(REPLYTO);
+        check setup2(clientObj);
     }
-    Listener lis = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Listener lis = check new (DEFAULT_HOST, DEFAULT_PORT);
     rabbitmqListener = lis;
     return;
+}
+
+function setup2(Client clientObj) returns error? {
+    check clientObj->queueDeclare(DATA_BINDING_RECORD_CONSUME_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_TABLE_CONSUME_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_XML_CONSUME_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_JSON_CONSUME_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_BYTES_CONSUME_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_ANYDATA_CONSUME_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_STRING_PAYLOAD_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_INT_PAYLOAD_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_DECIMAL_PAYLOAD_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_FLOAT_PAYLOAD_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_BOOLEAN_PAYLOAD_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_MAP_PAYLOAD_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_RECORD_PAYLOAD_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_TABLE_PAYLOAD_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_XML_PAYLOAD_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_JSON_PAYLOAD_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_ERROR_QUEUE);
+    check clientObj->queueDeclare(SYNC_NEGATIVE_QUEUE);
+    check clientObj->queueDeclare(ACK_QUEUE);
+    check clientObj->queueDeclare(ACK_QUEUE2);
+    check clientObj->queueDeclare(ACK_QUEUE3);
+    check clientObj->queueDeclare(NACK_QUEUE3);
+    check clientObj->queueDeclare(NACK_QUEUE2);
+    check clientObj->queueDeclare(NACK_QUEUE);
+    check clientObj->queueDeclare(REQ_QUEUE);
+    check clientObj->queueDeclare(REQ_REPLYTO);
+    check clientObj->queueDeclare(REPLYTO);
 }
 
 @test:Config {
@@ -955,10 +979,13 @@ function produceMessage(string message, string queueName, string? replyToQueue =
     Client? clientObj = rabbitmqChannel;
     if clientObj is Client {
         if replyToQueue is string {
-            check clientObj->publishMessage({ content: message.toBytes(), routingKey: queueName,
-                    properties: { replyTo: replyToQueue }});
+            check clientObj->publishMessage({
+                content: message.toBytes(),
+                routingKey: queueName,
+                properties: {replyTo: replyToQueue}
+            });
         } else {
-            check clientObj->publishMessage({ content: message.toBytes(), routingKey: queueName });
+            check clientObj->publishMessage({content: message.toBytes(), routingKey: queueName});
         }
     }
     return;

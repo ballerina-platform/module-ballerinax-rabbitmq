@@ -17,7 +17,7 @@
 import ballerina/test;
 
 @test:Config {}
-function stringConsumeTest() returns error? {
+function stringConsumeMessageTest() returns error? {
     string message = "This is a data binding related message";
     check produceMessage(message.toString(), DATA_BINDING_STRING_CONSUME_QUEUE);
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
@@ -27,7 +27,7 @@ function stringConsumeTest() returns error? {
 }
 
 @test:Config {}
-function intConsumeTest() returns error? {
+function intConsumeMessageTest() returns error? {
     int message = 445;
     check produceMessage(message.toString(), DATA_BINDING_INT_CONSUME_QUEUE);
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
@@ -37,7 +37,7 @@ function intConsumeTest() returns error? {
 }
 
 @test:Config {}
-function floatConsumeTest() returns error? {
+function floatConsumeMessageTest() returns error? {
     float message = 43.201;
     check produceMessage(message.toString(), DATA_BINDING_FLOAT_CONSUME_QUEUE);
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
@@ -47,7 +47,7 @@ function floatConsumeTest() returns error? {
 }
 
 @test:Config {}
-function decimalConsumeTest() returns error? {
+function decimalConsumeMessageTest() returns error? {
     decimal message = 59.382;
     check produceMessage(message.toString(), DATA_BINDING_DECIMAL_CONSUME_QUEUE);
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
@@ -57,7 +57,7 @@ function decimalConsumeTest() returns error? {
 }
 
 @test:Config {}
-function booleanConsumeTest() returns error? {
+function booleanConsumeMessageTest() returns error? {
     boolean message = true;
     check produceMessage(message.toString(), DATA_BINDING_BOOLEAN_CONSUME_QUEUE);
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
@@ -67,7 +67,7 @@ function booleanConsumeTest() returns error? {
 }
 
 @test:Config {}
-function recordConsumeTest() returns error? {
+function recordConsumeMessageTest() returns error? {
     check produceMessage(personRecord.toString(), DATA_BINDING_RECORD_CONSUME_QUEUE);
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     RecordMessage receivedMessage = check 'client->consumeMessage(DATA_BINDING_RECORD_CONSUME_QUEUE);
@@ -76,7 +76,7 @@ function recordConsumeTest() returns error? {
 }
 
 @test:Config {}
-function mapConsumeTest() returns error? {
+function mapConsumeMessageTest() returns error? {
     check produceMessage(personMap.toString(), DATA_BINDING_MAP_CONSUME_QUEUE);
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     MapMessage receivedMessage = check 'client->consumeMessage(DATA_BINDING_MAP_CONSUME_QUEUE);
@@ -85,7 +85,7 @@ function mapConsumeTest() returns error? {
 }
 
 @test:Config {}
-function tableConsumeTest() returns error? {
+function tableConsumeMessageTest() returns error? {
     table<Person> message = table [];
     message.add(personRecord);
     check produceMessage(message.toString(), DATA_BINDING_TABLE_CONSUME_QUEUE);
@@ -96,7 +96,7 @@ function tableConsumeTest() returns error? {
 }
 
 @test:Config {}
-function xmlConsumeTest() returns error? {
+function xmlConsumeMessageTest() returns error? {
     xml message = xml `<start><Person><name>wso2</name><location>col-03</location></Person><Person><name>wso2</name><location>col-03</location></Person></start>`;
     check produceMessage(message.toString(), DATA_BINDING_XML_CONSUME_QUEUE);
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
@@ -106,7 +106,7 @@ function xmlConsumeTest() returns error? {
 }
 
 @test:Config {}
-function jsonConsumeTest() returns error? {
+function jsonConsumeMessageTest() returns error? {
     json message = personMap.toJson();
     check produceMessage(message.toString(), DATA_BINDING_JSON_CONSUME_QUEUE);
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
@@ -116,7 +116,7 @@ function jsonConsumeTest() returns error? {
 }
 
 @test:Config {}
-function bytesConsumeTest() returns error? {
+function bytesConsumeMessageTest() returns error? {
     string message = "Test message";
     check produceMessage(message.toString(), DATA_BINDING_BYTES_CONSUME_QUEUE);
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
@@ -126,7 +126,7 @@ function bytesConsumeTest() returns error? {
 }
 
 @test:Config {}
-function anydataConsumeTest() returns error? {
+function anydataConsumeMessageTest() returns error? {
     string message = "Test message";
     check produceMessage(message.toString(), DATA_BINDING_ANYDATA_CONSUME_QUEUE);
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
@@ -140,11 +140,124 @@ function anydataConsumeTest() returns error? {
 }
 
 @test:Config {}
-function dataBindingErrorConsumeTest() returns error? {
+function dataBindingConsumeMessageErrorTest() returns error? {
     json message = personMap.toJson();
     check produceMessage(message.toString(), DATA_BINDING_ERROR_QUEUE);
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     IntMessage|Error result = 'client->consumeMessage(DATA_BINDING_ERROR_QUEUE);
+    if result is Error {
+        test:assertTrue(result.message().startsWith("error occurred while retrieving the message:"));
+    } else {
+        test:assertFail("Expected an error");
+    }
+    check 'client->close();
+}
+
+@test:Config {}
+function stringConsumePayloadTest() returns error? {
+    string message = "This is a data binding related message";
+    check produceMessage(message.toString(), DATA_BINDING_STRING_PAYLOAD_QUEUE);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
+    string receivedPayload = check 'client->consumePayload(DATA_BINDING_STRING_PAYLOAD_QUEUE);
+    test:assertEquals(receivedPayload, message);
+    check 'client->close();
+}
+
+@test:Config {}
+function intConsumePayloadTest() returns error? {
+    int message = 451;
+    check produceMessage(message.toString(), DATA_BINDING_INT_PAYLOAD_QUEUE);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
+    int receivedPayload = check 'client->consumePayload(DATA_BINDING_INT_PAYLOAD_QUEUE);
+    test:assertEquals(receivedPayload, message);
+    check 'client->close();
+}
+
+@test:Config {}
+function floatConsumePayloadTest() returns error? {
+    float message = 43.201;
+    check produceMessage(message.toString(), DATA_BINDING_FLOAT_PAYLOAD_QUEUE);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
+    float receivedPayload = check 'client->consumePayload(DATA_BINDING_FLOAT_PAYLOAD_QUEUE);
+    test:assertEquals(receivedPayload, message);
+    check 'client->close();
+}
+
+@test:Config {}
+function decimalConsumePayloadTest() returns error? {
+    decimal message = 59.382;
+    check produceMessage(message.toString(), DATA_BINDING_DECIMAL_PAYLOAD_QUEUE);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
+    decimal receivedPayload = check 'client->consumePayload(DATA_BINDING_DECIMAL_PAYLOAD_QUEUE);
+    test:assertEquals(receivedPayload, message);
+    check 'client->close();
+}
+
+@test:Config {}
+function booleanConsumePayloadTest() returns error? {
+    boolean message = true;
+    check produceMessage(message.toString(), DATA_BINDING_BOOLEAN_PAYLOAD_QUEUE);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
+    boolean receivedPayload = check 'client->consumePayload(DATA_BINDING_BOOLEAN_PAYLOAD_QUEUE);
+    test:assertEquals(receivedPayload, message);
+    check 'client->close();
+}
+
+@test:Config {}
+function recordConsumePayloadTest() returns error? {
+    check produceMessage(personRecord.toString(), DATA_BINDING_RECORD_PAYLOAD_QUEUE);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
+    Person receivedPayload = check 'client->consumePayload(DATA_BINDING_RECORD_PAYLOAD_QUEUE);
+    test:assertEquals(receivedPayload, personRecord);
+    check 'client->close();
+}
+
+@test:Config {}
+function mapConsumePayloadTest() returns error? {
+    check produceMessage(personMap.toString(), DATA_BINDING_MAP_PAYLOAD_QUEUE);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
+    map<Person> receivedPayload = check 'client->consumePayload(DATA_BINDING_MAP_PAYLOAD_QUEUE);
+    test:assertEquals(receivedPayload, personMap);
+    check 'client->close();
+}
+
+@test:Config {}
+function tableConsumePayloadTest() returns error? {
+    table<Person> message = table [];
+    message.add(personRecord);
+    check produceMessage(message.toString(), DATA_BINDING_TABLE_PAYLOAD_QUEUE);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
+    table<Person> receivedPayload = check 'client->consumePayload(DATA_BINDING_TABLE_PAYLOAD_QUEUE);
+    test:assertEquals(receivedPayload, message);
+    check 'client->close();
+}
+
+@test:Config {}
+function xmlConsumePayloadTest() returns error? {
+    xml message = xml `<start><Person><name>wso2</name><location>col-03</location></Person><Person><name>wso2</name><location>col-03</location></Person></start>`;
+    check produceMessage(message.toString(), DATA_BINDING_XML_PAYLOAD_QUEUE);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
+    xml receivedPayload = check 'client->consumePayload(DATA_BINDING_XML_PAYLOAD_QUEUE);
+    test:assertEquals(receivedPayload, message);
+    check 'client->close();
+}
+
+@test:Config {}
+function jsonConsumePayloadTest() returns error? {
+    json message = personMap.toJson();
+    check produceMessage(message.toString(), DATA_BINDING_JSON_PAYLOAD_QUEUE);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
+    json receivedPayload = check 'client->consumePayload(DATA_BINDING_JSON_PAYLOAD_QUEUE);
+    test:assertEquals(receivedPayload, message);
+    check 'client->close();
+}
+
+@test:Config {}
+function consumePayloadErrorTest() returns error? {
+    json message = personMap.toJson();
+    check produceMessage(message.toString(), DATA_BINDING_ERROR_QUEUE);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
+    int|Error result = 'client->consumePayload(DATA_BINDING_ERROR_QUEUE);
     if result is Error {
         test:assertTrue(result.message().startsWith("error occurred while retrieving the message:"));
     } else {
