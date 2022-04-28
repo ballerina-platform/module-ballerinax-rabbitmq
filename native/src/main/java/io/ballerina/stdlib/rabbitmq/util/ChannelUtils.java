@@ -21,14 +21,9 @@ package io.ballerina.stdlib.rabbitmq.util;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.Envelope;
 import com.rabbitmq.client.GetResponse;
 import com.rabbitmq.client.ShutdownSignalException;
 import io.ballerina.runtime.api.Environment;
-import io.ballerina.runtime.api.creators.ValueCreator;
-import io.ballerina.runtime.api.types.Field;
-import io.ballerina.runtime.api.types.RecordType;
-import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
@@ -49,6 +44,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
+
+import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.createAndPopulateMessageRecord;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.getRecordType;
 
 /**
  * Util class for RabbitMQ Channel handling.
@@ -126,49 +124,13 @@ public class ChannelUtils {
             if (Objects.isNull(response)) {
                 return RabbitMQUtils.returnErrorValue("No messages are found in the queue.");
             }
-            RecordType recordType = RabbitMQUtils.getRecordType(bTypedesc);
-            BMap<BString, Object> msgRecord = ValueCreator.createRecordValue(recordType);
-            Map<String, Field> fieldMap = recordType.getFields();
-            Type contentType = fieldMap.get(RabbitMQConstants.MESSAGE_CONTENT_FIELD).getFieldType();
-
             return createAndPopulateMessageRecord(response.getBody(), response.getEnvelope(),
-                                                                    response.getProps(), msgRecord, contentType);
+                                                                    response.getProps(), getRecordType(bTypedesc));
         } catch (IOException | ShutdownSignalException | BError e) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_BASIC_GET);
             return RabbitMQUtils.returnErrorValue("error occurred while retrieving the message: " +
                                                           e.getMessage());
         }
-    }
-
-    private static BMap<BString, Object> createAndPopulateMessageRecord(byte[] message, Envelope envelope,
-                                                                        AMQP.BasicProperties properties,
-                                                                        BMap<BString, Object> msgRecord,
-                                                                        Type content) {
-        Object[] values = new Object[5];
-        Object messageContent = RabbitMQUtils.getValueWithIntendedType(content, message);
-        if (messageContent instanceof BError) {
-            throw (BError) messageContent;
-        }
-        values[0] = messageContent;
-        values[1] = envelope.getRoutingKey();
-        values[2] = envelope.getExchange();
-        values[3] = envelope.getDeliveryTag();
-        if (properties != null) {
-            String replyTo = properties.getReplyTo();
-            String contentType = properties.getContentType();
-            String contentEncoding = properties.getContentEncoding();
-            String correlationId = properties.getCorrelationId();
-            BMap<BString, Object> basicProperties =
-                    ValueCreator.createRecordValue(ModuleUtils.getModule(),
-                            RabbitMQConstants.RECORD_BASIC_PROPERTIES);
-            Object[] propValues = new Object[4];
-            propValues[0] = replyTo;
-            propValues[1] = contentType;
-            propValues[2] = contentEncoding;
-            propValues[3] = correlationId;
-            values[4] = ValueCreator.createRecordValue(basicProperties, propValues);
-        }
-        return ValueCreator.createRecordValue(msgRecord, values);
     }
 
     public static Object basicAck(Environment environment, BObject clientObj, BMap<BString, Object> message,
