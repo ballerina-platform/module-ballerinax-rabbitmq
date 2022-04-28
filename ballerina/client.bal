@@ -138,6 +138,21 @@ public isolated client class Client {
         'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
     } external;
 
+    # Retrieves the payload synchronously from the given queue.
+    # ```ballerina
+    # string message = check rabbitmqClient->consumePayload("MyQueue");
+    # ```
+    #
+    # + queueName - The name of the queue
+    # + autoAck - If false, should manually acknowledge
+    # + T - Optional type description of the required data type
+    # + return - Message payload in the required format if executed successfully or else a `rabbitmq:Error`
+    isolated remote function consumePayload(string queueName, boolean autoAck = true, typedesc<anydata> T = <>)
+        returns T|Error =
+    @java:Method {
+        'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
+    } external;
+
     # Acknowledges one or several received messages.
     # ```ballerina
     # check rabbitmqClient->basicAck(<message>);
