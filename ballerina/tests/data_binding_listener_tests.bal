@@ -422,12 +422,12 @@ public function testListenerJsonBinding() returns error? {
         queueName: DATA_BINDING_JSON_LISTENER_QUEUE
     }
     service object {
-        remote function onMessage(Caller caller, JsonMessage jsonMessage) {
+        remote function onMessage(JsonMessage jsonMessage, Caller caller) {
             receivedJsonValue = jsonMessage.content;
             log:printInfo("The message received: " + jsonMessage.toString());
         }
 
-        remote function onRequest(Caller caller, JsonMessage jsonMessage) returns string {
+        remote function onRequest(JsonMessage jsonMessage, Caller caller) returns string {
             receivedJsonReqValue = jsonMessage.content;
             log:printInfo("The message received in onRequest: " + jsonMessage.toString());
             return "Hello Back!!";
