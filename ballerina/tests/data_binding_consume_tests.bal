@@ -118,9 +118,9 @@ function jsonConsumeTest() returns error? {
 @test:Config {}
 function dataBindingErrorConsumeTest() returns error? {
     json message = personMap.toJson();
-    check produceMessage(message.toString(), DATA_BINDING_JSON_CONSUME_QUEUE);
+    check produceMessage(message.toString(), DATA_BINDING_ERROR_QUEUE);
     Client 'client = check new(DEFAULT_HOST, DEFAULT_PORT);
-    IntMessage|Error result = 'client->consumeMessage(DATA_BINDING_JSON_CONSUME_QUEUE);
+    IntMessage|Error result = 'client->consumeMessage(DATA_BINDING_ERROR_QUEUE);
     if result is Error {
         test:assertTrue(result.message().startsWith("error occurred while retrieving the message:"));
     } else {

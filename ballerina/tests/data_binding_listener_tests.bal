@@ -94,6 +94,7 @@ xml receivedXmlValue = xml ``;
 xml receivedXmlReqValue = xml ``;
 json receivedJsonValue = "";
 json receivedJsonReqValue = "";
+int receivedErrorCount = 0;
 
 Person personRecord = {
     name: "Phil Dunphy",
@@ -421,12 +422,12 @@ public function testListenerJsonBinding() returns error? {
         queueName: DATA_BINDING_JSON_LISTENER_QUEUE
     }
     service object {
-        remote function onMessage(JsonMessage jsonMessage) {
+        remote function onMessage(Caller caller, JsonMessage jsonMessage) {
             receivedJsonValue = jsonMessage.content;
             log:printInfo("The message received: " + jsonMessage.toString());
         }
 
-        remote function onRequest(JsonMessage jsonMessage) returns string {
+        remote function onRequest(Caller caller, JsonMessage jsonMessage) returns string {
             receivedJsonReqValue = jsonMessage.content;
             log:printInfo("The message received in onRequest: " + jsonMessage.toString());
             return "Hello Back!!";
@@ -444,36 +445,42 @@ public function testListenerJsonBinding() returns error? {
     check channelListener.gracefulStop();
 }
 
-// @test:Config {
-//     groups: ["rabbitmq"]
-// }
-// public function testListenerDataBindingError() returns error? {
-//     json message = personMap.toJson();
+@test:Config {
+    groups: ["rabbitmq"]
+}
+public function testListenerDataBindingError() returns error? {
+    json message = personMap.toJson();
 
-//     Service jsonService =
-//     @ServiceConfig {
-//         queueName: DATA_BINDING_ERROR_QUEUE
-//     }
-//     service object {
-//         remote function onMessage(IntMessage intMessage) {
-//             receivedJsonValue = intMessage.content;
-//             log:printInfo("The message received: " + intMessage.toString());
-//         }
+    Service jsonService =
+    @ServiceConfig {
+        queueName: DATA_BINDING_ERROR_QUEUE
+    }
+    service object {
+        remote function onMessage(IntMessage intMessage) {
+            receivedJsonValue = intMessage.content;
+            log:printInfo("The message received: " + intMessage.toString());
+        }
 
-//         remote function onRequest(IntMessage intMessage) returns string {
-//             receivedJsonReqValue = intMessage.content;
-//             log:printInfo("The message received in onRequest: " + intMessage.toString());
-//             return "Hello Back!!";
-//         }
-//     };
+        remote function onRequest(IntMessage intMessage) returns string {
+            receivedJsonReqValue = intMessage.content;
+            log:printInfo("The message received in onRequest: " + intMessage.toString());
+            return "Hello Back!!";
+        }
 
-//     check produceMessage(message.toString(), DATA_BINDING_ERROR_QUEUE);
-//     check produceMessage(message.toString(), DATA_BINDING_ERROR_QUEUE, DATA_BINDING_REPLY_QUEUE);
-//     Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
-//     check channelListener.attach(jsonService);
-//     check channelListener.'start();
-//     runtime:sleep(4);
-//     test:assertEquals(receivedJsonValue, message, msg = "Message received does not match.");
-//     test:assertEquals(receivedJsonReqValue, message, msg = "Message received does not match.");
-//     check channelListener.gracefulStop();
-// }
+        remote function onError(Error e) returns Error? {
+            if e.message().includes("ConversionError", 0) {
+                receivedErrorCount += 1;
+            }
+            log:printInfo("An error received in onError: " + e.message());
+        }
+    };
+
+    check produceMessage(message.toString(), DATA_BINDING_ERROR_QUEUE);
+    check produceMessage(message.toString(), DATA_BINDING_ERROR_QUEUE, DATA_BINDING_REPLY_QUEUE);
+    Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
+    check channelListener.attach(jsonService);
+    check channelListener.'start();
+    runtime:sleep(4);
+    test:assertEquals(receivedErrorCount, 2);
+    check channelListener.gracefulStop();
+}

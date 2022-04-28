@@ -126,6 +126,7 @@ function setup() returns error? {
         check clientObj->queueDeclare(DATA_BINDING_TABLE_CONSUME_QUEUE);
         check clientObj->queueDeclare(DATA_BINDING_XML_CONSUME_QUEUE);
         check clientObj->queueDeclare(DATA_BINDING_JSON_CONSUME_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_ERROR_QUEUE);
         check clientObj->queueDeclare(SYNC_NEGATIVE_QUEUE);
         check clientObj->queueDeclare(ACK_QUEUE);
         check clientObj->queueDeclare(ACK_QUEUE2);
