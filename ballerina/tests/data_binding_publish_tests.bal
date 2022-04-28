@@ -24,7 +24,7 @@ function stringPublishTest() returns error? {
         content,
         routingKey: DATA_BINDING_STRING_PUBLISH_QUEUE
     };
-    Client 'client = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     check 'client->publishMessage(message);
     Message receivedMessage = check 'client->consumeMessage(DATA_BINDING_STRING_PUBLISH_QUEUE);
     string receivedContent = check string:fromBytes(receivedMessage.content);
@@ -39,7 +39,7 @@ function intPublishTest() returns error? {
         content,
         routingKey: DATA_BINDING_INT_PUBLISH_QUEUE
     };
-    Client 'client = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     check 'client->publishMessage(message);
     Message receivedMessage = check 'client->consumeMessage(DATA_BINDING_INT_PUBLISH_QUEUE);
     string receivedString = check string:fromBytes(receivedMessage.content);
@@ -55,7 +55,7 @@ function floatPublishTest() returns error? {
         content,
         routingKey: DATA_BINDING_FLOAT_PUBLISH_QUEUE
     };
-    Client 'client = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     check 'client->publishMessage(message);
     Message receivedMessage = check 'client->consumeMessage(DATA_BINDING_FLOAT_PUBLISH_QUEUE);
     string receivedString = check string:fromBytes(receivedMessage.content);
@@ -71,7 +71,7 @@ function decimalPublishTest() returns error? {
         content,
         routingKey: DATA_BINDING_DECIMAL_PUBLISH_QUEUE
     };
-    Client 'client = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     check 'client->publishMessage(message);
     Message receivedMessage = check 'client->consumeMessage(DATA_BINDING_DECIMAL_PUBLISH_QUEUE);
     string receivedString = check string:fromBytes(receivedMessage.content);
@@ -87,7 +87,7 @@ function booleanPublishTest() returns error? {
         content,
         routingKey: DATA_BINDING_BOOLEAN_PUBLISH_QUEUE
     };
-    Client 'client = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     check 'client->publishMessage(message);
     Message receivedMessage = check 'client->consumeMessage(DATA_BINDING_BOOLEAN_PUBLISH_QUEUE);
     string receivedString = check string:fromBytes(receivedMessage.content);
@@ -102,7 +102,7 @@ function recordPublishTest() returns error? {
         content: personRecord,
         routingKey: DATA_BINDING_RECORD_PUBLISH_QUEUE
     };
-    Client 'client = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     check 'client->publishMessage(message);
     Message receivedMessage = check 'client->consumeMessage(DATA_BINDING_RECORD_PUBLISH_QUEUE);
     string receivedString = check string:fromBytes(receivedMessage.content);
@@ -117,7 +117,7 @@ function mapPublishTest() returns error? {
         content: personMap,
         routingKey: DATA_BINDING_MAP_PUBLISH_QUEUE
     };
-    Client 'client = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     check 'client->publishMessage(message);
     Message receivedMessage = check 'client->consumeMessage(DATA_BINDING_MAP_PUBLISH_QUEUE);
     string receivedString = check string:fromBytes(receivedMessage.content);
@@ -135,7 +135,7 @@ function tablePublishTest() returns error? {
         content,
         routingKey: DATA_BINDING_TABLE_PUBLISH_QUEUE
     };
-    Client 'client = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     check 'client->publishMessage(message);
     Message receivedMessage = check 'client->consumeMessage(DATA_BINDING_TABLE_PUBLISH_QUEUE);
     string receivedString = check string:fromBytes(receivedMessage.content);
@@ -151,7 +151,7 @@ function xmlPublishTest() returns error? {
         content,
         routingKey: DATA_BINDING_XML_PUBLISH_QUEUE
     };
-    Client 'client = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     check 'client->publishMessage(message);
     Message receivedMessage = check 'client->consumeMessage(DATA_BINDING_XML_PUBLISH_QUEUE);
     string receivedString = check string:fromBytes(receivedMessage.content);
@@ -168,11 +168,26 @@ function jsonPublishTest() returns error? {
         content,
         routingKey: DATA_BINDING_JSON_PUBLISH_QUEUE
     };
-    Client 'client = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     check 'client->publishMessage(message);
     Message receivedMessage = check 'client->consumeMessage(DATA_BINDING_JSON_PUBLISH_QUEUE);
     string receivedString = check string:fromBytes(receivedMessage.content);
     json receivedContent = check value:fromJsonString(receivedString);
     test:assertEquals(receivedContent, content);
+    check 'client->close();
+}
+
+@test:Config {}
+function bytesPublishTest() returns error? {
+    byte[] content = "Test message".toBytes();
+
+    BytesMessage message = {
+        content,
+        routingKey: DATA_BINDING_BYTES_PUBLISH_QUEUE
+    };
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
+    check 'client->publishMessage(message);
+    Message receivedMessage = check 'client->consumeMessage(DATA_BINDING_BYTES_PUBLISH_QUEUE);
+    test:assertEquals(receivedMessage.content, content);
     check 'client->close();
 }
