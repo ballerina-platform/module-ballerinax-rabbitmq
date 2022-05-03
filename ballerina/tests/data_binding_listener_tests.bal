@@ -123,7 +123,28 @@ public function testListenerStringBinding() returns error? {
             receivedStringValue = stringMessage.content;
             log:printInfo("The message received: " + stringMessage.toString());
         }
+    };
 
+    check produceMessage(message, DATA_BINDING_STRING_LISTENER_QUEUE);
+    Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
+    check channelListener.attach(stringService);
+    check channelListener.'start();
+    runtime:sleep(2);
+    test:assertEquals(receivedStringValue, message, msg = "Message received does not match.");
+    check channelListener.gracefulStop();
+}
+
+@test:Config {
+    groups: ["rabbitmq"]
+}
+public function testListenerStringRequestBinding() returns error? {
+    string message = "This is a data binding related message";
+
+    Service stringRequestService =
+    @ServiceConfig {
+        queueName: DATA_BINDING_STRING_LISTENER_REQUEST_QUEUE
+    }
+    service object {
         remote function onRequest(StringMessage stringMessage) returns string {
             receivedStringReqValue = stringMessage.content;
             log:printInfo("The message received in onRequest: " + stringMessage.toString());
@@ -131,13 +152,11 @@ public function testListenerStringBinding() returns error? {
         }
     };
 
-    check produceMessage(message, DATA_BINDING_STRING_LISTENER_QUEUE);
-    check produceMessage(message, DATA_BINDING_STRING_LISTENER_QUEUE, DATA_BINDING_REPLY_QUEUE);
+    check produceMessage(message, DATA_BINDING_STRING_LISTENER_REQUEST_QUEUE, DATA_BINDING_REPLY_QUEUE);
     Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
-    check channelListener.attach(stringService);
+    check channelListener.attach(stringRequestService);
     check channelListener.'start();
-    runtime:sleep(4);
-    test:assertEquals(receivedStringValue, message, msg = "Message received does not match.");
+    runtime:sleep(5);
     test:assertEquals(receivedStringReqValue, message, msg = "Message received does not match.");
     check channelListener.gracefulStop();
 }
@@ -157,7 +176,28 @@ public function testListenerIntBinding() returns error? {
             receivedIntValue = intMessage.content;
             log:printInfo("The message received: " + intMessage.toString());
         }
+    };
 
+    check produceMessage(message.toString(), DATA_BINDING_INT_LISTENER_QUEUE);
+    Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
+    check channelListener.attach(intService);
+    check channelListener.'start();
+    runtime:sleep(2);
+    test:assertEquals(receivedIntValue, message, msg = "Message received does not match.");
+    check channelListener.gracefulStop();
+}
+
+@test:Config {
+    groups: ["rabbitmq"]
+}
+public function testListenerIntRequestBinding() returns error? {
+    int message = 510;
+
+    Service intRequestService =
+    @ServiceConfig {
+        queueName: DATA_BINDING_INT_LISTENER_REQUEST_QUEUE
+    }
+    service object {
         remote function onRequest(IntMessage intMessage) returns string {
             receivedIntReqValue = intMessage.content;
             log:printInfo("The message received in onRequest: " + intMessage.toString());
@@ -165,13 +205,11 @@ public function testListenerIntBinding() returns error? {
         }
     };
 
-    check produceMessage(message.toString(), DATA_BINDING_INT_LISTENER_QUEUE);
-    check produceMessage(message.toString(), DATA_BINDING_INT_LISTENER_QUEUE, DATA_BINDING_REPLY_QUEUE);
+    check produceMessage(message.toString(), DATA_BINDING_INT_LISTENER_REQUEST_QUEUE, DATA_BINDING_REPLY_QUEUE);
     Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
-    check channelListener.attach(intService);
+    check channelListener.attach(intRequestService);
     check channelListener.'start();
-    runtime:sleep(4);
-    test:assertEquals(receivedIntValue, message, msg = "Message received does not match.");
+    runtime:sleep(2);
     test:assertEquals(receivedIntReqValue, message, msg = "Message received does not match.");
     check channelListener.gracefulStop();
 }
@@ -191,7 +229,28 @@ public function testListenerDecimalBinding() returns error? {
             receivedDecimalValue = decimalMessage.content;
             log:printInfo("The message received: " + decimalMessage.toString());
         }
+    };
 
+    check produceMessage(message.toString(), DATA_BINDING_DECIMAL_LISTENER_QUEUE);
+    Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
+    check channelListener.attach(decimalService);
+    check channelListener.'start();
+    runtime:sleep(2);
+    test:assertEquals(receivedDecimalValue, message, msg = "Message received does not match.");
+    check channelListener.gracefulStop();
+}
+
+@test:Config {
+    groups: ["rabbitmq"]
+}
+public function testListenerDecimalRequestBinding() returns error? {
+    decimal message = 510;
+
+    Service decimalRequestService =
+    @ServiceConfig {
+        queueName: DATA_BINDING_DECIMAL_LISTENER_REQUEST_QUEUE
+    }
+    service object {
         remote function onRequest(DecimalMessage decimalMessage) returns string {
             receivedDecimalReqValue = decimalMessage.content;
             log:printInfo("The message received in onRequest: " + decimalMessage.toString());
@@ -199,13 +258,11 @@ public function testListenerDecimalBinding() returns error? {
         }
     };
 
-    check produceMessage(message.toString(), DATA_BINDING_DECIMAL_LISTENER_QUEUE);
-    check produceMessage(message.toString(), DATA_BINDING_DECIMAL_LISTENER_QUEUE, DATA_BINDING_REPLY_QUEUE);
+    check produceMessage(message.toString(), DATA_BINDING_DECIMAL_LISTENER_REQUEST_QUEUE, DATA_BINDING_REPLY_QUEUE);
     Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
-    check channelListener.attach(decimalService);
+    check channelListener.attach(decimalRequestService);
     check channelListener.'start();
-    runtime:sleep(4);
-    test:assertEquals(receivedDecimalValue, message, msg = "Message received does not match.");
+    runtime:sleep(2);
     test:assertEquals(receivedDecimalReqValue, message, msg = "Message received does not match.");
     check channelListener.gracefulStop();
 }
@@ -225,7 +282,28 @@ public function testListenerFloatBinding() returns error? {
             receivedFloatValue = floatMessage.content;
             log:printInfo("The message received: " + floatMessage.toString());
         }
+    };
 
+    check produceMessage(message.toString(), DATA_BINDING_FLOAT_LISTENER_QUEUE);
+    Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
+    check channelListener.attach(floatService);
+    check channelListener.'start();
+    runtime:sleep(2);
+    test:assertEquals(receivedFloatValue, message, msg = "Message received does not match.");
+    check channelListener.gracefulStop();
+}
+
+@test:Config {
+    groups: ["rabbitmq"]
+}
+public function testListenerFloatRequestBinding() returns error? {
+    float message = 41.258;
+
+    Service floatRequestService =
+    @ServiceConfig {
+        queueName: DATA_BINDING_FLOAT_LISTENER_REQUEST_QUEUE
+    }
+    service object {
         remote function onRequest(FloatMessage floatMessage) returns string {
             receivedFloatReqValue = floatMessage.content;
             log:printInfo("The message received in onRequest: " + floatMessage.toString());
@@ -233,13 +311,11 @@ public function testListenerFloatBinding() returns error? {
         }
     };
 
-    check produceMessage(message.toString(), DATA_BINDING_FLOAT_LISTENER_QUEUE);
-    check produceMessage(message.toString(), DATA_BINDING_FLOAT_LISTENER_QUEUE, DATA_BINDING_REPLY_QUEUE);
+    check produceMessage(message.toString(), DATA_BINDING_FLOAT_LISTENER_REQUEST_QUEUE, DATA_BINDING_REPLY_QUEUE);
     Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
-    check channelListener.attach(floatService);
+    check channelListener.attach(floatRequestService);
     check channelListener.'start();
-    runtime:sleep(4);
-    test:assertEquals(receivedFloatValue, message, msg = "Message received does not match.");
+    runtime:sleep(2);
     test:assertEquals(receivedFloatReqValue, message, msg = "Message received does not match.");
     check channelListener.gracefulStop();
 }
@@ -259,7 +335,28 @@ public function testListenerBooleanBinding() returns error? {
             receivedBooleanValue = booleanMessage.content;
             log:printInfo("The message received: " + booleanMessage.toString());
         }
+    };
 
+    check produceMessage(message.toString(), DATA_BINDING_BOOLEAN_LISTENER_QUEUE);
+    Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
+    check channelListener.attach(booleanService);
+    check channelListener.'start();
+    runtime:sleep(2);
+    test:assertEquals(receivedBooleanValue, message, msg = "Message received does not match.");
+    check channelListener.gracefulStop();
+}
+
+@test:Config {
+    groups: ["rabbitmq"]
+}
+public function testListenerBooleanRequestBinding() returns error? {
+    boolean message = true;
+
+    Service booleanRequestService =
+    @ServiceConfig {
+        queueName: DATA_BINDING_BOOLEAN_LISTENER_REQUEST_QUEUE
+    }
+    service object {
         remote function onRequest(BooleanMessage booleanMessage) returns string {
             receivedBooleanReqValue = booleanMessage.content;
             log:printInfo("The message received in onRequest: " + booleanMessage.toString());
@@ -267,13 +364,11 @@ public function testListenerBooleanBinding() returns error? {
         }
     };
 
-    check produceMessage(message.toString(), DATA_BINDING_BOOLEAN_LISTENER_QUEUE);
-    check produceMessage(message.toString(), DATA_BINDING_BOOLEAN_LISTENER_QUEUE, DATA_BINDING_REPLY_QUEUE);
+    check produceMessage(message.toString(), DATA_BINDING_BOOLEAN_LISTENER_REQUEST_QUEUE, DATA_BINDING_REPLY_QUEUE);
     Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
-    check channelListener.attach(booleanService);
+    check channelListener.attach(booleanRequestService);
     check channelListener.'start();
-    runtime:sleep(4);
-    test:assertEquals(receivedBooleanValue, message, msg = "Message received does not match.");
+    runtime:sleep(2);
     test:assertEquals(receivedBooleanReqValue, message, msg = "Message received does not match.");
     check channelListener.gracefulStop();
 }
@@ -291,7 +386,26 @@ public function testListenerRecordBinding() returns error? {
             receivedRecordValue = recordMessage.content;
             log:printInfo("The message received: " + recordMessage.toString());
         }
+    };
 
+    check produceMessage(personRecord.toString(), DATA_BINDING_RECORD_LISTENER_QUEUE);
+    Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
+    check channelListener.attach(recordService);
+    check channelListener.'start();
+    runtime:sleep(2);
+    test:assertEquals(receivedRecordValue, personRecord, msg = "Message received does not match.");
+    check channelListener.gracefulStop();
+}
+
+@test:Config {
+    groups: ["rabbitmq"]
+}
+public function testListenerRecordRequestBinding() returns error? {
+    Service recordRequestService =
+    @ServiceConfig {
+        queueName: DATA_BINDING_RECORD_LISTENER_REQUEST_QUEUE
+    }
+    service object {
         remote function onRequest(RecordMessage recordMessage) returns string {
             receivedRecordReqValue = recordMessage.content;
             log:printInfo("The message received in onRequest: " + recordMessage.toString());
@@ -299,12 +413,11 @@ public function testListenerRecordBinding() returns error? {
         }
     };
 
-    check produceMessage(personRecord.toString(), DATA_BINDING_RECORD_LISTENER_QUEUE);
-    check produceMessage(personRecord.toString(), DATA_BINDING_RECORD_LISTENER_QUEUE, DATA_BINDING_REPLY_QUEUE);
+    check produceMessage(personRecord.toString(), DATA_BINDING_RECORD_LISTENER_REQUEST_QUEUE, DATA_BINDING_REPLY_QUEUE);
     Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
-    check channelListener.attach(recordService);
+    check channelListener.attach(recordRequestService);
     check channelListener.'start();
-    runtime:sleep(4);
+    runtime:sleep(2);
     test:assertEquals(receivedRecordValue, personRecord, msg = "Message received does not match.");
     test:assertEquals(receivedRecordReqValue, personRecord, msg = "Message received does not match.");
     check channelListener.gracefulStop();
@@ -323,7 +436,26 @@ public function testListenerMapBinding() returns error? {
             receivedMapValue = mapMessage.content;
             log:printInfo("The message received: " + mapMessage.toString());
         }
+    };
 
+    check produceMessage(personMap.toString(), DATA_BINDING_MAP_LISTENER_QUEUE);
+    Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
+    check channelListener.attach(mapService);
+    check channelListener.'start();
+    runtime:sleep(2);
+    test:assertEquals(receivedMapValue, personMap, msg = "Message received does not match.");
+    check channelListener.gracefulStop();
+}
+
+@test:Config {
+    groups: ["rabbitmq"]
+}
+public function testListenerMapRequestBinding() returns error? {
+    Service mapRequestService =
+    @ServiceConfig {
+        queueName: DATA_BINDING_MAP_LISTENER_REQUEST_QUEUE
+    }
+    service object {
         remote function onRequest(MapMessage mapMessage) returns string {
             receivedMapReqValue = mapMessage.content;
             log:printInfo("The message received in onRequest: " + mapMessage.toString());
@@ -331,13 +463,11 @@ public function testListenerMapBinding() returns error? {
         }
     };
 
-    check produceMessage(personMap.toString(), DATA_BINDING_MAP_LISTENER_QUEUE);
-    check produceMessage(personMap.toString(), DATA_BINDING_MAP_LISTENER_QUEUE, DATA_BINDING_REPLY_QUEUE);
+    check produceMessage(personMap.toString(), DATA_BINDING_MAP_LISTENER_REQUEST_QUEUE, DATA_BINDING_REPLY_QUEUE);
     Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
-    check channelListener.attach(mapService);
+    check channelListener.attach(mapRequestService);
     check channelListener.'start();
-    runtime:sleep(4);
-    test:assertEquals(receivedMapValue, personMap, msg = "Message received does not match.");
+    runtime:sleep(2);
     test:assertEquals(receivedMapReqValue, personMap, msg = "Message received does not match.");
     check channelListener.gracefulStop();
 }
@@ -358,7 +488,29 @@ public function testListenerTableBinding() returns error? {
             receivedTableValue = tableMessage.content;
             log:printInfo("The message received: " + tableMessage.toString());
         }
+    };
 
+    check produceMessage(message.toString(), DATA_BINDING_TABLE_LISTENER_QUEUE);
+    Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
+    check channelListener.attach(tableService);
+    check channelListener.'start();
+    runtime:sleep(2);
+    test:assertEquals(receivedTableValue, message, msg = "Message received does not match.");
+    check channelListener.gracefulStop();
+}
+
+@test:Config {
+    groups: ["rabbitmq"]
+}
+public function testListenerTableRequestBinding() returns error? {
+    table<Person> message = table [];
+    message.add(personRecord);
+
+    Service tableRequestService =
+    @ServiceConfig {
+        queueName: DATA_BINDING_TABLE_LISTENER_REQUEST_QUEUE
+    }
+    service object {
         remote function onRequest(TableMessage tableMessage) returns string {
             receivedTableReqValue = tableMessage.content;
             log:printInfo("The message received in onRequest: " + tableMessage.toString());
@@ -366,13 +518,11 @@ public function testListenerTableBinding() returns error? {
         }
     };
 
-    check produceMessage(message.toString(), DATA_BINDING_TABLE_LISTENER_QUEUE);
-    check produceMessage(message.toString(), DATA_BINDING_TABLE_LISTENER_QUEUE, DATA_BINDING_REPLY_QUEUE);
+    check produceMessage(message.toString(), DATA_BINDING_TABLE_LISTENER_REQUEST_QUEUE, DATA_BINDING_REPLY_QUEUE);
     Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
-    check channelListener.attach(tableService);
+    check channelListener.attach(tableRequestService);
     check channelListener.'start();
-    runtime:sleep(4);
-    test:assertEquals(receivedTableValue, message, msg = "Message received does not match.");
+    runtime:sleep(2);
     test:assertEquals(receivedTableReqValue, message, msg = "Message received does not match.");
     check channelListener.gracefulStop();
 }
@@ -392,7 +542,28 @@ public function testListenerXmlBinding() returns error? {
             receivedXmlValue = xmlMessage.content;
             log:printInfo("The message received: " + xmlMessage.toString());
         }
+    };
 
+    check produceMessage(message.toString(), DATA_BINDING_XML_LISTENER_QUEUE);
+    Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
+    check channelListener.attach(xmlService);
+    check channelListener.'start();
+    runtime:sleep(2);
+    test:assertEquals(receivedXmlValue, message, msg = "Message received does not match.");
+    check channelListener.gracefulStop();
+}
+
+@test:Config {
+    groups: ["rabbitmq"]
+}
+public function testListenerXmlRequestBinding() returns error? {
+    xml message = xml `<start><Person><name>wso2</name><location>col-03</location></Person><Person><name>wso2</name><location>col-03</location></Person></start>`;
+
+    Service xmlRequestService =
+    @ServiceConfig {
+        queueName: DATA_BINDING_XML_LISTENER_REQUEST_QUEUE
+    }
+    service object {
         remote function onRequest(XmlMessage xmlMessage) returns string {
             receivedXmlReqValue = xmlMessage.content;
             log:printInfo("The message received in onRequest: " + xmlMessage.toString());
@@ -400,13 +571,11 @@ public function testListenerXmlBinding() returns error? {
         }
     };
 
-    check produceMessage(message.toString(), DATA_BINDING_XML_LISTENER_QUEUE);
-    check produceMessage(message.toString(), DATA_BINDING_XML_LISTENER_QUEUE, DATA_BINDING_REPLY_QUEUE);
+    check produceMessage(message.toString(), DATA_BINDING_XML_LISTENER_REQUEST_QUEUE, DATA_BINDING_REPLY_QUEUE);
     Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
-    check channelListener.attach(xmlService);
+    check channelListener.attach(xmlRequestService);
     check channelListener.'start();
-    runtime:sleep(4);
-    test:assertEquals(receivedXmlValue, message, msg = "Message received does not match.");
+    runtime:sleep(2);
     test:assertEquals(receivedXmlReqValue, message, msg = "Message received does not match.");
     check channelListener.gracefulStop();
 }
@@ -426,7 +595,28 @@ public function testListenerJsonBinding() returns error? {
             receivedJsonValue = jsonMessage.content;
             log:printInfo("The message received: " + jsonMessage.toString());
         }
+    };
 
+    check produceMessage(message.toString(), DATA_BINDING_JSON_LISTENER_QUEUE);
+    Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
+    check channelListener.attach(jsonService);
+    check channelListener.'start();
+    runtime:sleep(2);
+    test:assertEquals(receivedJsonValue, message, msg = "Message received does not match.");
+    check channelListener.gracefulStop();
+}
+
+@test:Config {
+    groups: ["rabbitmq"]
+}
+public function testListenerJsonRequestBinding() returns error? {
+    json message = personMap.toJson();
+
+    Service jsonRequestService =
+    @ServiceConfig {
+        queueName: DATA_BINDING_JSON_LISTENER_REQUEST_QUEUE
+    }
+    service object {
         remote function onRequest(JsonMessage jsonMessage, Caller caller) returns string {
             receivedJsonReqValue = jsonMessage.content;
             log:printInfo("The message received in onRequest: " + jsonMessage.toString());
@@ -434,13 +624,11 @@ public function testListenerJsonBinding() returns error? {
         }
     };
 
-    check produceMessage(message.toString(), DATA_BINDING_JSON_LISTENER_QUEUE);
-    check produceMessage(message.toString(), DATA_BINDING_JSON_LISTENER_QUEUE, DATA_BINDING_REPLY_QUEUE);
+    check produceMessage(message.toString(), DATA_BINDING_JSON_LISTENER_REQUEST_QUEUE, DATA_BINDING_REPLY_QUEUE);
     Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
-    check channelListener.attach(jsonService);
+    check channelListener.attach(jsonRequestService);
     check channelListener.'start();
-    runtime:sleep(4);
-    test:assertEquals(receivedJsonValue, message, msg = "Message received does not match.");
+    runtime:sleep(2);
     test:assertEquals(receivedJsonReqValue, message, msg = "Message received does not match.");
     check channelListener.gracefulStop();
 }
@@ -461,13 +649,7 @@ public function testListenerDataBindingError() returns error? {
             log:printInfo("The message received: " + intMessage.toString());
         }
 
-        remote function onRequest(IntMessage intMessage) returns string {
-            receivedJsonReqValue = intMessage.content;
-            log:printInfo("The message received in onRequest: " + intMessage.toString());
-            return "Hello Back!!";
-        }
-
-        remote function onError(Error e) returns Error? {
+        remote function onError(Message msg, Error e) returns Error? {
             if e.message().includes("ConversionError", 0) {
                 receivedErrorCount += 1;
             }
@@ -476,11 +658,45 @@ public function testListenerDataBindingError() returns error? {
     };
 
     check produceMessage(message.toString(), DATA_BINDING_ERROR_QUEUE);
-    check produceMessage(message.toString(), DATA_BINDING_ERROR_QUEUE, DATA_BINDING_REPLY_QUEUE);
     Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
     check channelListener.attach(jsonService);
     check channelListener.'start();
-    runtime:sleep(4);
+    runtime:sleep(2);
+    test:assertEquals(receivedErrorCount, 1);
+    check channelListener.gracefulStop();
+}
+
+@test:Config {
+    groups: ["rabbitmq"],
+    dependsOn: [testListenerDataBindingError]
+}
+public function testListenerRequestDataBindingError() returns error? {
+    json message = personMap.toJson();
+
+    Service jsonRequestService =
+    @ServiceConfig {
+        queueName: DATA_BINDING_ERROR_REQUEST_QUEUE
+    }
+    service object {
+        remote function onRequest(IntMessage intMessage) returns string {
+            receivedJsonReqValue = intMessage.content;
+            log:printInfo("The message received in onRequest: " + intMessage.toString());
+            return "Hello Back!!";
+        }
+
+        remote function onError(Message msg, Error e) returns Error? {
+            if e.message().includes("ConversionError", 0) {
+                receivedErrorCount += 1;
+            }
+            log:printInfo("An error received in onError: " + e.message());
+        }
+    };
+
+    check produceMessage(message.toString(), DATA_BINDING_ERROR_REQUEST_QUEUE, DATA_BINDING_REPLY_QUEUE);
+    Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
+    check channelListener.attach(jsonRequestService);
+    check channelListener.'start();
+    runtime:sleep(2);
     test:assertEquals(receivedErrorCount, 2);
     check channelListener.gracefulStop();
 }
