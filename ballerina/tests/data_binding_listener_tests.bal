@@ -94,6 +94,7 @@ xml receivedXmlValue = xml ``;
 xml receivedXmlReqValue = xml ``;
 json receivedJsonValue = "";
 json receivedJsonReqValue = "";
+boolean readOnlyReceived = false;
 int receivedErrorCount = 0;
 
 Person personRecord = {
@@ -698,5 +699,32 @@ public function testListenerRequestDataBindingError() returns error? {
     check channelListener.'start();
     runtime:sleep(2);
     test:assertEquals(receivedErrorCount, 2);
+    check channelListener.gracefulStop();
+}
+
+@test:Config {
+    groups: ["rabbitmq"]
+}
+public function testListenerReadonlyJsonBinding() returns error? {
+    json message = personMap.toJson();
+
+    Service jsonRequestService =
+    @ServiceConfig {
+        queueName: DATA_BINDING_JSON_LISTENER_READONLY_QUEUE
+    }
+    service object {
+        remote function onRequest(JsonMessage & readonly jsonMessage, Caller caller) returns string {
+            readOnlyReceived = jsonMessage.isReadOnly();
+            log:printInfo("The message received in onRequest: " + jsonMessage.toString());
+            return "Hello Back!!";
+        }
+    };
+
+    check produceMessage(message.toString(), DATA_BINDING_JSON_LISTENER_READONLY_QUEUE, DATA_BINDING_REPLY_QUEUE);
+    Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
+    check channelListener.attach(jsonRequestService);
+    check channelListener.'start();
+    runtime:sleep(2);
+    test:assertTrue(readOnlyReceived);
     check channelListener.gracefulStop();
 }
