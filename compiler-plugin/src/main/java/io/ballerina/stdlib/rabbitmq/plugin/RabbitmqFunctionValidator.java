@@ -176,7 +176,7 @@ public class RabbitmqFunctionValidator {
             } else if (parameterSymbol.typeDescriptor().typeKind() == TypeDescKind.INTERSECTION) {
                 IntersectionTypeSymbol intersectionTypeSymbol =
                         (IntersectionTypeSymbol) parameterSymbol.typeDescriptor();
-                // check if nats:Message is included in the intersection
+                // check if rabbitmq:AnydataMessage is included in the intersection
                 validateIntersectionType(intersectionTypeSymbol, requiredParameterNode);
             } else {
                 context.reportDiagnostic(PluginUtils.getDiagnostic(
@@ -188,7 +188,7 @@ public class RabbitmqFunctionValidator {
 
     private void validateIntersectionType(IntersectionTypeSymbol intersectionTypeSymbol,
                                           RequiredParameterNode requiredParameterNode) {
-        // (readonly & nats:Message - valid, readonly & nats:Client - invalid)
+        // (readonly & rabbitmq:Message - valid, readonly & rabbitmq:Client - invalid)
         // (readonly & string - invalid)
         TypeReferenceTypeSymbol typeReferenceTypeSymbol = null;
         int hasType = 0;
@@ -221,7 +221,7 @@ public class RabbitmqFunctionValidator {
         return false;
     }
 
-    public boolean isRecordTypeReference(TypeReferenceTypeSymbol typeReferenceTypeSymbol) {
+    private boolean isRecordTypeReference(TypeReferenceTypeSymbol typeReferenceTypeSymbol) {
         if (typeReferenceTypeSymbol.definition() instanceof ClassSymbol) {
             return false;
         }

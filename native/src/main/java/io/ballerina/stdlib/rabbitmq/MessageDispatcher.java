@@ -302,7 +302,7 @@ public class MessageDispatcher {
         return properties;
     }
 
-    public static MethodType getAttachedFunctionType(BObject serviceObject, String functionName) {
+    private static MethodType getAttachedFunctionType(BObject serviceObject, String functionName) {
         MethodType function = null;
         MethodType[] resourceFunctions = serviceObject.getType().getMethods();
         for (MethodType resourceFunction : resourceFunctions) {
