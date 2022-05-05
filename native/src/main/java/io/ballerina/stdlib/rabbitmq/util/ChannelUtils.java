@@ -21,17 +21,16 @@ package io.ballerina.stdlib.rabbitmq.util;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.Envelope;
 import com.rabbitmq.client.GetResponse;
 import com.rabbitmq.client.ShutdownSignalException;
 import io.ballerina.runtime.api.Environment;
-import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
+import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.runtime.transactions.TransactionResourceManager;
 import io.ballerina.stdlib.rabbitmq.RabbitMQConstants;
 import io.ballerina.stdlib.rabbitmq.RabbitMQTransactionContext;
@@ -45,6 +44,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
+
+import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.createAndPopulateMessageRecord;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.createPayload;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.getRecordType;
 
 /**
  * Util class for RabbitMQ Channel handling.
@@ -115,7 +118,7 @@ public class ChannelUtils {
         }
     }
 
-    public static Object consumeMessage(BObject clientObj, BString queueName, boolean ackMode) {
+    public static Object consumeMessage(BObject clientObj, BString queueName, boolean ackMode, BTypedesc bTypedesc) {
         Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         try {
             GetResponse response = channel.basicGet(queueName.getValue(), ackMode);
@@ -123,39 +126,27 @@ public class ChannelUtils {
                 return RabbitMQUtils.returnErrorValue("No messages are found in the queue.");
             }
             return createAndPopulateMessageRecord(response.getBody(), response.getEnvelope(),
-                                                                    response.getProps());
-        } catch (IOException | ShutdownSignalException e) {
+                                                                    response.getProps(), getRecordType(bTypedesc));
+        } catch (IOException | ShutdownSignalException | BError e) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_BASIC_GET);
             return RabbitMQUtils.returnErrorValue("error occurred while retrieving the message: " +
                                                           e.getMessage());
         }
     }
 
-    private static BMap<BString, Object> createAndPopulateMessageRecord(byte[] message, Envelope envelope,
-                                                                        AMQP.BasicProperties properties) {
-        Object[] values = new Object[5];
-        values[0] = ValueCreator.createArrayValue(message);
-        values[1] = envelope.getRoutingKey();
-        values[2] = envelope.getExchange();
-        values[3] = envelope.getDeliveryTag();
-        if (properties != null) {
-            String replyTo = properties.getReplyTo();
-            String contentType = properties.getContentType();
-            String contentEncoding = properties.getContentEncoding();
-            String correlationId = properties.getCorrelationId();
-            BMap<BString, Object> basicProperties =
-                    ValueCreator.createRecordValue(ModuleUtils.getModule(),
-                                                   RabbitMQConstants.RECORD_BASIC_PROPERTIES);
-            Object[] propValues = new Object[4];
-            propValues[0] = replyTo;
-            propValues[1] = contentType;
-            propValues[2] = contentEncoding;
-            propValues[3] = correlationId;
-            values[4] = ValueCreator.createRecordValue(basicProperties, propValues);
+    public static Object consumePayload(BObject clientObj, BString queueName, boolean ackMode, BTypedesc bTypedesc) {
+        Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
+        try {
+            GetResponse response = channel.basicGet(queueName.getValue(), ackMode);
+            if (Objects.isNull(response)) {
+                return RabbitMQUtils.returnErrorValue("No messages are found in the queue.");
+            }
+            return createPayload(response.getBody(), bTypedesc.getDescribingType());
+        } catch (IOException | ShutdownSignalException | BError e) {
+            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_BASIC_GET);
+            return RabbitMQUtils.returnErrorValue("error occurred while retrieving the message: " +
+                    e.getMessage());
         }
-        BMap<BString, Object> messageRecord = ValueCreator.createRecordValue(ModuleUtils.getModule(),
-                                                                             RabbitMQConstants.MESSAGE_RECORD);
-        return ValueCreator.createRecordValue(messageRecord, values);
     }
 
     public static Object basicAck(Environment environment, BObject clientObj, BMap<BString, Object> message,
@@ -236,7 +227,7 @@ public class ChannelUtils {
         return null;
     }
 
-    public static Object publishMessage(Environment environment, BObject channelObj, BMap<BString, Object> message) {
+    public static Object publishNative(Environment environment, BObject channelObj, BMap<BString, Object> message) {
         Channel channel = (Channel) channelObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         BArray messageContent = message.getArrayValue(RabbitMQConstants.MESSAGE_CONTENT);
         BString exchangeName = message.getStringValue(RabbitMQConstants.MESSAGE_EXCHANGE);

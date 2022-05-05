@@ -56,4 +56,8 @@
         <Method name="getMessageContentForType"/>
         <Bug pattern="BC_UNCONFIRMED_CAST" />
     </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.rabbitmq.RabbitMQUtils" />
+        <Bug pattern="BC_UNCONFIRMED_CAST" />
+    </Match>
 </FindBugsFilter>

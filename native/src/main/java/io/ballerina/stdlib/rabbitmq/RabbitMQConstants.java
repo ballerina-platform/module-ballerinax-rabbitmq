@@ -99,6 +99,7 @@ public class RabbitMQConstants {
     public static final String NACK_ERROR = "Error occurred while negatively acknowledging the message: ";
     static final String FUNC_ON_MESSAGE = "onMessage";
     static final String FUNC_ON_REQUEST = "onRequest";
+    static final String FUNC_ON_ERROR = "onError";
 
     // Channel constant fields
     public static final String CHANNEL_NATIVE_OBJECT = "rabbitmq_channel_object";

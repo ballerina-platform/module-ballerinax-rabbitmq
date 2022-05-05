@@ -62,36 +62,6 @@ public class RabbitmqCompilerPluginTest {
     }
 
     @Test
-    public void testInvalidService1() {
-        Package currentPackage = loadPackage("invalid_service_1");
-        PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 1);
-        Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
-        assertDiagnostic(diagnostic, PluginConstants.CompilationErrors.NO_ON_MESSAGE_OR_ON_REQUEST);
-    }
-
-    @Test
-    public void testInvalidService2() {
-        Package currentPackage = loadPackage("invalid_service_2");
-        PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 1);
-        Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
-        assertDiagnostic(diagnostic, PluginConstants.CompilationErrors.ON_MESSAGE_OR_ON_REQUEST);
-    }
-
-    @Test
-    public void testInvalidService3() {
-        Package currentPackage = loadPackage("invalid_service_3");
-        PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 1);
-        Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
-        assertDiagnostic(diagnostic, PluginConstants.CompilationErrors.INVALID_REMOTE_FUNCTION);
-    }
-
-    @Test
     public void testValidService4() {
         Package currentPackage = loadPackage("valid_service_4");
         PackageCompilation compilation = currentPackage.getCompilation();
@@ -121,6 +91,44 @@ public class RabbitmqCompilerPluginTest {
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errors().size(), 0);
+    }
+
+    @Test
+    public void testValidService8() {
+        Package currentPackage = loadPackage("valid_service_8");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errors().size(), 0);
+    }
+
+    @Test
+    public void testInvalidService1() {
+        Package currentPackage = loadPackage("invalid_service_1");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errors().size(), 1);
+        Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
+        assertDiagnostic(diagnostic, PluginConstants.CompilationErrors.NO_ON_MESSAGE_OR_ON_REQUEST);
+    }
+
+    @Test
+    public void testInvalidService2() {
+        Package currentPackage = loadPackage("invalid_service_2");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errors().size(), 1);
+        Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
+        assertDiagnostic(diagnostic, PluginConstants.CompilationErrors.ON_MESSAGE_OR_ON_REQUEST);
+    }
+
+    @Test
+    public void testInvalidService3() {
+        Package currentPackage = loadPackage("invalid_service_3");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errors().size(), 1);
+        Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
+        assertDiagnostic(diagnostic, PluginConstants.CompilationErrors.INVALID_REMOTE_FUNCTION);
     }
 
     @Test

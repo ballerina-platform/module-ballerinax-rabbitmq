@@ -43,20 +43,75 @@ const DIRECT_EXCHANGE_NAME = "MyDirectExchange";
 const TOPIC_EXCHANGE_NAME = "MyTopicExchange";
 const FANOUT_EXCHANGE_NAME = "MyFanoutExchange";
 const SYNC_NEGATIVE_QUEUE = "MySyncNegativeQueue";
-const DATA_BINDING_QUEUE = "MyDataQueue";
+const DATA_BINDING_STRING_LISTENER_QUEUE = "StringListenerQueue";
+const DATA_BINDING_INT_LISTENER_QUEUE = "IntListenerQueue";
+const DATA_BINDING_DECIMAL_LISTENER_QUEUE = "DecimalListenerQueue";
+const DATA_BINDING_FLOAT_LISTENER_QUEUE = "FloatListenerQueue";
+const DATA_BINDING_BOOLEAN_LISTENER_QUEUE = "BooleanListenerQueue";
+const DATA_BINDING_MAP_LISTENER_QUEUE = "MapListenerQueue";
+const DATA_BINDING_RECORD_LISTENER_QUEUE = "RecordListenerQueue";
+const DATA_BINDING_TABLE_LISTENER_QUEUE = "TableListenerQueue";
+const DATA_BINDING_XML_LISTENER_QUEUE = "XmlListenerQueue";
+const DATA_BINDING_JSON_LISTENER_QUEUE = "JsonListenerQueue";
+const DATA_BINDING_STRING_LISTENER_REQUEST_QUEUE = "StringListenerRequestQueue";
+const DATA_BINDING_INT_LISTENER_REQUEST_QUEUE = "IntListenerRequestQueue";
+const DATA_BINDING_DECIMAL_LISTENER_REQUEST_QUEUE = "DecimalListenerRequestQueue";
+const DATA_BINDING_FLOAT_LISTENER_REQUEST_QUEUE = "FloatListenerRequestQueue";
+const DATA_BINDING_BOOLEAN_LISTENER_REQUEST_QUEUE = "BooleanListenerRequestQueue";
+const DATA_BINDING_MAP_LISTENER_REQUEST_QUEUE = "MapListenerRequestQueue";
+const DATA_BINDING_RECORD_LISTENER_REQUEST_QUEUE = "RecordListenerRequestQueue";
+const DATA_BINDING_TABLE_LISTENER_REQUEST_QUEUE = "TableListenerRequestQueue";
+const DATA_BINDING_XML_LISTENER_REQUEST_QUEUE = "XmlListenerRequestQueue";
+const DATA_BINDING_JSON_LISTENER_REQUEST_QUEUE = "JsonListenerRequestQueue";
+const DATA_BINDING_STRING_PUBLISH_QUEUE = "StringPublishQueue";
+const DATA_BINDING_INT_PUBLISH_QUEUE = "IntPublishQueue";
+const DATA_BINDING_DECIMAL_PUBLISH_QUEUE = "DecimalPublishQueue";
+const DATA_BINDING_FLOAT_PUBLISH_QUEUE = "FloatPublishQueue";
+const DATA_BINDING_BOOLEAN_PUBLISH_QUEUE = "BooleanPublishQueue";
+const DATA_BINDING_MAP_PUBLISH_QUEUE = "MapPublishQueue";
+const DATA_BINDING_RECORD_PUBLISH_QUEUE = "RecordPublishQueue";
+const DATA_BINDING_TABLE_PUBLISH_QUEUE = "TablePublishQueue";
+const DATA_BINDING_XML_PUBLISH_QUEUE = "XmlPublishQueue";
+const DATA_BINDING_JSON_PUBLISH_QUEUE = "JsonPublishQueue";
+const DATA_BINDING_BYTES_PUBLISH_QUEUE = "BytesPublishQueue";
+const DATA_BINDING_STRING_CONSUME_QUEUE = "StringConsumeQueue";
+const DATA_BINDING_INT_CONSUME_QUEUE = "IntConsumeQueue";
+const DATA_BINDING_DECIMAL_CONSUME_QUEUE = "DecimalConsumeQueue";
+const DATA_BINDING_FLOAT_CONSUME_QUEUE = "FloatConsumeQueue";
+const DATA_BINDING_BOOLEAN_CONSUME_QUEUE = "BooleanConsumeQueue";
+const DATA_BINDING_MAP_CONSUME_QUEUE = "MapConsumeQueue";
+const DATA_BINDING_RECORD_CONSUME_QUEUE = "RecordConsumeQueue";
+const DATA_BINDING_TABLE_CONSUME_QUEUE = "TableConsumeQueue";
+const DATA_BINDING_XML_CONSUME_QUEUE = "XmlConsumeQueue";
+const DATA_BINDING_JSON_CONSUME_QUEUE = "JsonConsumeQueue";
+const DATA_BINDING_BYTES_CONSUME_QUEUE = "BytesConsumeQueue";
+const DATA_BINDING_ANYDATA_CONSUME_QUEUE = "AnydataConsumeQueue";
+const DATA_BINDING_STRING_PAYLOAD_QUEUE = "StringPayloadQueue";
+const DATA_BINDING_INT_PAYLOAD_QUEUE = "IntPayloadQueue";
+const DATA_BINDING_DECIMAL_PAYLOAD_QUEUE = "DecimalPayloadQueue";
+const DATA_BINDING_FLOAT_PAYLOAD_QUEUE = "FloatPayloadQueue";
+const DATA_BINDING_BOOLEAN_PAYLOAD_QUEUE = "BooleanPayloadQueue";
+const DATA_BINDING_MAP_PAYLOAD_QUEUE = "MapPayloadQueue";
+const DATA_BINDING_RECORD_PAYLOAD_QUEUE = "RecordPayloadQueue";
+const DATA_BINDING_TABLE_PAYLOAD_QUEUE = "TablePayloadQueue";
+const DATA_BINDING_XML_PAYLOAD_QUEUE = "XmlPayloadQueue";
+const DATA_BINDING_JSON_PAYLOAD_QUEUE = "JsonPayloadQueue";
+const DATA_BINDING_ERROR_QUEUE = "ErrorQueue";
+const DATA_BINDING_ERROR_REQUEST_QUEUE = "ErrorRequestQueue";
+const DATA_BINDING_REPLY_QUEUE = "DataBindingReplyQueue";
+const DATA_BINDING_JSON_LISTENER_READONLY_QUEUE = "DataBindingReadOnlyQueue";
 string asyncConsumerMessage = "";
 string asyncConsumerMessage2 = "";
 string onRequestMessage = "";
 string replyMessage = "";
 string reqReplyMessage = "";
-string dataBindingMessage = "";
 string REPLYTO = "replyHere";
 string REQ_REPLYTO = "onReqReply";
 
 @test:BeforeSuite
 function setup() returns error? {
     log:printInfo("Creating a ballerina RabbitMQ channel.");
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     rabbitmqChannel = newClient;
     Client? clientObj = rabbitmqChannel;
     if clientObj is Client {
@@ -66,21 +121,80 @@ function setup() returns error? {
         check clientObj->queueDeclare(READONLY_MESSAGE_QUEUE_CALLER);
         check clientObj->queueDeclare(READONLY_REQUEST_QUEUE);
         check clientObj->queueDeclare(READONLY_REQUEST_QUEUE_CALLER);
-        check clientObj->queueDeclare(DATA_BINDING_QUEUE);
-        check clientObj->queueDeclare(SYNC_NEGATIVE_QUEUE);
-        check clientObj->queueDeclare(ACK_QUEUE);
-        check clientObj->queueDeclare(ACK_QUEUE2);
-        check clientObj->queueDeclare(ACK_QUEUE3);
-        check clientObj->queueDeclare(NACK_QUEUE3);
-        check clientObj->queueDeclare(NACK_QUEUE2);
-        check clientObj->queueDeclare(NACK_QUEUE);
-        check clientObj->queueDeclare(REQ_QUEUE);
-        check clientObj->queueDeclare(REQ_REPLYTO);
-        check clientObj->queueDeclare(REPLYTO);
+        check clientObj->queueDeclare(DATA_BINDING_STRING_LISTENER_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_INT_LISTENER_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_DECIMAL_LISTENER_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_FLOAT_LISTENER_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_BOOLEAN_LISTENER_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_MAP_LISTENER_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_RECORD_LISTENER_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_TABLE_LISTENER_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_XML_LISTENER_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_JSON_LISTENER_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_STRING_LISTENER_REQUEST_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_INT_LISTENER_REQUEST_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_DECIMAL_LISTENER_REQUEST_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_FLOAT_LISTENER_REQUEST_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_BOOLEAN_LISTENER_REQUEST_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_MAP_LISTENER_REQUEST_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_RECORD_LISTENER_REQUEST_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_TABLE_LISTENER_REQUEST_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_XML_LISTENER_REQUEST_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_JSON_LISTENER_REQUEST_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_STRING_PUBLISH_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_INT_PUBLISH_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_DECIMAL_PUBLISH_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_FLOAT_PUBLISH_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_BOOLEAN_PUBLISH_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_MAP_PUBLISH_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_RECORD_PUBLISH_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_TABLE_PUBLISH_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_XML_PUBLISH_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_JSON_PUBLISH_QUEUE);
+        check clientObj->queueDeclare(DATA_BINDING_BYTES_PUBLISH_QUEUE);
+        check setup2(clientObj);
     }
-    Listener lis = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Listener lis = check new (DEFAULT_HOST, DEFAULT_PORT);
     rabbitmqListener = lis;
     return;
+}
+
+function setup2(Client clientObj) returns error? {
+    check clientObj->queueDeclare(DATA_BINDING_STRING_CONSUME_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_INT_CONSUME_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_DECIMAL_CONSUME_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_FLOAT_CONSUME_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_BOOLEAN_CONSUME_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_MAP_CONSUME_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_RECORD_CONSUME_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_TABLE_CONSUME_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_XML_CONSUME_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_JSON_CONSUME_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_BYTES_CONSUME_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_ANYDATA_CONSUME_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_STRING_PAYLOAD_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_INT_PAYLOAD_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_DECIMAL_PAYLOAD_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_FLOAT_PAYLOAD_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_BOOLEAN_PAYLOAD_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_MAP_PAYLOAD_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_RECORD_PAYLOAD_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_TABLE_PAYLOAD_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_XML_PAYLOAD_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_JSON_PAYLOAD_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_ERROR_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_ERROR_REQUEST_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_JSON_LISTENER_READONLY_QUEUE);
+    check clientObj->queueDeclare(SYNC_NEGATIVE_QUEUE);
+    check clientObj->queueDeclare(ACK_QUEUE);
+    check clientObj->queueDeclare(ACK_QUEUE2);
+    check clientObj->queueDeclare(ACK_QUEUE3);
+    check clientObj->queueDeclare(NACK_QUEUE3);
+    check clientObj->queueDeclare(NACK_QUEUE2);
+    check clientObj->queueDeclare(NACK_QUEUE);
+    check clientObj->queueDeclare(REQ_QUEUE);
+    check clientObj->queueDeclare(REQ_REPLYTO);
+    check clientObj->queueDeclare(REPLYTO);
 }
 
 @test:Config {
@@ -92,7 +206,7 @@ public function testClient() returns error? {
     if con is Client {
         flag = true;
     }
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     check newClient->close();
     test:assertTrue(flag, msg = "RabbitMQ Connection creation failed.");
     return;
@@ -106,7 +220,7 @@ public function testProducer() returns error? {
     Client? channelObj = rabbitmqChannel;
     if channelObj is Client {
         string message = "Hello from Ballerina";
-        check channelObj->publishMessage({ content: message.toBytes(), routingKey: QUEUE });
+        check channelObj->publishMessage({content: message.toBytes(), routingKey: QUEUE});
         check channelObj->queuePurge(QUEUE);
     }
     return;
@@ -119,10 +233,10 @@ public function testProducer() returns error? {
 public isolated function testProducerTransactional() returns error? {
     string queue = "testProducerTransactional";
     string message = "Test producing transactionally";
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     check newClient->queueDeclare(queue);
     transaction {
-        check newClient->publishMessage({ content: message.toBytes(), routingKey: queue });
+        check newClient->publishMessage({content: message.toBytes(), routingKey: queue});
         var commitResult = commit;
         if !(commitResult is ()) {
             test:assertFail(msg = "Commit failed for transactional producer.");
@@ -146,7 +260,7 @@ public isolated function testProducerTransactional() returns error? {
 }
 public isolated function testProducerTransactionalRollback() returns error? {
     string queue = "testProducerTransactionalRollback";
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     error? rollbackError = rabbitMQTransactionFail(queue);
     Message|Error consumeResult = newClient->consumeMessage(queue, false);
     if consumeResult is Message {
@@ -158,13 +272,13 @@ public isolated function testProducerTransactionalRollback() returns error? {
 
 isolated function rabbitMQTransactionFail(string queue) returns error? {
     string message = "Test producing transactional and rollback";
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     check newClient->queueDeclare(queue);
     do {
         transaction {
-            check newClient->publishMessage({ content: message.toBytes(), routingKey: queue });
-            check newClient->publishMessage({ content: message.toBytes(), routingKey: queue });
-            check newClient->publishMessage({ content: message.toBytes(), routingKey: queue });
+            check newClient->publishMessage({content: message.toBytes(), routingKey: queue});
+            check newClient->publishMessage({content: message.toBytes(), routingKey: queue});
+            check newClient->publishMessage({content: message.toBytes(), routingKey: queue});
             check failTransaction();
             check commit;
         }
@@ -195,12 +309,12 @@ public function testListener() {
     groups: ["rabbitmq"]
 }
 public isolated function testListenerWithQos() {
-    Listener|Error qosListener1 = new(DEFAULT_HOST, DEFAULT_PORT, qosSettings = { prefetchCount: 10 });
+    Listener|Error qosListener1 = new (DEFAULT_HOST, DEFAULT_PORT, qosSettings = {prefetchCount: 10});
     if qosListener1 is Error {
         test:assertFail("RabbitMQ Listener initialization with qos settings failed.");
     }
-    Listener|Error qosListener2 = new(DEFAULT_HOST, DEFAULT_PORT, qosSettings =
-                                                            { prefetchCount: 10, prefetchSize: 0, global: true });
+    Listener|Error qosListener2 = new (DEFAULT_HOST, DEFAULT_PORT, qosSettings =
+                                                            {prefetchCount: 10, prefetchSize: 0, global: true});
     if qosListener2 is Error {
         test:assertFail("RabbitMQ Listener initialization with qos settings failed.");
     }
@@ -282,7 +396,7 @@ public function testAsyncConsumer2() returns error? {
     groups: ["rabbitmq"]
 }
 public isolated function testGracefulStop() returns error? {
-    Listener channelListener = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
     error? stopResult = channelListener.gracefulStop();
     if stopResult is error {
         test:assertFail("Error when trying to close the listener gracefully.");
@@ -295,7 +409,7 @@ public isolated function testGracefulStop() returns error? {
     groups: ["rabbitmq"]
 }
 public isolated function testImmediateStop() returns error? {
-    Listener channelListener = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
     error? stopResult = channelListener.immediateStop();
     if stopResult is error {
         test:assertFail("Error when trying to close the listener immediately.");
@@ -308,7 +422,7 @@ public isolated function testImmediateStop() returns error? {
     groups: ["rabbitmq"]
 }
 public function testListenerDetach() returns error? {
-    Listener channelListener = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
     check channelListener.attach(mockService);
     check channelListener.'start();
     error? detachResult = channelListener.detach(mockService);
@@ -324,7 +438,7 @@ public function testListenerDetach() returns error? {
     groups: ["rabbitmq"]
 }
 public isolated function testQueueAutoGenerate() returns error? {
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     Error|string queueResult = newClient->queueAutoGenerate();
     if queueResult is error {
         test:assertFail("Error when trying to create an auto generated queue.");
@@ -340,10 +454,10 @@ public isolated function testQueueAutoGenerate() returns error? {
     groups: ["rabbitmq"]
 }
 public isolated function testDirectExchangeDeclare() returns error? {
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     Error? result = newClient->exchangeDeclare(DIRECT_EXCHANGE_NAME, DIRECT_EXCHANGE);
     if result is error {
-       test:assertFail("Error when trying to create a direct exchange.");
+        test:assertFail("Error when trying to create a direct exchange.");
     }
     check newClient->close();
     return;
@@ -354,10 +468,10 @@ public isolated function testDirectExchangeDeclare() returns error? {
     groups: ["rabbitmq"]
 }
 public isolated function testTopicExchangeDeclare() returns error? {
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     Error? result = newClient->exchangeDeclare(TOPIC_EXCHANGE_NAME, TOPIC_EXCHANGE);
     if result is error {
-       test:assertFail("Error when trying to create a topic exchange.");
+        test:assertFail("Error when trying to create a topic exchange.");
     }
     check newClient->close();
     return;
@@ -368,10 +482,10 @@ public isolated function testTopicExchangeDeclare() returns error? {
     groups: ["rabbitmq"]
 }
 public isolated function testFanoutExchangeDeclare() returns error? {
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     Error? result = newClient->exchangeDeclare(FANOUT_EXCHANGE_NAME, FANOUT_EXCHANGE);
     if result is error {
-       test:assertFail("Error when trying to create a fanout exchange.");
+        test:assertFail("Error when trying to create a fanout exchange.");
     }
     check newClient->close();
     return;
@@ -383,11 +497,11 @@ public isolated function testFanoutExchangeDeclare() returns error? {
 }
 public isolated function testQueueConfig() returns error? {
     string queueName = "testQueueConfig";
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
-    QueueConfig queueConfig = { durable: true, exclusive: true, autoDelete: false };
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
+    QueueConfig queueConfig = {durable: true, exclusive: true, autoDelete: false};
     Error? result = newClient->queueDeclare(queueName, config = queueConfig);
     if result is error {
-       test:assertFail("Error when trying to create a queue with config.");
+        test:assertFail("Error when trying to create a queue with config.");
     }
     check newClient->queueDelete(queueName);
     check newClient->close();
@@ -400,11 +514,11 @@ public isolated function testQueueConfig() returns error? {
 }
 public isolated function testExchangeConfig() returns error? {
     string exchangeName = "testExchangeConfig";
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
-    ExchangeConfig exchangeConfig = { durable: true, autoDelete: true};
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
+    ExchangeConfig exchangeConfig = {durable: true, autoDelete: true};
     Error? result = newClient->exchangeDeclare(exchangeName, DIRECT_EXCHANGE, config = exchangeConfig);
     if result is error {
-       test:assertFail("Error when trying to create an exchange with options.");
+        test:assertFail("Error when trying to create an exchange with options.");
     }
     check newClient->exchangeDelete(exchangeName);
     check newClient->close();
@@ -418,7 +532,7 @@ public isolated function testExchangeConfig() returns error? {
 public isolated function testQueueBind() returns error? {
     string exchange = "QueueBindTestExchange";
     string queue = "QueueBindTest";
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     check newClient->exchangeDeclare(exchange, DIRECT_EXCHANGE);
     check newClient->queueDeclare(queue);
     Error? result = newClient->queueBind(queue, exchange, "myBinding");
@@ -438,7 +552,7 @@ public isolated function testAuthentication() returns error? {
         username: "user",
         password: "pass"
     };
-    Client|Error newClient = check new(DEFAULT_HOST, 5673, auth = credentials);
+    Client|Error newClient = check new (DEFAULT_HOST, 5673, auth = credentials);
     if newClient is Error {
         test:assertFail("Error when trying to initialize a client with auth.");
     } else {
@@ -454,9 +568,9 @@ public isolated function testAuthentication() returns error? {
 public isolated function testClientBasicAck() returns error? {
     string queue = "testClientBasicAck";
     string message = "Test client basic ack";
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     check newClient->queueDeclare(queue);
-    check newClient->publishMessage({ content: message.toBytes(), routingKey: queue });
+    check newClient->publishMessage({content: message.toBytes(), routingKey: queue});
     Message|Error consumeResult = newClient->consumeMessage(queue, false);
     if consumeResult is Message {
         string messageContent = check 'string:fromBytes(consumeResult.content);
@@ -486,7 +600,7 @@ public isolated function testConnectionConfig() returns error? {
         shutdownTimeout: 5,
         heartbeat: 5
     };
-    Client|error newClient = new(DEFAULT_HOST, DEFAULT_PORT, connectionData = connConfig);
+    Client|error newClient = new (DEFAULT_HOST, DEFAULT_PORT, connectionData = connConfig);
     if newClient is error {
         test:assertFail("Error when trying to connect.");
     } else {
@@ -502,9 +616,9 @@ public isolated function testConnectionConfig() returns error? {
 public isolated function testClientBasicNack() returns error? {
     string queue = "testClientBasicNack";
     string message = "Test client basic nack";
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     check newClient->queueDeclare(queue);
-    check newClient->publishMessage({ content: message.toBytes(), routingKey: queue });
+    check newClient->publishMessage({content: message.toBytes(), routingKey: queue});
     Message|Error consumeResult = newClient->consumeMessage(queue, false);
     if consumeResult is Message {
         string messageContent = check 'string:fromBytes(consumeResult.content);
@@ -527,7 +641,7 @@ public isolated function testClientBasicNack() returns error? {
 }
 public isolated function testQueueDelete() returns error? {
     string queue = "testQueueDelete";
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     check newClient->queueDeclare(queue);
     Error? deleteResult = newClient->queueDelete(queue);
     if deleteResult is Error {
@@ -543,7 +657,7 @@ public isolated function testQueueDelete() returns error? {
 }
 public isolated function testExchangeDelete() returns error? {
     string exchange = "testExchangeDelete";
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     check newClient->exchangeDeclare(exchange, DIRECT_EXCHANGE);
     Error? deleteExchange = newClient->exchangeDelete(exchange);
     check newClient->close(200, "Client closed");
@@ -556,7 +670,7 @@ public isolated function testExchangeDelete() returns error? {
 }
 public isolated function testExchangeDeleteNegative() returns error? {
     string exchange = "testExchangeDeleteNegative";
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     check newClient->exchangeDeclare(exchange, DIRECT_EXCHANGE);
     check newClient->close(200, "Client closed");
     Error? deleteExchange = newClient->exchangeDelete(exchange);
@@ -571,7 +685,7 @@ public isolated function testExchangeDeleteNegative() returns error? {
     groups: ["rabbitmq"]
 }
 public isolated function testClientAbort() returns error? {
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     Error? abortResult = newClient->'abort(200, "Client aborted");
     if abortResult is Error {
         test:assertFail("Error when trying to abort a client.");
@@ -585,7 +699,7 @@ public isolated function testClientAbort() returns error? {
 }
 public function testQueuePurge() returns error? {
     string queue = "testQueuePurge";
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     check newClient->queueDeclare(queue);
     check produceMessage("Hello world 1", queue);
     check produceMessage("Hello world 2", queue);
@@ -889,10 +1003,13 @@ function produceMessage(string message, string queueName, string? replyToQueue =
     Client? clientObj = rabbitmqChannel;
     if clientObj is Client {
         if replyToQueue is string {
-            check clientObj->publishMessage({ content: message.toBytes(), routingKey: queueName,
-                    properties: { replyTo: replyToQueue }});
+            check clientObj->publishMessage({
+                content: message.toBytes(),
+                routingKey: queueName,
+                properties: {replyTo: replyToQueue}
+            });
         } else {
-            check clientObj->publishMessage({ content: message.toBytes(), routingKey: queueName });
+            check clientObj->publishMessage({content: message.toBytes(), routingKey: queueName});
         }
     }
     return;

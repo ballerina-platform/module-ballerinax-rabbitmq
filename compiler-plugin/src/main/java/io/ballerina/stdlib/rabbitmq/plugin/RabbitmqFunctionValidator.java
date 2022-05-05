@@ -19,11 +19,13 @@
 package io.ballerina.stdlib.rabbitmq.plugin;
 
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
 import io.ballerina.compiler.api.symbols.MethodSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
@@ -174,7 +176,7 @@ public class RabbitmqFunctionValidator {
             } else if (parameterSymbol.typeDescriptor().typeKind() == TypeDescKind.INTERSECTION) {
                 IntersectionTypeSymbol intersectionTypeSymbol =
                         (IntersectionTypeSymbol) parameterSymbol.typeDescriptor();
-                // check if nats:Message is included in the intersection
+                // check if rabbitmq:AnydataMessage is included in the intersection
                 validateIntersectionType(intersectionTypeSymbol, requiredParameterNode);
             } else {
                 context.reportDiagnostic(PluginUtils.getDiagnostic(
@@ -186,7 +188,7 @@ public class RabbitmqFunctionValidator {
 
     private void validateIntersectionType(IntersectionTypeSymbol intersectionTypeSymbol,
                                           RequiredParameterNode requiredParameterNode) {
-        // (readonly & nats:Message - valid, readonly & nats:Client - invalid)
+        // (readonly & rabbitmq:Message - valid, readonly & rabbitmq:Client - invalid)
         // (readonly & string - invalid)
         TypeReferenceTypeSymbol typeReferenceTypeSymbol = null;
         int hasType = 0;
@@ -205,7 +207,6 @@ public class RabbitmqFunctionValidator {
     }
 
     private boolean isValidParamTypeMessage(TypeReferenceTypeSymbol typeReferenceTypeSymbol) {
-        boolean validFlag = false;
         Optional<ModuleSymbol> moduleSymbol = typeReferenceTypeSymbol.getModule();
         if (moduleSymbol.isPresent()) {
             if (!validateModuleId(moduleSymbol.get())) {
@@ -214,16 +215,18 @@ public class RabbitmqFunctionValidator {
                             (TypeReferenceTypeSymbol) typeReferenceTypeSymbol.typeDescriptor();
                     return isValidParamTypeMessage(typeReferenceTypeSymbolNext);
                 }
-            } else {
-                if (typeReferenceTypeSymbol.getName().isPresent()) {
-                    String paramName = typeReferenceTypeSymbol.getName().get();
-                    if (paramName.equals(PluginConstants.MESSAGE)) {
-                        validFlag = true;
-                    }
-                }
             }
+            return isRecordTypeReference(typeReferenceTypeSymbol);
         }
-        return validFlag;
+        return false;
+    }
+
+    private boolean isRecordTypeReference(TypeReferenceTypeSymbol typeReferenceTypeSymbol) {
+        if (typeReferenceTypeSymbol.definition() instanceof ClassSymbol) {
+            return false;
+        }
+        TypeDefinitionSymbol typeDefinitionSymbol = (TypeDefinitionSymbol) typeReferenceTypeSymbol.definition();
+        return typeDefinitionSymbol.typeDescriptor().typeKind() == TypeDescKind.RECORD;
     }
 
     private void validateSecondParam(ParameterNode parameterNode) {
