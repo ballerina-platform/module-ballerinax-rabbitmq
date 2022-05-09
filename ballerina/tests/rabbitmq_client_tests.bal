@@ -122,6 +122,7 @@ const DATA_BINDING_ERROR_QUEUE = "ErrorQueue";
 const DATA_BINDING_ERROR_REQUEST_QUEUE = "ErrorRequestQueue";
 const DATA_BINDING_REPLY_QUEUE = "DataBindingReplyQueue";
 const DATA_BINDING_JSON_LISTENER_READONLY_QUEUE = "DataBindingReadOnlyQueue";
+const DATA_BINDING_UNION_PAYLOAD_QUEUE = "DataBindingUnionQueue";
 string asyncConsumerMessage = "";
 string asyncConsumerMessage2 = "";
 string onRequestMessage = "";
@@ -234,6 +235,7 @@ function setup3(Client clientObj) returns error? {
     check clientObj->queueDeclare(DATA_BINDING_ERROR_QUEUE);
     check clientObj->queueDeclare(DATA_BINDING_ERROR_REQUEST_QUEUE);
     check clientObj->queueDeclare(DATA_BINDING_JSON_LISTENER_READONLY_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_UNION_PAYLOAD_QUEUE);
     check clientObj->queueDeclare(SYNC_NEGATIVE_QUEUE);
     check clientObj->queueDeclare(ACK_QUEUE);
     check clientObj->queueDeclare(ACK_QUEUE2);
