@@ -31,14 +31,6 @@ service rabbitmq:Service on channelListener {
     queueName: "MyQueue"
 }
 service rabbitmq:Service on channelListener {
-    remote function onMessage(readonly & byte[] message) {
-    }
-}
-
-@rabbitmq:ServiceConfig {
-    queueName: "MyQueue"
-}
-service rabbitmq:Service on channelListener {
-    remote function onMessage(readonly & string message) {
+    remote function onMessage(rabbitmq:Client message) {
     }
 }
