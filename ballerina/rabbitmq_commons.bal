@@ -151,3 +151,9 @@ public type Credentials record {|
     string username;
     string password;
 |};
+
+# Defines the Payload remote function parameter.
+public type RabbitmqPayload record {||};
+
+# The annotation which is used to define the payload parameter in the `onMessage` service method.
+public annotation RabbitmqPayload Payload on parameter;

@@ -23,10 +23,12 @@ import com.rabbitmq.client.AlreadyClosedException;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
+import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.async.StrandMetadata;
 import io.ballerina.runtime.api.creators.ValueCreator;
+import io.ballerina.runtime.api.types.IntersectionType;
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.Parameter;
 import io.ballerina.runtime.api.types.Type;
@@ -47,15 +49,25 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
 
+import static io.ballerina.runtime.api.TypeTags.INTERSECTION_TAG;
+import static io.ballerina.runtime.api.TypeTags.OBJECT_TYPE_TAG;
+import static io.ballerina.runtime.api.TypeTags.RECORD_TYPE_TAG;
 import static io.ballerina.runtime.api.constants.RuntimeConstants.ORG_NAME_SEPARATOR;
 import static io.ballerina.runtime.api.constants.RuntimeConstants.VERSION_SEPARATOR;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.FUNC_ON_ERROR;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.FUNC_ON_MESSAGE;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.FUNC_ON_REQUEST;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.IS_ANYDATA_MESSAGE;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.ORG_NAME;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.PARAM_ANNOTATION_PREFIX;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.PARAM_PAYLOAD_ANNOTATION_NAME;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.RABBITMQ;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.TYPE_CHECKER_OBJECT_NAME;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.createAndPopulateMessageRecord;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.getRecordType;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.getValueWithIntendedType;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.returnErrorValue;
 
 /**
@@ -128,115 +140,71 @@ public class MessageDispatcher {
     }
 
     private void handleDispatch(byte[] message, Envelope envelope, AMQP.BasicProperties properties) {
-        if (properties.getReplyTo() != null && getAttachedFunctionType(service, FUNC_ON_REQUEST) != null) {
-            MethodType onRequestFunction = getAttachedFunctionType(service, FUNC_ON_REQUEST);
-            Parameter[] paramTypes = onRequestFunction.getParameters();
-            Type returnType = onRequestFunction.getReturnType();
-            int paramSize = paramTypes.length;
-            if (paramSize == 2) {
-                dispatchMessageToOnRequest(message, getCallerBObject(envelope.getDeliveryTag()), envelope, properties,
-                        returnType, paramTypes[0].type);
-            } else if (paramSize == 1) {
-                dispatchMessageToOnRequest(message, envelope, properties, returnType, paramTypes[0].type);
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        Callback callback = new RabbitMQResourceCallback(countDownLatch, channel, queueName, message.length,
+                properties.getReplyTo(), envelope.getExchange());
+        try {
+            if (properties.getReplyTo() != null && getAttachedFunctionType(service, FUNC_ON_REQUEST) != null) {
+                MethodType onRequestFunction = getAttachedFunctionType(service, FUNC_ON_REQUEST);
+                Type returnType = onRequestFunction.getReturnType();
+                Object[] arguments = getResourceParameters(message, envelope, properties, onRequestFunction);
+                executeResourceOnRequest(callback, returnType, arguments);
             } else {
-                throw returnErrorValue("Invalid remote function signature");
+                MethodType onMessageFunction = getAttachedFunctionType(service, FUNC_ON_MESSAGE);
+                Type returnType = onMessageFunction.getReturnType();
+                Object[] arguments = getResourceParameters(message, envelope, properties, onMessageFunction);
+                executeResourceOnMessage(callback, returnType, arguments);
             }
-        } else {
-            MethodType onMessageFunction = getAttachedFunctionType(service, FUNC_ON_MESSAGE);
-            Parameter[] paramTypes = onMessageFunction.getParameters();
-            Type returnType = onMessageFunction.getReturnType();
-            int paramSize = paramTypes.length;
-            if (paramSize == 2) {
-                dispatchMessage(message, getCallerBObject(envelope.getDeliveryTag()), envelope, properties, returnType,
-                        paramTypes[0].type);
-            } else if (paramSize == 1) {
-                dispatchMessage(message, envelope, properties, returnType, paramTypes[0].type);
-            } else {
-                throw returnErrorValue("Invalid remote function signature");
+            countDownLatch.await();
+        } catch (InterruptedException | AlreadyClosedException | BError exception) {
+            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
+            MethodType onErrorFunction = getAttachedFunctionType(service, FUNC_ON_ERROR);
+            executeOnError(onErrorFunction, message, envelope, properties, exception);
+        }
+    }
+
+    private Object[] getResourceParameters(byte[] message, Envelope envelope, AMQP.BasicProperties properties,
+                                           MethodType remoteFunction) {
+        Parameter[] parameters = remoteFunction.getParameters();
+        boolean callerExists = false;
+        boolean messageExists = false;
+        boolean payloadExists = false;
+        Object[] arguments = new Object[parameters.length * 2];
+        int index = 0;
+        for (Parameter parameter : parameters) {
+            switch (parameter.type.getTag()) {
+                case OBJECT_TYPE_TAG:
+                    if (callerExists) {
+                        returnErrorValue("Invalid remote function signature");
+                    }
+                    callerExists = true;
+                    arguments[index++] = getCallerBObject(envelope.getDeliveryTag());
+                    arguments[index++] = true;
+                    break;
+                case INTERSECTION_TAG:
+                case RECORD_TYPE_TAG:
+                    if (isMessageType(parameter, remoteFunction.getAnnotations())) {
+                        if (messageExists) {
+                            returnErrorValue("Invalid remote function signature");
+                        }
+                        messageExists = true;
+                        arguments[index++] = createAndPopulateMessageRecord(message, envelope,
+                                properties, parameter.type);
+                        arguments[index++] = true;
+                        break;
+                    }
+                    /*-fallthrough*/
+                default:
+                    if (payloadExists) {
+                        returnErrorValue("Invalid remote function signature");
+                    }
+                    payloadExists = true;
+                    arguments[index++] = getValueWithIntendedType(getPayloadType(parameter.type), message);
+                    arguments[index++] = true;
+                    break;
             }
         }
-    }
-
-    // dispatch only Message
-    private void dispatchMessageToOnRequest(byte[] message, Envelope envelope, AMQP.BasicProperties properties,
-                                            Type returnType, Type type) {
-        CountDownLatch countDownLatch = new CountDownLatch(1);
-        try {
-            Callback callback = new RabbitMQResourceCallback(countDownLatch, channel, queueName,
-                                                             message.length, properties.getReplyTo(),
-                                                             envelope.getExchange());
-            Object[] values = new Object[2];
-            values[0] = createAndPopulateMessageRecord(message, envelope, properties, type);
-            values[1] = true;
-            executeResourceOnRequest(callback, returnType, values);
-            countDownLatch.await();
-        } catch (InterruptedException | AlreadyClosedException | BError exception) {
-            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
-            MethodType onErrorFunction = getAttachedFunctionType(service, FUNC_ON_ERROR);
-            executeOnError(onErrorFunction, message, envelope, properties, exception);
-        }
-    }
-
-    // dispatch Message and Caller
-    private void dispatchMessageToOnRequest(byte[] message, BObject caller, Envelope envelope,
-                                            AMQP.BasicProperties properties, Type returnType, Type type) {
-        CountDownLatch countDownLatch = new CountDownLatch(1);
-        try {
-            Callback callback = new RabbitMQResourceCallback(countDownLatch, channel, queueName,
-                                                             message.length, properties.getReplyTo(),
-                                                             envelope.getExchange());
-            Object[] values = new Object[4];
-            values[0] = createAndPopulateMessageRecord(message, envelope, properties, type);
-            values[1] = true;
-            values[2] = caller;
-            values[3] = true;
-            executeResourceOnRequest(callback, returnType, values);
-            countDownLatch.await();
-        } catch (InterruptedException | AlreadyClosedException | BError exception) {
-            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
-            MethodType onErrorFunction = getAttachedFunctionType(service, FUNC_ON_ERROR);
-            executeOnError(onErrorFunction, message, envelope, properties, exception);
-        }
-    }
-
-    // dispatch only Message
-    private void dispatchMessage(byte[] message, Envelope envelope, AMQP.BasicProperties properties, Type returnType,
-                                 Type type) {
-        CountDownLatch countDownLatch = new CountDownLatch(1);
-        try {
-            Callback callback = new RabbitMQResourceCallback(countDownLatch, channel, queueName,
-                                                             message.length);
-            Object[] values = new Object[2];
-            values[0] = createAndPopulateMessageRecord(message, envelope, properties, type);
-            values[1] = true;
-            executeResourceOnMessage(callback, returnType, values);
-            countDownLatch.await();
-        } catch (InterruptedException | AlreadyClosedException | BError exception) {
-            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
-            MethodType onErrorFunction = getAttachedFunctionType(service, FUNC_ON_ERROR);
-            executeOnError(onErrorFunction, message, envelope, properties, exception);
-        }
-    }
-
-    // dispatch Message and Caller
-    private void dispatchMessage(byte[] message, BObject caller, Envelope envelope, AMQP.BasicProperties properties,
-                                 Type returnType, Type type) {
-        CountDownLatch countDownLatch = new CountDownLatch(1);
-        try {
-            Callback callback = new RabbitMQResourceCallback(countDownLatch, channel, queueName,
-                                                             message.length);
-            Object[] values = new Object[4];
-            values[0] = createAndPopulateMessageRecord(message, envelope, properties, type);
-            values[1] = true;
-            values[2] = caller;
-            values[3] = true;
-            executeResourceOnMessage(callback, returnType, values);
-            countDownLatch.await();
-        } catch (InterruptedException | AlreadyClosedException | BError exception) {
-            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
-            MethodType onErrorFunction = getAttachedFunctionType(service, FUNC_ON_ERROR);
-            executeOnError(onErrorFunction, message, envelope, properties, exception);
-        }
+        return arguments;
     }
 
     private BObject getCallerBObject(long deliveryTag) {
@@ -294,6 +262,34 @@ public class MessageDispatcher {
         }
     }
 
+    private boolean isMessageType(Parameter parameter, BMap<BString, Object> annotations) {
+        if (annotations.containsKey(StringUtils.fromString(PARAM_ANNOTATION_PREFIX + parameter.name))) {
+            BMap paramAnnotationMap = annotations.getMapValue(StringUtils.fromString(
+                    PARAM_ANNOTATION_PREFIX + parameter.name));
+            if (paramAnnotationMap.containsKey(PARAM_PAYLOAD_ANNOTATION_NAME)) {
+                return false;
+            }
+        }
+        return invokeIsAnydataMessageTypeMethod(getRecordType(parameter.type));
+    }
+
+    private boolean invokeIsAnydataMessageTypeMethod(Type paramType) {
+        BObject client = ValueCreator.createObjectValue(ModuleUtils.getModule(), TYPE_CHECKER_OBJECT_NAME);
+        Semaphore sem = new Semaphore(0);
+        RabbitMQTypeCheckCallback messageTypeCheckCallback = new RabbitMQTypeCheckCallback(sem);
+        StrandMetadata metadata = new StrandMetadata(ORG_NAME, RABBITMQ,
+                ModuleUtils.getModule().getVersion(), IS_ANYDATA_MESSAGE);
+        runtime.invokeMethodAsyncSequentially(client, IS_ANYDATA_MESSAGE, null, metadata,
+                messageTypeCheckCallback, null, PredefinedTypes.TYPE_BOOLEAN,
+                ValueCreator.createTypedescValue(paramType), true);
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+            returnErrorValue(e.getMessage());
+        }
+        return messageTypeCheckCallback.getIsMessageType();
+    }
+
     private Map<String, Object> getNewObserverContextInProperties() {
         Map<String, Object> properties = new HashMap<>();
         RabbitMQObserverContext observerContext = new RabbitMQObserverContext(channel);
@@ -312,5 +308,12 @@ public class MessageDispatcher {
             }
         }
         return function;
+    }
+
+    private static Type getPayloadType(Type definedType) {
+        if (definedType.getTag() == INTERSECTION_TAG) {
+            return  ((IntersectionType) definedType).getConstituentTypes().get(0);
+        }
+        return definedType;
     }
 }
