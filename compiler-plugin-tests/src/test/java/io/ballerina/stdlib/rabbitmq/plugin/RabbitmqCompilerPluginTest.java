@@ -375,7 +375,7 @@ public class RabbitmqCompilerPluginTest {
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
             Diagnostic diagnostic = (Diagnostic) obj;
-            assertDiagnostic(diagnostic, INVALID_FUNCTION_PARAM_MESSAGE_OR_CALLER);
+            assertDiagnostic(diagnostic, INVALID_FUNCTION_PARAM_PAYLOAD);
         }
     }
 
