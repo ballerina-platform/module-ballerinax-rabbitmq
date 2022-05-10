@@ -228,7 +228,8 @@ public class RabbitmqFunctionValidator {
     }
 
     private void validateSecondParamInTwoParamScenario(ParameterNode parameterNode) {
-        if (!validateCaller(parameterNode) && !validatePayload(((RequiredParameterNode) parameterNode).typeName())) {
+        if (!validateCaller(parameterNode) && (isMessageParam((RequiredParameterNode) parameterNode) ||
+                !validatePayload(((RequiredParameterNode) parameterNode).typeName()))) {
             reportErrorDiagnostic(INVALID_FUNCTION_PARAM_MESSAGE_OR_CALLER, parameterNode.location());
         }
     }
@@ -298,7 +299,8 @@ public class RabbitmqFunctionValidator {
 
     private void validateThirdParamInThreeParamScenario(ParameterNode parameterNode) {
         RequiredParameterNode requiredParameterNode = (RequiredParameterNode) parameterNode;
-        if (!validatePayload(requiredParameterNode.typeName())) {
+        if (isMessageParam((RequiredParameterNode) parameterNode) ||
+                !validatePayload(requiredParameterNode.typeName())) {
             reportErrorDiagnostic(INVALID_FUNCTION_PARAM_PAYLOAD, requiredParameterNode.location());
         }
     }
