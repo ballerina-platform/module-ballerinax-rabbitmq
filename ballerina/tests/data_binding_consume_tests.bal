@@ -253,6 +253,16 @@ function jsonConsumePayloadTest() returns error? {
 }
 
 @test:Config {}
+function unionConsumePayloadTest() returns error? {
+    string message = "Hello";
+    check produceMessage(message.toString(), DATA_BINDING_UNION_PAYLOAD_QUEUE);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
+    int|string receivedPayload = check 'client->consumePayload(DATA_BINDING_UNION_PAYLOAD_QUEUE);
+    test:assertEquals(receivedPayload, message);
+    check 'client->close();
+}
+
+@test:Config {}
 function consumePayloadErrorTest() returns error? {
     json message = personMap.toJson();
     check produceMessage(message.toString(), DATA_BINDING_ERROR_QUEUE);

@@ -1,4 +1,4 @@
-// Copyright (c) 2021 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+// Copyright (c) 2022 WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 //
 // WSO2 Inc. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -23,7 +23,7 @@ listener rabbitmq:Listener channelListener =
     queueName: "MyQueue"
 }
 service rabbitmq:Service on channelListener {
-    remote function onMessage(rabbitmq:Message message, rabbitmq:Caller caller, string data) {
+    remote function onMessage(rabbitmq:BytesMessage message, rabbitmq:Caller caller, string payload, int a) {
     }
 }
 
@@ -31,6 +31,6 @@ service rabbitmq:Service on channelListener {
     queueName: "MyQueue"
 }
 service rabbitmq:Service on channelListener {
-    remote function onRequest(rabbitmq:Message message, rabbitmq:Caller caller, string data) {
+    remote function onMessage(rabbitmq:BytesMessage message, rabbitmq:Caller caller, string payload, int a, string b) {
     }
 }

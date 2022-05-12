@@ -31,6 +31,24 @@ import java.nio.file.Path;
 import static io.ballerina.stdlib.rabbitmq.plugin.CompilerPluginTestUtils.BALLERINA_SOURCES;
 import static io.ballerina.stdlib.rabbitmq.plugin.CompilerPluginTestUtils.RESOURCE_DIRECTORY;
 import static io.ballerina.stdlib.rabbitmq.plugin.CompilerPluginTestUtils.getEnvironmentBuilder;
+import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.FUNCTION_SHOULD_BE_REMOTE;
+import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.INVALID_FUNCTION;
+import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.INVALID_FUNCTION_PARAM_CALLER;
+import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.INVALID_FUNCTION_PARAM_ERROR;
+import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.INVALID_FUNCTION_PARAM_MESSAGE;
+import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.INVALID_FUNCTION_PARAM_MESSAGE_OR_CALLER;
+import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.INVALID_FUNCTION_PARAM_MESSAGE_OR_PAYLOAD;
+import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.INVALID_FUNCTION_PARAM_PAYLOAD;
+import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.INVALID_MULTIPLE_LISTENERS;
+import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.INVALID_REMOTE_FUNCTION;
+import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.INVALID_RETURN_TYPE_ANY_DATA;
+import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.INVALID_RETURN_TYPE_ERROR_OR_NIL;
+import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.MUST_HAVE_MESSAGE;
+import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.MUST_HAVE_MESSAGE_AND_ERROR;
+import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.NO_ON_MESSAGE_OR_ON_REQUEST;
+import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.ONLY_PARAMS_ALLOWED;
+import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.ONLY_PARAMS_ALLOWED_ON_ERROR;
+import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.ON_MESSAGE_OR_ON_REQUEST;
 
 /**
  * Tests for NATS package compiler plugin.
@@ -42,7 +60,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("valid_service_1");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 0);
+        Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
     @Test
@@ -50,7 +68,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("valid_service_2");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 0);
+        Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
     @Test
@@ -58,7 +76,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("valid_service_3");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 0);
+        Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
     @Test
@@ -66,7 +84,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("valid_service_4");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 0);
+        Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
     @Test
@@ -74,7 +92,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("valid_service_5");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 0);
+        Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
     @Test
@@ -82,7 +100,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("valid_service_6");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 0);
+        Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
     @Test
@@ -90,7 +108,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("valid_service_7");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 0);
+        Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
     @Test
@@ -98,7 +116,15 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("valid_service_8");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 0);
+        Assert.assertEquals(diagnosticResult.errorCount(), 0);
+    }
+
+    @Test
+    public void testValidService9() {
+        Package currentPackage = loadPackage("valid_service_9");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
     @Test
@@ -106,9 +132,9 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_1");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 1);
+        Assert.assertEquals(diagnosticResult.errorCount(), 1);
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
-        assertDiagnostic(diagnostic, PluginConstants.CompilationErrors.NO_ON_MESSAGE_OR_ON_REQUEST);
+        assertDiagnostic(diagnostic, NO_ON_MESSAGE_OR_ON_REQUEST);
     }
 
     @Test
@@ -116,9 +142,9 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_2");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 1);
+        Assert.assertEquals(diagnosticResult.errorCount(), 1);
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
-        assertDiagnostic(diagnostic, PluginConstants.CompilationErrors.ON_MESSAGE_OR_ON_REQUEST);
+        assertDiagnostic(diagnostic, ON_MESSAGE_OR_ON_REQUEST);
     }
 
     @Test
@@ -126,9 +152,9 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_3");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 1);
+        Assert.assertEquals(diagnosticResult.errorCount(), 1);
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
-        assertDiagnostic(diagnostic, PluginConstants.CompilationErrors.INVALID_REMOTE_FUNCTION);
+        assertDiagnostic(diagnostic, INVALID_REMOTE_FUNCTION);
     }
 
     @Test
@@ -136,11 +162,11 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_4");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 3);
+        Assert.assertEquals(diagnosticResult.errorCount(), 3);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
             Diagnostic diagnostic = (Diagnostic) obj;
-            assertDiagnostic(diagnostic, PluginConstants.CompilationErrors.FUNCTION_SHOULD_BE_REMOTE);
+            assertDiagnostic(diagnostic, FUNCTION_SHOULD_BE_REMOTE);
         }
     }
 
@@ -149,11 +175,11 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_5");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 2);
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
             Diagnostic diagnostic = (Diagnostic) obj;
-            assertDiagnostic(diagnostic, PluginConstants.CompilationErrors.MUST_HAVE_MESSAGE);
+            assertDiagnostic(diagnostic, MUST_HAVE_MESSAGE);
         }
     }
 
@@ -162,11 +188,11 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_6");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 2);
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
             Diagnostic diagnostic = (Diagnostic) obj;
-            assertDiagnostic(diagnostic, PluginConstants.CompilationErrors.ONLY_PARAMS_ALLOWED);
+            assertDiagnostic(diagnostic, ONLY_PARAMS_ALLOWED);
         }
     }
 
@@ -175,11 +201,11 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_7");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 4);
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
             Diagnostic diagnostic = (Diagnostic) obj;
-            assertDiagnostic(diagnostic, PluginConstants.CompilationErrors.INVALID_FUNCTION_PARAM_MESSAGE);
+            assertDiagnostic(diagnostic, INVALID_FUNCTION_PARAM_MESSAGE_OR_PAYLOAD);
         }
     }
 
@@ -188,11 +214,11 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_8");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 2);
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
             Diagnostic diagnostic = (Diagnostic) obj;
-            assertDiagnostic(diagnostic, PluginConstants.CompilationErrors.INVALID_RETURN_TYPE_ERROR_OR_NIL);
+            assertDiagnostic(diagnostic, INVALID_RETURN_TYPE_ERROR_OR_NIL);
         }
     }
 
@@ -201,11 +227,11 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_9");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 2);
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
             Diagnostic diagnostic = (Diagnostic) obj;
-            assertDiagnostic(diagnostic, PluginConstants.CompilationErrors.INVALID_FUNCTION_PARAM_MESSAGE);
+            assertDiagnostic(diagnostic, INVALID_FUNCTION_PARAM_MESSAGE);
         }
     }
 
@@ -214,11 +240,11 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_10");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 2);
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
             Diagnostic diagnostic = (Diagnostic) obj;
-            assertDiagnostic(diagnostic, PluginConstants.CompilationErrors.INVALID_RETURN_TYPE_ANY_DATA);
+            assertDiagnostic(diagnostic, INVALID_RETURN_TYPE_ANY_DATA);
         }
     }
 
@@ -227,9 +253,9 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_11");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 1);
+        Assert.assertEquals(diagnosticResult.errorCount(), 1);
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
-        assertDiagnostic(diagnostic, PluginConstants.CompilationErrors.MUST_HAVE_MESSAGE_AND_ERROR);
+        assertDiagnostic(diagnostic, MUST_HAVE_MESSAGE_AND_ERROR);
     }
 
     @Test
@@ -237,9 +263,9 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_12");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 1);
+        Assert.assertEquals(diagnosticResult.errorCount(), 1);
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
-        assertDiagnostic(diagnostic, PluginConstants.CompilationErrors.ONLY_PARAMS_ALLOWED_ON_ERROR);
+        assertDiagnostic(diagnostic, ONLY_PARAMS_ALLOWED_ON_ERROR);
     }
 
     @Test
@@ -247,11 +273,11 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_13");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 2);
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
             Diagnostic diagnostic = (Diagnostic) obj;
-            assertDiagnostic(diagnostic, PluginConstants.CompilationErrors.INVALID_FUNCTION_PARAM_ERROR);
+            assertDiagnostic(diagnostic, INVALID_FUNCTION_PARAM_ERROR);
         }
     }
 
@@ -260,9 +286,9 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_14");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 1);
+        Assert.assertEquals(diagnosticResult.errorCount(), 1);
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
-        assertDiagnostic(diagnostic, PluginConstants.CompilationErrors.INVALID_MULTIPLE_LISTENERS);
+        assertDiagnostic(diagnostic, INVALID_MULTIPLE_LISTENERS);
     }
 
     @Test
@@ -270,9 +296,9 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_15");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 1);
+        Assert.assertEquals(diagnosticResult.errorCount(), 1);
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
-        assertDiagnostic(diagnostic, PluginConstants.CompilationErrors.INVALID_FUNCTION);
+        assertDiagnostic(diagnostic, INVALID_FUNCTION);
     }
 
     @Test
@@ -280,11 +306,76 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_16");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 3);
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
             Diagnostic diagnostic = (Diagnostic) obj;
-            assertDiagnostic(diagnostic, PluginConstants.CompilationErrors.INVALID_FUNCTION_PARAM_MESSAGE);
+            assertDiagnostic(diagnostic, INVALID_FUNCTION_PARAM_MESSAGE_OR_PAYLOAD);
+        }
+    }
+
+    @Test
+    public void testInvalidService17() {
+        Package currentPackage = loadPackage("invalid_service_17");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
+        Object[] diagnostics = diagnosticResult.errors().toArray();
+        for (Object obj : diagnostics) {
+            Diagnostic diagnostic = (Diagnostic) obj;
+            assertDiagnostic(diagnostic, INVALID_FUNCTION_PARAM_MESSAGE_OR_CALLER);
+        }
+    }
+
+    @Test
+    public void testInvalidService18() {
+        Package currentPackage = loadPackage("invalid_service_18");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
+        Object[] diagnostics = diagnosticResult.errors().toArray();
+        for (Object obj : diagnostics) {
+            Diagnostic diagnostic = (Diagnostic) obj;
+            assertDiagnostic(diagnostic, INVALID_FUNCTION_PARAM_CALLER);
+        }
+    }
+
+    @Test
+    public void testInvalidService19() {
+        Package currentPackage = loadPackage("invalid_service_19");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
+        Object[] diagnostics = diagnosticResult.errors().toArray();
+        for (Object obj : diagnostics) {
+            Diagnostic diagnostic = (Diagnostic) obj;
+            assertDiagnostic(diagnostic, INVALID_FUNCTION_PARAM_PAYLOAD);
+        }
+    }
+
+    @Test
+    public void testInvalidService20() {
+        Package currentPackage = loadPackage("invalid_service_20");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
+        Object[] diagnostics = diagnosticResult.errors().toArray();
+        for (Object obj : diagnostics) {
+            Diagnostic diagnostic = (Diagnostic) obj;
+            assertDiagnostic(diagnostic, INVALID_FUNCTION_PARAM_MESSAGE_OR_CALLER);
+        }
+    }
+
+    @Test
+    public void testInvalidService21() {
+        Package currentPackage = loadPackage("invalid_service_21");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
+        Object[] diagnostics = diagnosticResult.errors().toArray();
+        for (Object obj : diagnostics) {
+            Diagnostic diagnostic = (Diagnostic) obj;
+            assertDiagnostic(diagnostic, INVALID_FUNCTION_PARAM_PAYLOAD);
         }
     }
 

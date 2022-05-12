@@ -20,6 +20,7 @@ package io.ballerina.stdlib.rabbitmq;
 
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BString;
+import io.ballerina.stdlib.rabbitmq.util.ModuleUtils;
 
 /**
  * RabbitMQ Connector Constants.
@@ -125,6 +126,13 @@ public class RabbitMQConstants {
     public static final BString CONNECTOR_ID = StringUtils.fromString("connectorId");
     static final String COMMIT_FAILED = "Transaction commit failed: ";
     static final String ROLLBACK_FAILED = "Transaction rollback failed: ";
+
+    // Payload related constants
+    public static final String PARAM_ANNOTATION_PREFIX = "$param$.";
+    public static final BString PARAM_PAYLOAD_ANNOTATION_NAME = StringUtils.fromString(
+            ModuleUtils.getModule().toString() + ":Payload");
+    public static final String TYPE_CHECKER_OBJECT_NAME = "TypeChecker";
+    public static final String IS_ANYDATA_MESSAGE = "isAnydataMessage";
 
     // Basic Properties constant fields
     public static final String RECORD_BASIC_PROPERTIES = "BasicProperties";
