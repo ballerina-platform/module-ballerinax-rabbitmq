@@ -85,6 +85,7 @@ const DATA_BINDING_XML_PAYLOAD_LISTENER_REQUEST_QUEUE = "XmlPayloadListenerReque
 const DATA_BINDING_JSON_PAYLOAD_LISTENER_REQUEST_QUEUE = "JsonPayloadListenerRequestQueue";
 const DATA_BINDING_RANDOM_PAYLOAD_MESSAGE_LISTENER_QUEUE = "RandomPayloadMessageListenerQueue";
 const DATA_BINDING_RANDOM_PAYLOAD_MESSAGE_LISTENER_REQUEST_QUEUE = "RandomPayloadMessageListenerRequestQueue";
+const DATA_BINDING_JSON_PAYLOAD_LISTENER_READONLY_QUEUE = "JsonReadonlyPayloadListenerRequestQueue";
 const DATA_BINDING_STRING_PUBLISH_QUEUE = "StringPublishQueue";
 const DATA_BINDING_INT_PUBLISH_QUEUE = "IntPublishQueue";
 const DATA_BINDING_DECIMAL_PUBLISH_QUEUE = "DecimalPublishQueue";
@@ -236,6 +237,7 @@ function setup3(Client clientObj) returns error? {
     check clientObj->queueDeclare(DATA_BINDING_ERROR_REQUEST_QUEUE);
     check clientObj->queueDeclare(DATA_BINDING_JSON_LISTENER_READONLY_QUEUE);
     check clientObj->queueDeclare(DATA_BINDING_UNION_PAYLOAD_QUEUE);
+    check clientObj->queueDeclare(DATA_BINDING_JSON_PAYLOAD_LISTENER_READONLY_QUEUE);
     check clientObj->queueDeclare(SYNC_NEGATIVE_QUEUE);
     check clientObj->queueDeclare(ACK_QUEUE);
     check clientObj->queueDeclare(ACK_QUEUE2);

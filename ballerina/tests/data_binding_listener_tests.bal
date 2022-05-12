@@ -117,6 +117,7 @@ json receivedJsonReqPayload = {};
 json receivedRandomPayloadValue = {};
 json receivedRandomPayloadReqValue = {};
 boolean readOnlyReceived = false;
+boolean readOnlyPayloadReceived = false;
 int receivedErrorCount = 0;
 
 Person personRecord = {
@@ -1336,5 +1337,32 @@ public function testListenerJsonPayloadMessageRequestBinding() returns error? {
     check channelListener.'start();
     runtime:sleep(2);
     test:assertEquals(receivedRandomPayloadValue, payloadMsg, msg = "Message received does not match.");
+    check channelListener.gracefulStop();
+}
+
+@test:Config {
+    groups: ["rabbitmq"]
+}
+public function testListenerReadonlyJsonPayloadBinding() returns error? {
+    json message = personMap.toJson();
+
+    Service jsonRequestService =
+    @ServiceConfig {
+        queueName: DATA_BINDING_JSON_PAYLOAD_LISTENER_READONLY_QUEUE
+    }
+    service object {
+        remote function onRequest(json & readonly payload, Caller caller) returns string {
+            readOnlyPayloadReceived = payload.isReadOnly();
+            log:printInfo("The message received in onRequest: " + payload.toString());
+            return "Hello Back!!";
+        }
+    };
+
+    check produceMessage(message.toString(), DATA_BINDING_JSON_PAYLOAD_LISTENER_READONLY_QUEUE, DATA_BINDING_REPLY_QUEUE);
+    Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
+    check channelListener.attach(jsonRequestService);
+    check channelListener.'start();
+    runtime:sleep(2);
+    test:assertTrue(readOnlyPayloadReceived);
     check channelListener.gracefulStop();
 }
