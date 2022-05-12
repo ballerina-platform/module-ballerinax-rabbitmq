@@ -60,7 +60,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("valid_service_1");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 0);
+        Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
     @Test
@@ -68,7 +68,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("valid_service_2");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 0);
+        Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
     @Test
@@ -76,7 +76,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("valid_service_3");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 0);
+        Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
     @Test
@@ -84,7 +84,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("valid_service_4");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 0);
+        Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
     @Test
@@ -92,7 +92,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("valid_service_5");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 0);
+        Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
     @Test
@@ -100,7 +100,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("valid_service_6");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 0);
+        Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
     @Test
@@ -108,7 +108,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("valid_service_7");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 0);
+        Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
     @Test
@@ -116,7 +116,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("valid_service_8");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 0);
+        Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
     @Test
@@ -124,7 +124,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("valid_service_9");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 0);
+        Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
     @Test
@@ -132,7 +132,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_1");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 1);
+        Assert.assertEquals(diagnosticResult.errorCount(), 1);
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
         assertDiagnostic(diagnostic, NO_ON_MESSAGE_OR_ON_REQUEST);
     }
@@ -142,7 +142,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_2");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 1);
+        Assert.assertEquals(diagnosticResult.errorCount(), 1);
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
         assertDiagnostic(diagnostic, ON_MESSAGE_OR_ON_REQUEST);
     }
@@ -152,7 +152,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_3");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 1);
+        Assert.assertEquals(diagnosticResult.errorCount(), 1);
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
         assertDiagnostic(diagnostic, INVALID_REMOTE_FUNCTION);
     }
@@ -162,7 +162,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_4");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 3);
+        Assert.assertEquals(diagnosticResult.errorCount(), 3);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
             Diagnostic diagnostic = (Diagnostic) obj;
@@ -175,7 +175,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_5");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 2);
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
             Diagnostic diagnostic = (Diagnostic) obj;
@@ -188,7 +188,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_6");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 2);
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
             Diagnostic diagnostic = (Diagnostic) obj;
@@ -201,7 +201,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_7");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 2);
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
             Diagnostic diagnostic = (Diagnostic) obj;
@@ -214,7 +214,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_8");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 2);
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
             Diagnostic diagnostic = (Diagnostic) obj;
@@ -227,7 +227,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_9");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 2);
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
             Diagnostic diagnostic = (Diagnostic) obj;
@@ -240,7 +240,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_10");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 2);
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
             Diagnostic diagnostic = (Diagnostic) obj;
@@ -253,7 +253,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_11");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 1);
+        Assert.assertEquals(diagnosticResult.errorCount(), 1);
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
         assertDiagnostic(diagnostic, MUST_HAVE_MESSAGE_AND_ERROR);
     }
@@ -263,7 +263,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_12");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 1);
+        Assert.assertEquals(diagnosticResult.errorCount(), 1);
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
         assertDiagnostic(diagnostic, ONLY_PARAMS_ALLOWED_ON_ERROR);
     }
@@ -273,7 +273,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_13");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 2);
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
             Diagnostic diagnostic = (Diagnostic) obj;
@@ -286,7 +286,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_14");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 1);
+        Assert.assertEquals(diagnosticResult.errorCount(), 1);
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
         assertDiagnostic(diagnostic, INVALID_MULTIPLE_LISTENERS);
     }
@@ -296,7 +296,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_15");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 1);
+        Assert.assertEquals(diagnosticResult.errorCount(), 1);
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
         assertDiagnostic(diagnostic, INVALID_FUNCTION);
     }
@@ -306,7 +306,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_16");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 2);
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
             Diagnostic diagnostic = (Diagnostic) obj;
@@ -319,7 +319,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_17");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 2);
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
             Diagnostic diagnostic = (Diagnostic) obj;
@@ -332,7 +332,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_18");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 2);
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
             Diagnostic diagnostic = (Diagnostic) obj;
@@ -345,7 +345,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_19");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 2);
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
             Diagnostic diagnostic = (Diagnostic) obj;
@@ -358,7 +358,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_20");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 2);
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
             Diagnostic diagnostic = (Diagnostic) obj;
@@ -371,7 +371,7 @@ public class RabbitmqCompilerPluginTest {
         Package currentPackage = loadPackage("invalid_service_21");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
-        Assert.assertEquals(diagnosticResult.errors().size(), 2);
+        Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
             Diagnostic diagnostic = (Diagnostic) obj;
