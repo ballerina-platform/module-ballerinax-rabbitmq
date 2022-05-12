@@ -28,7 +28,6 @@ import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.async.StrandMetadata;
 import io.ballerina.runtime.api.creators.ValueCreator;
-import io.ballerina.runtime.api.types.IntersectionType;
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.Parameter;
 import io.ballerina.runtime.api.types.Type;
@@ -66,8 +65,7 @@ import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.PARAM_PAYLOAD_ANNOT
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.RABBITMQ;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.TYPE_CHECKER_OBJECT_NAME;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.createAndPopulateMessageRecord;
-import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.getRecordType;
-import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.getValueWithIntendedType;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.createPayload;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.returnErrorValue;
 
 /**
@@ -199,7 +197,7 @@ public class MessageDispatcher {
                         returnErrorValue("Invalid remote function signature");
                     }
                     payloadExists = true;
-                    arguments[index++] = getValueWithIntendedType(getPayloadType(parameter.type), message);
+                    arguments[index++] = createPayload(message, parameter.type);
                     arguments[index++] = true;
                     break;
             }
@@ -270,7 +268,7 @@ public class MessageDispatcher {
                 return false;
             }
         }
-        return invokeIsAnydataMessageTypeMethod(getRecordType(parameter.type));
+        return invokeIsAnydataMessageTypeMethod(parameter.type);
     }
 
     private boolean invokeIsAnydataMessageTypeMethod(Type paramType) {
@@ -308,12 +306,5 @@ public class MessageDispatcher {
             }
         }
         return function;
-    }
-
-    private static Type getPayloadType(Type definedType) {
-        if (definedType.getTag() == INTERSECTION_TAG) {
-            return  ((IntersectionType) definedType).getConstituentTypes().get(0);
-        }
-        return definedType;
     }
 }

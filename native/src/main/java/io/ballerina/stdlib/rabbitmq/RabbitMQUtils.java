@@ -38,12 +38,14 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.stdlib.rabbitmq.util.ModuleUtils;
+import org.ballerinalang.langlib.value.CloneReadOnly;
 import org.ballerinalang.langlib.value.CloneWithType;
 import org.ballerinalang.langlib.value.FromJsonWithType;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
+import static io.ballerina.runtime.api.TypeTags.INTERSECTION_TAG;
 import static io.ballerina.runtime.api.TypeTags.STRING_TAG;
 import static io.ballerina.runtime.api.TypeTags.UNION_TAG;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.MESSAGE_CONTENT_FIELD;
@@ -135,9 +137,12 @@ public class RabbitMQUtils {
     }
 
     public static Object createPayload(byte[] message, Type payloadType) {
-        Object messageContent = getValueWithIntendedType(payloadType, message);
+        Object messageContent = getValueWithIntendedType(getPayloadType(payloadType), message);
         if (messageContent instanceof BError) {
             throw (BError) messageContent;
+        }
+        if (payloadType.isReadOnly()) {
+            return CloneReadOnly.cloneReadOnly(messageContent);
         }
         return messageContent;
     }
@@ -202,6 +207,13 @@ public class RabbitMQUtils {
             return (RecordType) ((IntersectionType) (type)).getConstituentTypes().get(0);
         }
         return (RecordType) type;
+    }
+
+    private static Type getPayloadType(Type definedType) {
+        if (definedType.getTag() == INTERSECTION_TAG) {
+            return  ((IntersectionType) definedType).getConstituentTypes().get(0);
+        }
+        return definedType;
     }
 
     private RabbitMQUtils() {
