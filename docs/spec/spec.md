@@ -558,7 +558,7 @@ It is also possible to retrieve individual messages on demand ("pull API" a.k.a.
    rabbitmq:AnydataMessage message = check rabbitmqClient->consumeMessage("MyQueue", false);
 ```
 
-As same as the `rabbitmq:Service`, if the metadata of the message is not needed, `consumerPayload` api can be used to directly get the payload.
+As same as the `rabbitmq:Service`, if the metadata of the message is not needed, `consumePayload` api can be used to directly get the payload.
 ```ballerina
    # Retrieves the payload synchronously from the given queue.
    #
@@ -657,16 +657,23 @@ The negatively-acknowledged (rejected) messages can be re-queued by setting the 
    
    listener rabbitmq:Listener channelListener =
            new(rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
+           
+   public type Person record {|
+       string name;
+       int age;
+   |};
+   
+   public type PersonMessage record {|
+       *rabbitmq:AnydataMessage;
+       Person content;
+   |};
 
    @rabbitmq:ServiceConfig {
        queueName: "MyQueue"
    }
    service rabbitmq:Service on channelListener {
-       remote function onMessage(rabbitmq:Message message) {
-           string|error messageContent = string:fromBytes(message.content);
-           if messageContent is string {
-               log:printInfo("Received message: " + messageContent);
-           }
+       remote function onMessage(PersonMessage message) {
+           log:printInfo("Received message: " + message.content.toString());
        }
    }
 ```
@@ -685,7 +692,7 @@ The negatively-acknowledged (rejected) messages can be re-queued by setting the 
       rabbitmq:BasicProperties props = {
          replyTo: "reply-queue"  
       };
-      check newClient->publishMessage({ content: message.toBytes(), routingKey: queueName, 
+      check newClient->publishMessage({ content: message, routingKey: queueName, 
                   properties: props });
    }
 ```
@@ -697,16 +704,18 @@ The negatively-acknowledged (rejected) messages can be re-queued by setting the 
    
    listener rabbitmq:Listener channelListener =
            new(rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
+           
+   public type Person record {|
+       string name;
+       int age;
+   |};  
    
    @rabbitmq:ServiceConfig {
        queueName: "MyQueue"
    }
    service rabbitmq:Service on channelListener {
-       remote function onRequest(rabbitmq:Message message) returns string {
-           string|error messageContent = string:fromBytes(message.content);
-           if messageContent is string {
-               log:printInfo("Received message: " + messageContent);
-           } 
+       remote function onRequest(Person person) returns string {
+           log:printInfo("Received person data: " + person.toString());
            return "Hello back from ballerina!";
        }
    }
