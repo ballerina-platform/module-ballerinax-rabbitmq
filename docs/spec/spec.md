@@ -447,6 +447,44 @@ The `rabbitmq:AnydataMessage` record received can be used to retrieve its conten
       BasicProperties properties?;
    |};
 ```
+Subtypes of `rabbitmq:AnydataMessage` can be used to bind data to a specific type.
+```ballerina
+    public type StringMessage record {|
+       *rabbitmq:AnydataMessage;
+       string content;
+   |};
+   rabbitmq:Service listenerService =
+   @rabbitmq:ServiceConfig {
+      queueName: "MyQueue"
+   }
+   service object {
+      remote function onRequest(StringMessage message) returns string {
+         return "Hello Back!";
+      }
+   };
+```
+`rabbitmq:BytesMessage` can be used to get the content as a `byte[]` array.
+```ballerina
+# Represents the subtype of `AnydataMessage` record where the message content is a byte array.
+#
+# + content - Message content in bytes
+public type BytesMessage record {|
+    *AnydataMessage;
+    byte[] content;
+|};
+```
+If metadata like `routingKey`, `properties` are not needed, `content` can be directly received as well.
+```ballerina
+   rabbitmq:Service listenerService =
+   @rabbitmq:ServiceConfig {
+      queueName: "MyQueue"
+   }
+   service object {
+      remote function onRequest(string payload) returns string {
+         return "Hello Back!";
+      }
+   };
+```
 
 **The Listener has the following functions to manage a service:**
 * `attach()` - can be used to attach a service to the listener dynamically.
@@ -518,6 +556,23 @@ It is also possible to retrieve individual messages on demand ("pull API" a.k.a.
    
    // Pulls a message with auto acknowledgements turned off. 
    rabbitmq:AnydataMessage message = check rabbitmqClient->consumeMessage("MyQueue", false);
+```
+
+As same as the `rabbitmq:Service`, if the metadata of the message is not needed, `consumerPayload` api can be used to directly get the payload.
+```ballerina
+   # Retrieves the payload synchronously from the given queue.
+   #
+   # + queueName - The name of the queue
+   # + autoAck - If false, should manually acknowledge
+   # + T - Optional type description of the required data type
+   # + return - Message payload in the required format if executed successfully or else a `rabbitmq:Error`
+   isolated remote function consumePayload(string queueName, boolean autoAck = true, typedesc<anydata> T = <>)
+     returns T|Error;
+```
+
+- Usage:
+```ballerina
+   string payload = check rabbitmqClient->consumePayload("MyQueue");
 ```
 
 ## 8. Client Acknowledgements
