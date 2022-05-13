@@ -61,18 +61,16 @@ service "MyQueue" on rabbitmqListener {
 Instead of this, if data binding support is introduced, user can easily send and receive the messages in the desired format.
 For this purpose, we will introduce a new record for sending and receiving.
 ```ballerina
-# Represents the anydata message, which a RabbitMQ server sends to its subscribed services.
-#
-# + content - The content of the message
-# + routingKey - The routing key to which the message is sent
-# + exchange - The exchange to which the message is sent. The default exchange is a direct exchange with no name (empty string) pre-declared by the broker.
-# + deliveryTag - The delivery tag of the message
-# + properties - Basic properties of the message - routing headers etc.
 public type AnydataMessage record {|
+    // The content of the message
     anydata content;
+    // The routing key to which the message is sent
     string routingKey;
+    // The exchange to which the message is sent. The default exchange is a direct exchange with no name (empty string) pre-declared by the broker.
     string exchange = "";
+    // The delivery tag of the message
     int deliveryTag?;
+    // Basic properties of the message - routing headers etc.
     BasicProperties properties?;
 |};
 ```
