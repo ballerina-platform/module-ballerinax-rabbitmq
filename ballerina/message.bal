@@ -45,7 +45,7 @@ public type AnydataMessage record {|
     BasicProperties properties?;
 |};
 
-# Represents the subtype of `AnydataMessage` record where the message content is a byte array.
+# Represents the subtype of `rabbitmq:AnydataMessage` record where the message content is a byte array.
 #
 # + content - Message content in bytes
 public type BytesMessage record {|
