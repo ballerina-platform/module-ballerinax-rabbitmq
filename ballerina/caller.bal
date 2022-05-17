@@ -27,7 +27,10 @@ public isolated client class Caller {
     # + multiple - Set to `true` to acknowledge all messages up to and including the called on message and
     #              `false` to acknowledge just the called on message
     # + return - A `rabbitmq:Error` if an I/O error occurred
-    isolated remote function basicAck(boolean multiple = false) returns Error? = @java:Method { 'class: "io.ballerina.stdlib.rabbitmq.util.MessageUtils" } external;
+    isolated remote function basicAck(boolean multiple = false) returns Error? =
+    @java:Method {
+        'class: "io.ballerina.stdlib.rabbitmq.util.MessageUtils"
+    } external;
 
     # Rejects one or several received messages.
     # ```ballerina
@@ -38,5 +41,8 @@ public isolated client class Caller {
     #              `false` to reject just the called on message
     # + requeue - `true` if the rejected message(s) should be re-queued rather than discarded/dead-lettered
     # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
-    isolated remote function basicNack(boolean multiple = false, boolean requeue = true) returns Error? = @java:Method { 'class: "io.ballerina.stdlib.rabbitmq.util.MessageUtils" } external;
+    isolated remote function basicNack(boolean multiple = false, boolean requeue = true) returns Error? =
+    @java:Method {
+        'class: "io.ballerina.stdlib.rabbitmq.util.MessageUtils"
+    } external;
 }
