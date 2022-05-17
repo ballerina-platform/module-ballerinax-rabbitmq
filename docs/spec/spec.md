@@ -3,7 +3,7 @@
 _Owners_: @aashikam @shafreenAnfar  
 _Reviewers_: @shafreenAnfar  
 _Created_: 2020/10/28  
-_Updated_: 2022/02/17  
+_Updated_: 2022/05/12   
 _Edition_: Swan Lake  
 _Issue_: [#2223](https://github.com/ballerina-platform/ballerina-standard-library/issues/2223)
 
@@ -350,7 +350,7 @@ A queue or an exchange can be explicitly deleted or purged using following metho
    #
    # + message - The message to be published
    # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
-   isolated remote function publishMessage(Message message) returns Error?;
+   isolated remote function publishMessage(AnydataMessage message) returns Error?;
 ```
 
 - Configurations related to publishing:
@@ -371,7 +371,7 @@ To publish a message to an exchange, use the `publishMessage()` function as foll
 
 ```ballerina
    string message = "Hello from Ballerina";
-   check rabbitmqClient->publishMessage({ content: message.toBytes(), routingKey: queueName });
+   check rabbitmqClient->publishMessage({ content: message, routingKey: queueName });
 ``` 
 Setting other properties of the message such as routing headers can be done by using the `BasicProperties` record with the appropriate values.
 
@@ -380,7 +380,7 @@ Setting other properties of the message such as routing headers can be done by u
     replyTo: "reply-queue"  
    };
    string message = "Hello from Ballerina";
-   check rabbitmqClient->publishMessage({ content: message.toBytes(), routingKey: queueName, properties: props });
+   check rabbitmqClient->publishMessage({ content: message, routingKey: queueName, properties: props });
 ```
 
 ## 6. Subscribing
@@ -398,7 +398,7 @@ The most efficient way to receive messages is to set up a subscription using a B
       queueName: "MyQueue"
    }
    service rabbitmq:Service on channelListener {
-      remote function onMessage(rabbitmq:Message message) {
+      remote function onMessage(rabbitmq:AnydataMessage message) {
       }
    }
 ```
@@ -412,7 +412,7 @@ The most efficient way to receive messages is to set up a subscription using a B
       queueName: "MyQueue"
    }
    service rabbitmq:Service on channelListener {
-      remote function onRequest(rabbitmq:Message message) returns string {
+      remote function onRequest(rabbitmq:AnydataMessage message) returns string {
          return "Hello Back!";
       }
    }
@@ -426,17 +426,17 @@ The most efficient way to receive messages is to set up a subscription using a B
       queueName: "MyQueue"
    }
    service object {
-      remote function onRequest(rabbitmq:Message message) returns string {
+      remote function onRequest(rabbitmq:AnydataMessage message) returns string {
          return "Hello Back!";
       }
    };
 ```
 
-The `rabbitmq:Message` record received can be used to retrieve its contents.
+The `rabbitmq:AnydataMessage` record received can be used to retrieve its contents.
 ```ballerina
-   public type Message record {|
+   public type AnydataMessage record {|
       # The content of the message.
-      byte[] content;
+      anydata content;
       # The routing key to which the message is sent . 
       string routingKey;
       # The exchange to which the message is sent. The default exchange is a direct exchange with no name (empty string) pre-declared by the broker.
@@ -446,6 +446,44 @@ The `rabbitmq:Message` record received can be used to retrieve its contents.
       # Basic properties of the message - routing headers etc. 
       BasicProperties properties?;
    |};
+```
+Subtypes of `rabbitmq:AnydataMessage` can be used to bind data to a specific type.
+```ballerina
+    public type StringMessage record {|
+       *rabbitmq:AnydataMessage;
+       string content;
+   |};
+   rabbitmq:Service listenerService =
+   @rabbitmq:ServiceConfig {
+      queueName: "MyQueue"
+   }
+   service object {
+      remote function onRequest(StringMessage message) returns string {
+         return message.content;
+      }
+   };
+```
+`rabbitmq:BytesMessage` can be used to get the content as a `byte[]` array.
+```ballerina
+# Represents the subtype of `AnydataMessage` record where the message content is a byte array.
+#
+# + content - Message content in bytes
+public type BytesMessage record {|
+    *AnydataMessage;
+    byte[] content;
+|};
+```
+If metadata like `routingKey`, `properties` are not needed, `content` can be directly received as well.
+```ballerina
+   rabbitmq:Service listenerService =
+   @rabbitmq:ServiceConfig {
+      queueName: "MyQueue"
+   }
+   service object {
+      remote function onRequest(string payload) returns string {
+         return payload;
+      }
+   };
 ```
 
 **The Listener has the following functions to manage a service:**
@@ -503,20 +541,38 @@ It is also possible to retrieve individual messages on demand ("pull API" a.k.a.
    #
    # + queueName - The name of the queue
    # + autoAck - If false, should manually acknowledge
+   # + T - Optional type description of the required data type
    # + return - A `rabbitmq:Message` object containing the retrieved message data or else a`rabbitmq:Error` if an
    #            I/O error occurred
-   isolated remote function consumeMessage(string queueName, boolean autoAck = true)
-     returns Message|Error;
+   isolated remote function consumeMessage(string queueName, boolean autoAck = true, typedesc<AnydataMessage> T = <>)
+     returns T|Error;
 ```
 
 - Usage:
 
 ```ballerina
    // Pulls a single message from MyQueue. 
-   rabbitmq:Message message = check rabbitmqClient->consumeMessage("MyQueue");
+   rabbitmq:AnydataMessage message = check rabbitmqClient->consumeMessage("MyQueue");
    
    // Pulls a message with auto acknowledgements turned off. 
-   rabbitmq:Message message = check rabbitmqClient->consumeMessage("MyQueue", false);
+   rabbitmq:AnydataMessage message = check rabbitmqClient->consumeMessage("MyQueue", false);
+```
+
+As same as the `rabbitmq:Service`, if the metadata of the message is not needed, `consumePayload` api can be used to directly get the payload.
+```ballerina
+   # Retrieves the payload synchronously from the given queue.
+   #
+   # + queueName - The name of the queue
+   # + autoAck - If false, should manually acknowledge
+   # + T - Optional type description of the required data type
+   # + return - Message payload in the required format if executed successfully or else a `rabbitmq:Error`
+   isolated remote function consumePayload(string queueName, boolean autoAck = true, typedesc<anydata> T = <>)
+     returns T|Error;
+```
+
+- Usage:
+```ballerina
+   string payload = check rabbitmqClient->consumePayload("MyQueue");
 ```
 
 ## 8. Client Acknowledgements
@@ -556,7 +612,7 @@ The default acknowledgement mode is auto-ack (messages are acknowledged immediat
       autoAck: false
    }
    service rabbitmq:Service on channelListener {
-      remote function onMessage(rabbitmq:Message message, rabbitmq:Caller caller) {
+      remote function onMessage(rabbitmq:AnydataMessage message, rabbitmq:Caller caller) {
          rabbitmq:Error? result = caller->basicAck();
       }
    }
@@ -571,7 +627,7 @@ The default acknowledgement mode is auto-ack (messages are acknowledged immediat
       autoAck: false
    }
    service rabbitmq:Service on channelListener {
-      remote function onMessage(rabbitmq:Message message) {
+      remote function onMessage(rabbitmq:AnydataMessage message) {
          rabbitmq:Error? result = caller->basicNack(true, requeue = false);
       }
    }
@@ -591,7 +647,7 @@ The negatively-acknowledged (rejected) messages can be re-queued by setting the 
                    check new(rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
        check newClient->queueDeclare("MyQueue");
        string message = "Hello from Ballerina";
-       check newClient->publishMessage({ content: message.toBytes(), routingKey: "MyQueue" });
+       check newClient->publishMessage({ content: message, routingKey: "MyQueue" });
    }
 ```
 * Subscriber
@@ -601,16 +657,23 @@ The negatively-acknowledged (rejected) messages can be re-queued by setting the 
    
    listener rabbitmq:Listener channelListener =
            new(rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
+           
+   public type Person record {|
+       string name;
+       int age;
+   |};
+   
+   public type PersonMessage record {|
+       *rabbitmq:AnydataMessage;
+       Person content;
+   |};
 
    @rabbitmq:ServiceConfig {
        queueName: "MyQueue"
    }
    service rabbitmq:Service on channelListener {
-       remote function onMessage(rabbitmq:Message message) {
-           string|error messageContent = string:fromBytes(message.content);
-           if messageContent is string {
-               log:printInfo("Received message: " + messageContent);
-           }
+       remote function onMessage(PersonMessage message) {
+           log:printInfo("Received message: " + message.content.toString());
        }
    }
 ```
@@ -629,7 +692,7 @@ The negatively-acknowledged (rejected) messages can be re-queued by setting the 
       rabbitmq:BasicProperties props = {
          replyTo: "reply-queue"  
       };
-      check newClient->publishMessage({ content: message.toBytes(), routingKey: queueName, 
+      check newClient->publishMessage({ content: message, routingKey: queueName, 
                   properties: props });
    }
 ```
@@ -641,17 +704,19 @@ The negatively-acknowledged (rejected) messages can be re-queued by setting the 
    
    listener rabbitmq:Listener channelListener =
            new(rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
+           
+   public type Person record {|
+       string name;
+       int age;
+   |};  
    
    @rabbitmq:ServiceConfig {
        queueName: "MyQueue"
    }
    service rabbitmq:Service on channelListener {
-       remote function onRequest(rabbitmq:Message message) returns string {
-           string|error messageContent = string:fromBytes(message.content);
-           if messageContent is string {
-               log:printInfo("Received message: " + messageContent);
-           } 
-           return "Hello back from ballerina!";
+       remote function onRequest(Person person) returns string {
+           log:printInfo("Received person data: " + person.toString());
+           return "Hello " + person.name;
        }
    }
 ```
