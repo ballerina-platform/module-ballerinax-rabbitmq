@@ -43,10 +43,7 @@ public isolated client class Client {
     # + config - The configurations required to declare a queue
     # + return - `()` if the queue was successfully generated or else a `rabbitmq:Error`
     #               if an I/O error occurred
-    isolated remote function queueDeclare(string name, QueueConfig? config = ()) returns Error? =
-    @java:Method {
-        'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
-    } external;
+    isolated remote function queueDeclare(string name, QueueConfig? config = ()) returns Error? = @java:Method { 'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils" } external;
 
     # Declares a queue with a server-generated name.
     # ```ballerina
@@ -55,10 +52,7 @@ public isolated client class Client {
     #
     # + return - The name of the queue or else a `rabbitmq:Error`
     #             if an I/O error occurred
-    isolated remote function queueAutoGenerate() returns string|Error =
-    @java:Method {
-        'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
-    } external;
+    isolated remote function queueAutoGenerate() returns string|Error = @java:Method { 'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils" } external;
 
     # Declares a non-auto-delete, non-durable exchange with no extra arguments.
     # If the arguments are specified, then the exchange is declared accordingly.
@@ -70,11 +64,7 @@ public isolated client class Client {
     # + exchangeType - The type of the exchange
     # + config - The configurations required to declare an exchange
     # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
-    isolated remote function exchangeDeclare(string name,
-            ExchangeType exchangeType = DIRECT_EXCHANGE, ExchangeConfig? config = ()) returns Error? =
-    @java:Method {
-        'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
-    } external;
+    isolated remote function exchangeDeclare(string name, ExchangeType exchangeType = DIRECT_EXCHANGE, ExchangeConfig? config = ()) returns Error? = @java:Method { 'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils" } external;
 
     # Binds a queue to an exchange with the given binding key.
     # ```ballerina
@@ -85,10 +75,7 @@ public isolated client class Client {
     # + exchangeName - The name of the exchange
     # + bindingKey - The binding key used to bind the queue to the exchange
     # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
-    isolated remote function queueBind(string queueName, string exchangeName, string bindingKey) returns Error? =
-    @java:Method {
-        'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
-    } external;
+    isolated remote function queueBind(string queueName, string exchangeName, string bindingKey) returns Error? = @java:Method { 'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils" } external;
 
     # Publishes a message. Publishing to a non-existent exchange will result in a channel-level
     # protocol error, which closes the channel.
@@ -132,11 +119,7 @@ public isolated client class Client {
     # + T - Optional type description of the required data type
     # + return - A `rabbitmq:Message` object containing the retrieved message data or else a`rabbitmq:Error` if an
     #            I/O error occurred
-    isolated remote function consumeMessage(string queueName, boolean autoAck = true, typedesc<AnydataMessage> T = <>)
-        returns T|Error =
-    @java:Method {
-        'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
-    } external;
+    isolated remote function consumeMessage(string queueName, boolean autoAck = true, typedesc<AnydataMessage> T = <>) returns T|Error = @java:Method { 'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils" } external;
 
     # Retrieves the payload synchronously from the given queue.
     # ```ballerina
@@ -147,11 +130,7 @@ public isolated client class Client {
     # + autoAck - If false, should manually acknowledge
     # + T - Optional type description of the required data type
     # + return - Message payload in the required format if executed successfully or else a `rabbitmq:Error`
-    isolated remote function consumePayload(string queueName, boolean autoAck = true, typedesc<anydata> T = <>)
-        returns T|Error =
-    @java:Method {
-        'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
-    } external;
+    isolated remote function consumePayload(string queueName, boolean autoAck = true, typedesc<anydata> T = <>) returns T|Error = @java:Method { 'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils" } external;
 
     # Acknowledges one or several received messages.
     # ```ballerina
@@ -162,10 +141,7 @@ public isolated client class Client {
     # + multiple - Set to `true` to acknowledge all messages up to and including the called on message and
     #              `false` to acknowledge just the called on message
     # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
-    isolated remote function basicAck(Message message, boolean multiple = false) returns Error? =
-    @java:Method {
-        'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
-    } external;
+    isolated remote function basicAck(Message message, boolean multiple = false) returns Error? = @java:Method { 'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils" } external;
 
     # Rejects one or several received messages.
     # ```ballerina
@@ -177,11 +153,7 @@ public isolated client class Client {
     #              `false` to reject just the called on message
     # + requeue - `true` if the rejected message(s) should be re-queued rather than discarded/dead-lettered
     # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
-    isolated remote function basicNack(Message message, boolean multiple = false, boolean requeue = true)
-                            returns Error? =
-    @java:Method {
-        'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
-    } external;
+    isolated remote function basicNack(Message message, boolean multiple = false, boolean requeue = true) returns Error? = @java:Method { 'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils" } external;
 
     # Deletes the queue with the given name although it is in use or has messages in it.
     # If the `ifUnused` or `ifEmpty` parameters are given, the queue is checked before deleting.
@@ -193,11 +165,7 @@ public isolated client class Client {
     # + ifUnused - True if the queue should be deleted only if it's not in use
     # + ifEmpty - True if the queue should be deleted only if it's empty
     # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
-    isolated remote function queueDelete(string queueName, boolean ifUnused = false, boolean ifEmpty = false)
-                        returns Error? =
-    @java:Method {
-        'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
-    } external;
+    isolated remote function queueDelete(string queueName, boolean ifUnused = false, boolean ifEmpty = false) returns Error? = @java:Method { 'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils" } external;
 
     # Deletes the exchange with the given name.
     # ```ballerina
@@ -206,10 +174,7 @@ public isolated client class Client {
     #
     # + exchangeName - The name of the exchange
     # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
-    isolated remote function exchangeDelete(string exchangeName) returns Error? =
-    @java:Method {
-        'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
-    } external;
+    isolated remote function exchangeDelete(string exchangeName) returns Error? = @java:Method { 'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils" } external;
 
     # Purges the content of the given queue.
     # ```ballerina
@@ -218,10 +183,7 @@ public isolated client class Client {
     #
     # + queueName - The name of the queue
     # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
-    isolated remote function queuePurge(string queueName) returns Error? =
-    @java:Method {
-        'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
-    } external;
+    isolated remote function queuePurge(string queueName) returns Error? = @java:Method { 'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils" } external;
 
     # Closes the `rabbitmq:Client`.
     # ```ballerina
@@ -232,10 +194,7 @@ public isolated client class Client {
     #               (#https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf))
     # + closeMessage - A message indicating the reason for closing the channel
     # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
-    isolated remote function close(int? closeCode = (), string? closeMessage = ()) returns Error? =
-    @java:Method {
-        'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
-    } external;
+    isolated remote function close(int? closeCode = (), string? closeMessage = ()) returns Error? = @java:Method { 'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils" } external;
 
     # Aborts the RabbitMQ `rabbitmq:Client`. Forces the `rabbitmq:Client` to close and waits for all the close operations
     # to complete. Any encountered exceptions in the close operations are discarded silently.
@@ -247,18 +206,9 @@ public isolated client class Client {
     #               (#https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf))
     # + closeMessage - A message indicating the reason for closing the channel
     # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
-    isolated remote function 'abort(int? closeCode = (), string? closeMessage = ()) returns Error? =
-    @java:Method {
-        'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
-    } external;
+    isolated remote function 'abort(int? closeCode = (), string? closeMessage = ()) returns Error? = @java:Method { 'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils" } external;
 }
 
-isolated function createChannel(string host, int port, Client channelObj, *ConnectionConfiguration config)
-returns Error? = @java:Method {
-    'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
-} external;
+isolated function createChannel(string host, int port, Client channelObj, *ConnectionConfiguration config) returns Error? = @java:Method { 'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils" } external;
 
-isolated function publishNative(Client clientObj, AnydataMessage message) returns Error? =
-@java:Method {
-    'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
-} external;
+isolated function publishNative(Client clientObj, AnydataMessage message) returns Error? = @java:Method { 'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils" } external;

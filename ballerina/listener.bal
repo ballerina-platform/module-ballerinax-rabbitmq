@@ -55,10 +55,7 @@ public isolated class Listener {
     # + s - The type descriptor of the service
     # + name - The name of the service
     # + return - `()` or else a `rabbitmq:Error` upon failure to register the service
-    public isolated function attach(Service s, string[]|string? name = ()) returns error? =
-    @java:Method {
-        'class: "io.ballerina.stdlib.rabbitmq.util.ListenerUtils"
-    } external;
+    public isolated function attach(Service s, string[]|string? name = ()) returns error? = @java:Method { 'class: "io.ballerina.stdlib.rabbitmq.util.ListenerUtils" } external;
 
     # Starts consuming the messages on all the attached services.
     # ```ballerina
@@ -66,10 +63,7 @@ public isolated class Listener {
     # ```
     #
     # + return - `()` or else a `rabbitmq:Error` upon failure to start
-    public isolated function 'start() returns error? =
-    @java:Method {
-        'class: "io.ballerina.stdlib.rabbitmq.util.ListenerUtils"
-    } external;
+    public isolated function 'start() returns error? = @java:Method { 'class: "io.ballerina.stdlib.rabbitmq.util.ListenerUtils" } external;
 
     # Stops consuming messages and detaches the service from the `rabbitmq:Listener` endpoint.
     # ```ballerina
@@ -78,10 +72,7 @@ public isolated class Listener {
     #
     # + s - The type descriptor of the service
     # + return - `()` or else  a `rabbitmq:Error` upon failure to detach the service
-    public isolated function detach(Service s) returns error? =
-    @java:Method {
-        'class: "io.ballerina.stdlib.rabbitmq.util.ListenerUtils"
-    } external;
+    public isolated function detach(Service s) returns error? = @java:Method { 'class: "io.ballerina.stdlib.rabbitmq.util.ListenerUtils" } external;
 
     # Stops consuming messages through all consumer services by terminating the connection and all its channels.
     # ```ballerina
@@ -89,10 +80,7 @@ public isolated class Listener {
     # ```
     #
     # + return - `()` or else  a `rabbitmq:Error` upon failure to close the `ChannelListener`
-    public isolated function gracefulStop() returns error? =
-    @java:Method {
-        'class: "io.ballerina.stdlib.rabbitmq.util.ListenerUtils"
-    } external;
+    public isolated function gracefulStop() returns error? = @java:Method { 'class: "io.ballerina.stdlib.rabbitmq.util.ListenerUtils" } external;
 
     # Stops consuming messages through all the consumer services and terminates the connection
     # with the server.
@@ -101,10 +89,7 @@ public isolated class Listener {
     # ```
     #
     # + return - `()` or else  a `rabbitmq:Error` upon failure to close ChannelListener.
-    public isolated function immediateStop() returns error? =
-    @java:Method {
-        'class: "io.ballerina.stdlib.rabbitmq.util.ListenerUtils"
-    } external;
+    public isolated function immediateStop() returns error? = @java:Method { 'class: "io.ballerina.stdlib.rabbitmq.util.ListenerUtils" } external;
 }
 
 # Configurations required to create a subscription.
@@ -119,14 +104,6 @@ public type RabbitMQServiceConfig record {|
 # The annotation, which is used to configure the subscription.
 public annotation RabbitMQServiceConfig ServiceConfig on service, class;
 
-isolated function externInit(string host, int port, Listener lis, *ConnectionConfiguration connectionData)
-returns Error? = @java:Method {
-    name: "init",
-    'class: "io.ballerina.stdlib.rabbitmq.util.ListenerUtils"
-} external;
+isolated function externInit(string host, int port, Listener lis, *ConnectionConfiguration connectionData) returns Error? = @java:Method { name: "init", 'class: "io.ballerina.stdlib.rabbitmq.util.ListenerUtils" } external;
 
-isolated function nativeSetQosSettings(int count, int? size, boolean global, Listener lis) returns Error? =
-@java:Method {
-    name: "setQosSettings",
-    'class: "io.ballerina.stdlib.rabbitmq.util.ListenerUtils"
-} external;
+isolated function nativeSetQosSettings(int count, int? size, boolean global, Listener lis) returns Error? = @java:Method { name: "setQosSettings", 'class: "io.ballerina.stdlib.rabbitmq.util.ListenerUtils" } external;

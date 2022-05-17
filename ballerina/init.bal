@@ -20,6 +20,4 @@ function init() {
     setModule();
 }
 
-function setModule() = @java:Method {
-    'class: "io.ballerina.stdlib.rabbitmq.util.ModuleUtils"
-} external;
+function setModule() = @java:Method { 'class: "io.ballerina.stdlib.rabbitmq.util.ModuleUtils" } external;
