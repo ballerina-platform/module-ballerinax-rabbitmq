@@ -50,7 +50,7 @@ service "MyQueue" on rabbitmqListener {
 Receiving the message as a request,
 ```ballerina
 service "MyQueue" on rabbitmqListener {
-    remote function onRequest(rabbitmq:Message message) returns anydata|rabbitmq:Error? {
+    remote function onRequest(rabbitmq:Message message) returns string|rabbitmq:Error? {
         string messageContent = check string:fromBytes(message.content);
         Person person = check value:fromJsonStringWithType(messageContent);
         return "New person received";

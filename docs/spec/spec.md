@@ -459,7 +459,7 @@ Subtypes of `rabbitmq:AnydataMessage` can be used to bind data to a specific typ
    }
    service object {
       remote function onRequest(StringMessage message) returns string {
-         return "Hello Back!";
+         return message.content;
       }
    };
 ```
@@ -481,7 +481,7 @@ If metadata like `routingKey`, `properties` are not needed, `content` can be dir
    }
    service object {
       remote function onRequest(string payload) returns string {
-         return "Hello Back!";
+         return payload;
       }
    };
 ```
@@ -716,7 +716,7 @@ The negatively-acknowledged (rejected) messages can be re-queued by setting the 
    service rabbitmq:Service on channelListener {
        remote function onRequest(Person person) returns string {
            log:printInfo("Received person data: " + person.toString());
-           return "Hello back from ballerina!";
+           return "Hello " + person.name;
        }
    }
 ```
