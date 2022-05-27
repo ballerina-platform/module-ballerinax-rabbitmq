@@ -22,7 +22,9 @@ jobs:
 
       - name: Set environment variable
         if: github.event.action == 'check_connector_for_breaking_changes'
-        run: echo "CHECK_BRAEKING_CHANGES=true" >> $GITHUB_ENV
+        run: |
+          echo "CHECK_BRAEKING_CHANGES=true" >> $GITHUB_ENV
+          echo "GRADLE_SKIP_TASKS=-x :rabbitmq-compiler-plugin-tests:test"  >> $GITHUB_ENV
 
       # Build the project with Gradle
       - name: Build with Gradle
@@ -30,7 +32,7 @@ jobs:
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ./gradlew clean build
+          ./gradlew clean build $GRADLE_SKIP_TASKS
 
       # Send notification when build fails
       - name: Notify failure
