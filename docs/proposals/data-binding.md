@@ -1,4 +1,4 @@
-# Proposal: Data binding support for Rabbitmq
+# Proposal: Data binding support for RabbitMQ
 
 _Owners_: @shafreenAnfar @aashikam @dilanSachi     
 _Reviewers_: @shafreenAnfar @aashikam  
