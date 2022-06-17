@@ -5,9 +5,8 @@ _Reviewers_: @shafreenAnfar
 _Created_: 2020/10/28  
 _Updated_: 2022/05/12   
 _Edition_: Swan Lake  
-_Issue_: [#2223](https://github.com/ballerina-platform/ballerina-standard-library/issues/2223)
 
-# Introduction
+## Introduction
 This is the specification for the RabbitMQ standard library of [Ballerina language](https://ballerina.io/), which provides RabbitMQ(AMQQP 0-9-1) client functionalities to produce and consume messages by connecting to the RabbitMQ server.
 
 The RabbitMQ library specification has evolved and may continue to evolve in the future. The released versions of the specification can be found under the relevant GitHub tag.
@@ -17,7 +16,7 @@ If you have any feedback or suggestions about the library, start a discussion vi
 The conforming implementation of the specification is released to Ballerina central. Any deviation from the specification is considered a bug.
 
 
-# Contents
+## Contents
 
 1. [Overview](#1-overview)
 2. [Connection](#2-connection)
