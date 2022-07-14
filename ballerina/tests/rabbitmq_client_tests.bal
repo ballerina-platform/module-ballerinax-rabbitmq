@@ -124,6 +124,18 @@ const DATA_BINDING_ERROR_REQUEST_QUEUE = "ErrorRequestQueue";
 const DATA_BINDING_REPLY_QUEUE = "DataBindingReplyQueue";
 const DATA_BINDING_JSON_LISTENER_READONLY_QUEUE = "DataBindingReadOnlyQueue";
 const DATA_BINDING_UNION_PAYLOAD_QUEUE = "DataBindingUnionQueue";
+const CONSTRAINT_INT_MAX_VALUE_QUEUE = "ConstraintIntMaxValueQueue";
+const CONSTRAINT_INT_MIN_VALUE_QUEUE = "ConstraintIntMinValueQueue";
+const CONSTRAINT_STRING_MAX_LENGTH_QUEUE = "ConstraintStringMaxLengthQueue";
+const CONSTRAINT_STRING_MIN_LENGTH_QUEUE = "ConstraintStringMinLengthQueue";
+const CONSTRAINT_FLOAT_MAX_VALUE_QUEUE = "ConstraintFloatMaxValueQueue";
+const CONSTRAINT_FLOAT_MIN_VALUE_QUEUE = "ConstraintFloatMinValueQueue";
+const CONSTRAINT_NUMBER_MAX_VALUE_QUEUE = "ConstraintNumberMaxValueQueue";
+const CONSTRAINT_NUMBER_MIN_VALUE_QUEUE = "ConstraintNumberMinValueQueue";
+const CONSTRAINT_ARRAY_MAX_LENGTH_QUEUE = "ConstraintArrayMaxLengthQueue";
+const CONSTRAINT_ARRAY_MIN_LENGTH_QUEUE = "ConstraintArrayMinLengthQueue";
+const CONSTRAINT_STRING_LENGTH_QUEUE = "ConstraintStringLengthQueue";
+
 string asyncConsumerMessage = "";
 string asyncConsumerMessage2 = "";
 string onRequestMessage = "";
@@ -248,6 +260,17 @@ function setup3(Client clientObj) returns error? {
     check clientObj->queueDeclare(REQ_QUEUE);
     check clientObj->queueDeclare(REQ_REPLYTO);
     check clientObj->queueDeclare(REPLYTO);
+    check clientObj->queueDeclare(CONSTRAINT_INT_MAX_VALUE_QUEUE);
+    check clientObj->queueDeclare(CONSTRAINT_INT_MIN_VALUE_QUEUE);
+    check clientObj->queueDeclare(CONSTRAINT_STRING_MAX_LENGTH_QUEUE);
+    check clientObj->queueDeclare(CONSTRAINT_STRING_MIN_LENGTH_QUEUE);
+    check clientObj->queueDeclare(CONSTRAINT_FLOAT_MAX_VALUE_QUEUE);
+    check clientObj->queueDeclare(CONSTRAINT_FLOAT_MIN_VALUE_QUEUE);
+    check clientObj->queueDeclare(CONSTRAINT_NUMBER_MAX_VALUE_QUEUE);
+    check clientObj->queueDeclare(CONSTRAINT_NUMBER_MIN_VALUE_QUEUE);
+    check clientObj->queueDeclare(CONSTRAINT_ARRAY_MAX_LENGTH_QUEUE);
+    check clientObj->queueDeclare(CONSTRAINT_ARRAY_MIN_LENGTH_QUEUE);
+    check clientObj->queueDeclare(CONSTRAINT_STRING_LENGTH_QUEUE);
 }
 
 @test:Config {
