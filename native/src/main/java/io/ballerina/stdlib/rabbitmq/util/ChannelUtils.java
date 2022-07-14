@@ -127,10 +127,13 @@ public class ChannelUtils {
             }
             return createAndPopulateMessageRecord(response.getBody(), response.getEnvelope(),
                                                                     response.getProps(), getRecordType(bTypedesc));
-        } catch (IOException | ShutdownSignalException | BError e) {
+        } catch (IOException | ShutdownSignalException e) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_BASIC_GET);
             return RabbitMQUtils.returnErrorValue("error occurred while retrieving the message: " +
                                                           e.getMessage());
+        } catch (BError e) {
+            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_BASIC_GET);
+            return e;
         }
     }
 
@@ -142,10 +145,13 @@ public class ChannelUtils {
                 return RabbitMQUtils.returnErrorValue("No messages are found in the queue.");
             }
             return createPayload(response.getBody(), bTypedesc.getDescribingType());
-        } catch (IOException | ShutdownSignalException | BError e) {
+        } catch (IOException | ShutdownSignalException e) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_BASIC_GET);
             return RabbitMQUtils.returnErrorValue("error occurred while retrieving the message: " +
                     e.getMessage());
+        } catch (BError bError) {
+            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_BASIC_GET);
+            return bError;
         }
     }
 

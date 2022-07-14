@@ -37,7 +37,7 @@ import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BTypedesc;
-import io.ballerina.stdlib.rabbitmq.util.ModuleUtils;
+import io.ballerina.stdlib.constraint.Constraints;
 import org.ballerinalang.langlib.value.CloneReadOnly;
 import org.ballerinalang.langlib.value.CloneWithType;
 import org.ballerinalang.langlib.value.FromJsonWithType;
@@ -53,6 +53,9 @@ import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.MESSAGE_DELIVERY_TA
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.MESSAGE_EXCHANGE_FIELD;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.MESSAGE_PROPERTIES_FIELD;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.MESSAGE_ROUTINE_KEY_FIELD;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.PAYLOAD_BINDING_ERROR;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.PAYLOAD_VALIDATION_ERROR;
+import static io.ballerina.stdlib.rabbitmq.util.ModuleUtils.getModule;
 
 /**
  * Util class used to bridge the RabbitMQ connector's native code and the Ballerina API.
@@ -63,8 +66,18 @@ public class RabbitMQUtils {
 
     public static BError returnErrorValue(String errorMessage) {
         return ErrorCreator.createDistinctError(RabbitMQConstants.RABBITMQ_ERROR,
-                                                ModuleUtils.getModule(),
+                                                getModule(),
                                                 StringUtils.fromString(errorMessage));
+    }
+
+    public static BError createPayloadValidationError(String message, Object results) {
+        return ErrorCreator.createError(getModule(), PAYLOAD_VALIDATION_ERROR, StringUtils.fromString(message),
+                ErrorCreator.createError(StringUtils.fromString(results.toString())), null);
+    }
+
+    public static BError createPayloadBindingError(String message, BError cause) {
+        return ErrorCreator.createError(getModule(), PAYLOAD_BINDING_ERROR, StringUtils.fromString(message),
+                cause, null);
     }
 
     public static boolean checkIfInt(Object object) {
@@ -101,7 +114,7 @@ public class RabbitMQUtils {
                                                                        AMQP.BasicProperties properties,
                                                                        Type messageType) {
         RecordType recordType = getRecordType(messageType);
-        Type intendedType = recordType.getFields().get(MESSAGE_CONTENT_FIELD).getFieldType();
+        Type intendedType = TypeUtils.getReferredType(recordType.getFields().get(MESSAGE_CONTENT_FIELD).getFieldType());
         BMap<BString, Object> messageRecord = ValueCreator.createRecordValue(recordType);
         Object messageContent = getValueWithIntendedType(intendedType, message);
         if (messageContent instanceof BError) {
@@ -120,7 +133,7 @@ public class RabbitMQUtils {
             String contentEncoding = properties.getContentEncoding();
             String correlationId = properties.getCorrelationId();
             BMap<BString, Object> basicProperties =
-                    ValueCreator.createRecordValue(ModuleUtils.getModule(),
+                    ValueCreator.createRecordValue(getModule(),
                             RabbitMQConstants.RECORD_BASIC_PROPERTIES);
             Object[] propValues = new Object[4];
             propValues[0] = replyTo;
@@ -130,6 +143,8 @@ public class RabbitMQUtils {
             messageRecord.put(StringUtils.fromString(MESSAGE_PROPERTIES_FIELD), ValueCreator
                     .createRecordValue(basicProperties, propValues));
         }
+        validateConstraints(messageRecord,
+                getElementTypeDescFromArrayTypeDesc(ValueCreator.createTypedescValue(messageType)));
         if (messageType.getTag() == TypeTags.INTERSECTION_TAG) {
             messageRecord.freezeDirect();
         }
@@ -141,6 +156,8 @@ public class RabbitMQUtils {
         if (messageContent instanceof BError) {
             throw (BError) messageContent;
         }
+        validateConstraints(messageContent,
+                getElementTypeDescFromArrayTypeDesc(ValueCreator.createTypedescValue(payloadType)));
         if (payloadType.isReadOnly()) {
             return CloneReadOnly.cloneReadOnly(messageContent);
         }
@@ -165,7 +182,7 @@ public class RabbitMQUtils {
                     }
                     return getValueFromJson(type, strValue);
                 case TypeTags.ARRAY_TAG:
-                    if (((ArrayType) type).getElementType().getTag() == TypeTags.BYTE_TAG) {
+                    if (TypeUtils.getReferredType(((ArrayType) type).getElementType()).getTag() == TypeTags.BYTE_TAG) {
                         return ValueCreator.createArrayValue(value);
                     }
                     /*-fallthrough*/
@@ -214,6 +231,22 @@ public class RabbitMQUtils {
             return  ((IntersectionType) definedType).getConstituentTypes().get(0);
         }
         return definedType;
+    }
+
+    public static Object validateConstraints(Object consumerRecordsArray, BTypedesc bTypedesc) {
+        Object validationResult = Constraints.validate(consumerRecordsArray, bTypedesc);
+        if (validationResult instanceof BError) {
+            throw createPayloadValidationError("Failed to validate", consumerRecordsArray);
+        }
+        return consumerRecordsArray;
+    }
+
+    public static BTypedesc getElementTypeDescFromArrayTypeDesc(BTypedesc arrayTypeDesc) {
+        if (arrayTypeDesc.getDescribingType().getTag() == INTERSECTION_TAG) {
+            return ValueCreator.createTypedescValue((((IntersectionType) arrayTypeDesc.getDescribingType())
+                    .getConstituentTypes().get(0)));
+        }
+        return ValueCreator.createTypedescValue((arrayTypeDesc.getDescribingType()));
     }
 
     private RabbitMQUtils() {

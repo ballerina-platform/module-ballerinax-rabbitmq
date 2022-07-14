@@ -54,6 +54,8 @@ public class RabbitMQConstants {
 
     // Error constant fields
     static final String RABBITMQ_ERROR = "Error";
+    public static final String PAYLOAD_BINDING_ERROR = "PayloadBindingError";
+    public static final String PAYLOAD_VALIDATION_ERROR = "PayloadValidationError";
 
     // Connection errors
     public static final String CREATE_CONNECTION_ERROR = "Error occurred while connecting to the broker: ";

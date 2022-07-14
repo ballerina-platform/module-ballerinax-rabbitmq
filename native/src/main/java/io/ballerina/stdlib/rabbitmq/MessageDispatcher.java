@@ -157,7 +157,12 @@ public class MessageDispatcher {
         } catch (InterruptedException | AlreadyClosedException | BError exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_CONSUME);
             MethodType onErrorFunction = getAttachedFunctionType(service, FUNC_ON_ERROR);
-            executeOnError(onErrorFunction, message, envelope, properties, exception);
+            if (exception instanceof BError) {
+                executeOnError(onErrorFunction, message, envelope, properties, (BError) exception);
+            } else {
+                executeOnError(onErrorFunction, message, envelope, properties,
+                        returnErrorValue(exception.getMessage()));
+            }
         }
     }
 
@@ -231,12 +236,12 @@ public class MessageDispatcher {
     }
 
     private void executeOnError(MethodType onErrorMethod, byte[] message, Envelope envelope,
-                               AMQP.BasicProperties properties, Exception exception) {
+                               AMQP.BasicProperties properties, BError bError) {
         StrandMetadata metadata = new StrandMetadata(ORG_NAME, RABBITMQ,
                 ModuleUtils.getModule().getVersion(), FUNC_ON_ERROR);
         executeResource(FUNC_ON_ERROR, null, metadata, onErrorMethod.getReturnType(),
                 createAndPopulateMessageRecord(message, envelope, properties, onErrorMethod.getParameters()[0].type),
-                true, returnErrorValue(exception.getMessage()), true);
+                true, bError, true);
     }
 
     private void executeResource(String function, Callback callback, StrandMetadata metaData, Type returnType,
