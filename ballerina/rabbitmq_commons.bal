@@ -92,6 +92,7 @@ public type ConnectionConfiguration record {|
     decimal handshakeTimeout?;
     decimal shutdownTimeout?;
     decimal heartbeat?;
+    ConstraintValidation constraintValidation = DISABLED;
     SecureSocket secureSocket?;
     Credentials auth?;
 |};
@@ -141,6 +142,14 @@ public enum Protocol {
    SSL,
    TLS,
    DTLS
+}
+
+# Represents constraint validation options
+public enum ConstraintValidation {
+    INGRESS,
+    EGRESS,
+    INGRESS_EGRESS,
+    DISABLED
 }
 
 # Configurations related to authentication.
