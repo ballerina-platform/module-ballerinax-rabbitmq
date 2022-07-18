@@ -85,6 +85,7 @@ public type ExchangeConfig record {|
 # + heartbeat - The initially-requested heartbeat timeout in seconds and zero for none
 # + secureSocket - Configurations for facilitating secure connections
 # + auth - Configurations related to authentication
+# + constraintValidation - Configuration related to constraint validation check
 public type ConnectionConfiguration record {|
     string username?;
     string password?;
