@@ -190,7 +190,7 @@ public class RabbitMQUtils {
                     return getValueFromJson(type, strValue);
             }
         } catch (BError bError) {
-            throw returnErrorValue(String.format("Data binding failed: %s", bError.getMessage()));
+            throw createPayloadBindingError(String.format("Data binding failed: %s", bError.getMessage()), bError);
         }
     }
 
@@ -233,20 +233,20 @@ public class RabbitMQUtils {
         return definedType;
     }
 
-    public static Object validateConstraints(Object consumerRecordsArray, BTypedesc bTypedesc) {
-        Object validationResult = Constraints.validate(consumerRecordsArray, bTypedesc);
+    public static Object validateConstraints(Object value, BTypedesc bTypedesc) {
+        Object validationResult = Constraints.validate(value, bTypedesc);
         if (validationResult instanceof BError) {
-            throw createPayloadValidationError("Failed to validate", consumerRecordsArray);
+            throw createPayloadValidationError("Failed to validate", value);
         }
-        return consumerRecordsArray;
+        return value;
     }
 
-    public static BTypedesc getElementTypeDescFromArrayTypeDesc(BTypedesc arrayTypeDesc) {
-        if (arrayTypeDesc.getDescribingType().getTag() == INTERSECTION_TAG) {
-            return ValueCreator.createTypedescValue((((IntersectionType) arrayTypeDesc.getDescribingType())
+    public static BTypedesc getElementTypeDescFromArrayTypeDesc(BTypedesc bTypedesc) {
+        if (bTypedesc.getDescribingType().getTag() == INTERSECTION_TAG) {
+            return ValueCreator.createTypedescValue((((IntersectionType) bTypedesc.getDescribingType())
                     .getConstituentTypes().get(0)));
         }
-        return ValueCreator.createTypedescValue((arrayTypeDesc.getDescribingType()));
+        return ValueCreator.createTypedescValue((bTypedesc.getDescribingType()));
     }
 
     private RabbitMQUtils() {
