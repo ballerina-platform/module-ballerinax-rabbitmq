@@ -48,6 +48,7 @@ import java.util.concurrent.TimeoutException;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.CONSTRAINT_VALIDATION;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.createAndPopulateMessageRecord;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.createPayload;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.getElementTypeDescFromArrayTypeDesc;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.getRecordType;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.validateConstraints;
 
@@ -68,7 +69,7 @@ public class ChannelUtils {
                 String connectorId = channelObj.getStringValue(RabbitMQConstants.CONNECTOR_ID).getValue();
                 channelObj.addNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT, channel);
                 channelObj.addNativeData(CONSTRAINT_VALIDATION,
-                        connectionConfig.getBooleanValue(StringUtils.fromString("constraintValidation")));
+                        connectionConfig.getBooleanValue(StringUtils.fromString(CONSTRAINT_VALIDATION)));
                 channelObj.addNativeData(RabbitMQConstants.RABBITMQ_TRANSACTION_CONTEXT,
                         new RabbitMQTransactionContext(channel, connectorId));
                 return null;
@@ -132,7 +133,7 @@ public class ChannelUtils {
             boolean constraintValidation = (boolean) clientObj.getNativeData(CONSTRAINT_VALIDATION);
             Object message = createAndPopulateMessageRecord(response.getBody(), response.getEnvelope(),
                     response.getProps(), getRecordType(bTypedesc));
-            validateConstraints(message, bTypedesc, constraintValidation);
+            validateConstraints(message, getElementTypeDescFromArrayTypeDesc(bTypedesc), constraintValidation);
             return message;
         } catch (IOException | ShutdownSignalException e) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_BASIC_GET);
@@ -153,7 +154,7 @@ public class ChannelUtils {
             }
             boolean constraintValidation = (boolean) clientObj.getNativeData(CONSTRAINT_VALIDATION);
             Object payload = createPayload(response.getBody(), bTypedesc.getDescribingType());
-            validateConstraints(payload, bTypedesc, constraintValidation);
+            validateConstraints(payload, getElementTypeDescFromArrayTypeDesc(bTypedesc), constraintValidation);
             return payload;
         } catch (IOException | ShutdownSignalException e) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_BASIC_GET);
