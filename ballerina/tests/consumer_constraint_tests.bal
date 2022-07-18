@@ -87,7 +87,7 @@ function stringConstraintMessageValidTest() returns error? {
 
 @test:Config {}
 function numberConstraintMessageValidTest() returns error? {
-    int message = 12;
+    decimal message = 12.453;
     check produceMessage(message.toString(), CONSTRAINT_VALID_NUMBER_QUEUE);
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     Weight|error result = 'client->consumePayload(CONSTRAINT_VALID_NUMBER_QUEUE);
