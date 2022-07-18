@@ -153,7 +153,8 @@ public class RabbitMQUtils {
     public static Object createPayload(byte[] message, Type payloadType) {
         Object messageContent = getValueWithIntendedType(getPayloadType(payloadType), message);
         if (messageContent instanceof BError) {
-            throw (BError) messageContent;
+            throw createPayloadBindingError(String.format("Data binding failed: %s", ((BError) messageContent)
+                    .getMessage()), (BError) messageContent);
         }
         if (payloadType.isReadOnly()) {
             return CloneReadOnly.cloneReadOnly(messageContent);
@@ -229,8 +230,8 @@ public class RabbitMQUtils {
         return definedType;
     }
 
-    public static Object validateConstraints(Object value, BTypedesc bTypedesc, boolean constraintConfig) {
-        if (constraintConfig) {
+    public static Object validateConstraints(Object value, BTypedesc bTypedesc, boolean constraintValidation) {
+        if (constraintValidation) {
             Object validationResult = Constraints.validate(value, bTypedesc);
             if (validationResult instanceof BError) {
                 throw createPayloadValidationError("Failed to validate", value);

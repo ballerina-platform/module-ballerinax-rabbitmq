@@ -177,7 +177,7 @@ public class MessageDispatcher {
         boolean callerExists = false;
         boolean messageExists = false;
         boolean payloadExists = false;
-        boolean constraintConfig = (boolean) listenerObj.getNativeData(CONSTRAINT_VALIDATION);
+        boolean constraintValidation = (boolean) listenerObj.getNativeData(CONSTRAINT_VALIDATION);
         Object[] arguments = new Object[parameters.length * 2];
         int index = 0;
         for (Parameter parameter : parameters) {
@@ -201,7 +201,7 @@ public class MessageDispatcher {
                         Object record = createAndPopulateMessageRecord(message, envelope,
                                 properties, referredType);
                         validateConstraints(record, getElementTypeDescFromArrayTypeDesc(ValueCreator
-                                .createTypedescValue(parameter.type)), constraintConfig);
+                                .createTypedescValue(parameter.type)), constraintValidation);
                         arguments[index++] = record;
                         arguments[index++] = true;
                         break;
@@ -214,7 +214,7 @@ public class MessageDispatcher {
                     payloadExists = true;
                     Object value = createPayload(message, referredType);
                     validateConstraints(value, getElementTypeDescFromArrayTypeDesc(ValueCreator
-                            .createTypedescValue(parameter.type)), constraintConfig);
+                            .createTypedescValue(parameter.type)), constraintValidation);
                     arguments[index++] = value;
                     arguments[index++] = true;
                     break;

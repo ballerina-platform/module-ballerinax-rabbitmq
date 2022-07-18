@@ -129,10 +129,10 @@ public class ChannelUtils {
             if (Objects.isNull(response)) {
                 return RabbitMQUtils.returnErrorValue("No messages are found in the queue.");
             }
-            boolean constraintConfig = (boolean) clientObj.getNativeData(CONSTRAINT_VALIDATION);
+            boolean constraintValidation = (boolean) clientObj.getNativeData(CONSTRAINT_VALIDATION);
             Object message = createAndPopulateMessageRecord(response.getBody(), response.getEnvelope(),
                     response.getProps(), getRecordType(bTypedesc));
-            validateConstraints(message, bTypedesc, constraintConfig);
+            validateConstraints(message, bTypedesc, constraintValidation);
             return message;
         } catch (IOException | ShutdownSignalException e) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_BASIC_GET);
@@ -151,9 +151,9 @@ public class ChannelUtils {
             if (Objects.isNull(response)) {
                 return RabbitMQUtils.returnErrorValue("No messages are found in the queue.");
             }
-            boolean constraintConfig = (boolean) clientObj.getNativeData(CONSTRAINT_VALIDATION);
+            boolean constraintValidation = (boolean) clientObj.getNativeData(CONSTRAINT_VALIDATION);
             Object payload = createPayload(response.getBody(), bTypedesc.getDescribingType());
-            validateConstraints(payload, bTypedesc, constraintConfig);
+            validateConstraints(payload, bTypedesc, constraintValidation);
             return payload;
         } catch (IOException | ShutdownSignalException e) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_BASIC_GET);

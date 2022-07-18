@@ -306,3 +306,17 @@ function numberMinValueConstraintListenerPayloadTest() returns error? {
     test:assertEquals(receivedNumberMinValueConstraintError, "Failed to validate");
     check channelListener.gracefulStop();
 }
+
+@test:Config {}
+function recordConstraintMessageValidTest() returns error? {
+    Child child = {name: "PhilDunphy", age: 27};
+    check produceMessage(child.toString(), CONSTRAINT_VALID_RECORD_QUEUE);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
+    Child|error result = 'client->consumePayload(CONSTRAINT_VALID_RECORD_QUEUE);
+    if result is error {
+        test:assertFail(result.message());
+    } else {
+        test:assertEquals(result, child);
+    }
+    check 'client->close();
+}
