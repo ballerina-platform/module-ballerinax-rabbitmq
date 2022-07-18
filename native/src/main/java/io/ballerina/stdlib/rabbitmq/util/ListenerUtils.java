@@ -39,7 +39,6 @@ import io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityConstants
 import io.ballerina.stdlib.rabbitmq.observability.RabbitMQTracingUtil;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.concurrent.TimeoutException;
 
@@ -53,7 +52,6 @@ import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.CONSTRAINT_VALIDATI
  * @since 1.1.0
  */
 public class ListenerUtils {
-    private static final PrintStream console;
     private static boolean started = false;
     private static ArrayList<BObject> services = new ArrayList<>();
     private static ArrayList<BObject> startedServices = new ArrayList<>();
@@ -81,7 +79,7 @@ public class ListenerUtils {
             listenerBObject.addNativeData(RabbitMQConstants.CONSUMER_SERVICES, services);
             listenerBObject.addNativeData(RabbitMQConstants.STARTED_SERVICES, startedServices);
             listenerBObject.addNativeData(CONSTRAINT_VALIDATION,
-                    connectionConfig.getStringValue(StringUtils.fromString(CONSTRAINT_VALIDATION)));
+                    connectionConfig.getBooleanValue(StringUtils.fromString(CONSTRAINT_VALIDATION)));
             RabbitMQMetricsUtil.reportNewConsumer(channel);
             return null;
         }
@@ -259,9 +257,5 @@ public class ListenerUtils {
             connection.abort();
         }
         return null;
-    }
-
-    static {
-        console = System.out;
     }
 }

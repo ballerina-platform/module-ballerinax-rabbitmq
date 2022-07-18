@@ -118,7 +118,8 @@ public class RabbitMQUtils {
         BMap<BString, Object> messageRecord = ValueCreator.createRecordValue(recordType);
         Object messageContent = getValueWithIntendedType(intendedType, message);
         if (messageContent instanceof BError) {
-            throw (BError) messageContent;
+            throw createPayloadBindingError(String.format("Data binding failed: %s", ((BError) messageContent)
+                    .getMessage()), (BError) messageContent);
         }
         messageRecord.put(StringUtils.fromString(MESSAGE_CONTENT_FIELD), messageContent);
         messageRecord.put(StringUtils.fromString(MESSAGE_ROUTINE_KEY_FIELD), StringUtils.fromString(
