@@ -145,8 +145,8 @@ function dataBindingConsumeMessageErrorTest() returns error? {
     check produceMessage(message.toString(), DATA_BINDING_ERROR_QUEUE);
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     IntMessage|Error result = 'client->consumeMessage(DATA_BINDING_ERROR_QUEUE);
-    if result is Error {
-        test:assertTrue(result.message().startsWith("error occurred while retrieving the message:"));
+    if result is PayloadBindingError {
+        test:assertTrue(result.message().startsWith("Data binding failed:"));
     } else {
         test:assertFail("Expected an error");
     }
@@ -268,8 +268,8 @@ function consumePayloadErrorTest() returns error? {
     check produceMessage(message.toString(), DATA_BINDING_ERROR_QUEUE);
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     int|Error result = 'client->consumePayload(DATA_BINDING_ERROR_QUEUE);
-    if result is Error {
-        test:assertTrue(result.message().startsWith("error occurred while retrieving the message:"));
+    if result is PayloadBindingError {
+        test:assertTrue(result.message().startsWith("Data binding failed:"));
     } else {
         test:assertFail("Expected an error");
     }
