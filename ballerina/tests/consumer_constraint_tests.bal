@@ -72,6 +72,34 @@ string receivedNumberMaxValueConstraintError = "";
 string receivedNumberMinValueConstraintError = "";
 
 @test:Config {}
+function stringConstraintMessageValidTest() returns error? {
+    string message = "Hello";
+    check produceMessage(message.toString(), CONSTRAINT_VALID_STRING_QUEUE);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
+    StringConstraintMessage|error result = 'client->consumeMessage(CONSTRAINT_VALID_STRING_QUEUE);
+    if result is error {
+        test:assertFail(result.message());
+    } else {
+        test:assertEquals(result.content, message);
+    }
+    check 'client->close();
+}
+
+@test:Config {}
+function numberConstraintMessageValidTest() returns error? {
+    int message = 12;
+    check produceMessage(message.toString(), CONSTRAINT_VALID_NUMBER_QUEUE);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
+    Weight|error result = 'client->consumePayload(CONSTRAINT_VALID_NUMBER_QUEUE);
+    if result is error {
+        test:assertFail(result.message());
+    } else {
+        test:assertEquals(result, message);
+    }
+    check 'client->close();
+}
+
+@test:Config {}
 function stringMaxLengthConstraintMessageTest() returns error? {
     string message = "This is a data binding related message";
     check produceMessage(message.toString(), CONSTRAINT_STRING_MAX_LENGTH_QUEUE);
