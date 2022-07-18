@@ -143,8 +143,6 @@ public class RabbitMQUtils {
             messageRecord.put(StringUtils.fromString(MESSAGE_PROPERTIES_FIELD), ValueCreator
                     .createRecordValue(basicProperties, propValues));
         }
-        validateConstraints(messageRecord,
-                getElementTypeDescFromArrayTypeDesc(ValueCreator.createTypedescValue(messageType)));
         if (messageType.getTag() == TypeTags.INTERSECTION_TAG) {
             messageRecord.freezeDirect();
         }
@@ -156,8 +154,6 @@ public class RabbitMQUtils {
         if (messageContent instanceof BError) {
             throw (BError) messageContent;
         }
-        validateConstraints(messageContent,
-                getElementTypeDescFromArrayTypeDesc(ValueCreator.createTypedescValue(payloadType)));
         if (payloadType.isReadOnly()) {
             return CloneReadOnly.cloneReadOnly(messageContent);
         }
@@ -211,8 +207,7 @@ public class RabbitMQUtils {
     public static RecordType getRecordType(BTypedesc bTypedesc) {
         RecordType recordType;
         if (bTypedesc.getDescribingType().isReadOnly()) {
-            recordType = (RecordType)
-                    ((IntersectionType) (bTypedesc.getDescribingType())).getConstituentTypes().get(0);
+            recordType = (RecordType) ((IntersectionType) (bTypedesc.getDescribingType())).getConstituentTypes().get(0);
         } else {
             recordType = (RecordType) bTypedesc.getDescribingType();
         }
@@ -233,10 +228,12 @@ public class RabbitMQUtils {
         return definedType;
     }
 
-    public static Object validateConstraints(Object value, BTypedesc bTypedesc) {
-        Object validationResult = Constraints.validate(value, bTypedesc);
-        if (validationResult instanceof BError) {
-            throw createPayloadValidationError("Failed to validate", value);
+    public static Object validateConstraints(Object value, BTypedesc bTypedesc, boolean constraintConfig) {
+        if (constraintConfig) {
+            Object validationResult = Constraints.validate(value, bTypedesc);
+            if (validationResult instanceof BError) {
+                throw createPayloadValidationError("Failed to validate", value);
+            }
         }
         return value;
     }

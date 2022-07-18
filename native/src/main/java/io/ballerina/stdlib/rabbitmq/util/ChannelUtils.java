@@ -45,9 +45,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
+import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.CONSTRAINT_VALIDATION;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.createAndPopulateMessageRecord;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.createPayload;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.getRecordType;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.validateConstraints;
 
 /**
  * Util class for RabbitMQ Channel handling.
@@ -65,6 +67,8 @@ public class ChannelUtils {
                 RabbitMQMetricsUtil.reportNewChannel(channel);
                 String connectorId = channelObj.getStringValue(RabbitMQConstants.CONNECTOR_ID).getValue();
                 channelObj.addNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT, channel);
+                channelObj.addNativeData(CONSTRAINT_VALIDATION,
+                        connectionConfig.getBooleanValue(StringUtils.fromString("constraintValidation")));
                 channelObj.addNativeData(RabbitMQConstants.RABBITMQ_TRANSACTION_CONTEXT,
                         new RabbitMQTransactionContext(channel, connectorId));
                 return null;
@@ -125,8 +129,11 @@ public class ChannelUtils {
             if (Objects.isNull(response)) {
                 return RabbitMQUtils.returnErrorValue("No messages are found in the queue.");
             }
-            return createAndPopulateMessageRecord(response.getBody(), response.getEnvelope(),
-                                                                    response.getProps(), getRecordType(bTypedesc));
+            boolean constraintConfig = (boolean) clientObj.getNativeData(CONSTRAINT_VALIDATION);
+            Object message = createAndPopulateMessageRecord(response.getBody(), response.getEnvelope(),
+                    response.getProps(), getRecordType(bTypedesc));
+            validateConstraints(message, bTypedesc, constraintConfig);
+            return message;
         } catch (IOException | ShutdownSignalException e) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_BASIC_GET);
             return RabbitMQUtils.returnErrorValue("error occurred while retrieving the message: " +
@@ -144,7 +151,10 @@ public class ChannelUtils {
             if (Objects.isNull(response)) {
                 return RabbitMQUtils.returnErrorValue("No messages are found in the queue.");
             }
-            return createPayload(response.getBody(), bTypedesc.getDescribingType());
+            boolean constraintConfig = (boolean) clientObj.getNativeData(CONSTRAINT_VALIDATION);
+            Object payload = createPayload(response.getBody(), bTypedesc.getDescribingType());
+            validateConstraints(payload, bTypedesc, constraintConfig);
+            return payload;
         } catch (IOException | ShutdownSignalException e) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_BASIC_GET);
             return RabbitMQUtils.returnErrorValue("error occurred while retrieving the message: " +

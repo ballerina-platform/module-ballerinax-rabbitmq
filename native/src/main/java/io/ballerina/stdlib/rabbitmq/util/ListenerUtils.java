@@ -45,6 +45,7 @@ import java.util.concurrent.TimeoutException;
 
 import static io.ballerina.runtime.api.constants.RuntimeConstants.ORG_NAME_SEPARATOR;
 import static io.ballerina.runtime.api.constants.RuntimeConstants.VERSION_SEPARATOR;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.CONSTRAINT_VALIDATION;
 
 /**
  * Util class for RabbitMQ Listener actions handling.
@@ -79,6 +80,8 @@ public class ListenerUtils {
             listenerBObject.addNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT, channel);
             listenerBObject.addNativeData(RabbitMQConstants.CONSUMER_SERVICES, services);
             listenerBObject.addNativeData(RabbitMQConstants.STARTED_SERVICES, startedServices);
+            listenerBObject.addNativeData(CONSTRAINT_VALIDATION,
+                    connectionConfig.getStringValue(StringUtils.fromString(CONSTRAINT_VALIDATION)));
             RabbitMQMetricsUtil.reportNewConsumer(channel);
             return null;
         }
