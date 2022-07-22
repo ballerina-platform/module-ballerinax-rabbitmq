@@ -93,7 +93,7 @@ public class RabbitMQConstants {
     // Channel listener constant fields
     public static final String CONSUMER_SERVICES = "consumer_services";
     public static final String STARTED_SERVICES = "started_services";
-    public static final String CONSTRAINT_VALIDATION = "constraintValidation";
+    public static final String CONSTRAINT_VALIDATION = "validation";
     public static final String SERVICE_CONFIG = "ServiceConfig";
     public static final BString ALIAS_QUEUE_NAME = StringUtils.fromString("queueName");
     public static final BString AUTO_ACK = StringUtils.fromString("autoAck");
