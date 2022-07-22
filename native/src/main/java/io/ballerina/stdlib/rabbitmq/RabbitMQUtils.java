@@ -101,7 +101,7 @@ public class RabbitMQUtils {
                                                                        AMQP.BasicProperties properties,
                                                                        Type messageType) {
         RecordType recordType = getRecordType(messageType);
-        Type intendedType = recordType.getFields().get(MESSAGE_CONTENT_FIELD).getFieldType();
+        Type intendedType = TypeUtils.getReferredType(recordType.getFields().get(MESSAGE_CONTENT_FIELD).getFieldType());
         BMap<BString, Object> messageRecord = ValueCreator.createRecordValue(recordType);
         Object messageContent = getValueWithIntendedType(intendedType, message);
         if (messageContent instanceof BError) {
@@ -165,7 +165,7 @@ public class RabbitMQUtils {
                     }
                     return getValueFromJson(type, strValue);
                 case TypeTags.ARRAY_TAG:
-                    if (((ArrayType) type).getElementType().getTag() == TypeTags.BYTE_TAG) {
+                    if (TypeUtils.getReferredType(((ArrayType) type).getElementType()).getTag() == TypeTags.BYTE_TAG) {
                         return ValueCreator.createArrayValue(value);
                     }
                     /*-fallthrough*/
