@@ -138,6 +138,7 @@ const CONSTRAINT_STRING_LENGTH_QUEUE = "ConstraintStringLengthQueue";
 const CONSTRAINT_VALID_STRING_QUEUE = "ConstraintValidStringQueue";
 const CONSTRAINT_VALID_NUMBER_QUEUE = "ConstraintValidNumberQueue";
 const CONSTRAINT_VALID_RECORD_QUEUE = "ConstraintValidRecordQueue";
+const CONSTRAINT_DISABLED_VALIDATION_QUEUE = "ConstraintDisabledValidationQueue";
 
 string asyncConsumerMessage = "";
 string asyncConsumerMessage2 = "";
@@ -277,6 +278,7 @@ function setup3(Client clientObj) returns error? {
     check clientObj->queueDeclare(CONSTRAINT_VALID_NUMBER_QUEUE);
     check clientObj->queueDeclare(CONSTRAINT_VALID_STRING_QUEUE);
     check clientObj->queueDeclare(CONSTRAINT_VALID_RECORD_QUEUE);
+    check clientObj->queueDeclare(CONSTRAINT_DISABLED_VALIDATION_QUEUE);
 }
 
 @test:Config {

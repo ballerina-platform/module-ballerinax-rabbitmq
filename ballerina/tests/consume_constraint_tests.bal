@@ -320,3 +320,17 @@ function recordConstraintMessageValidTest() returns error? {
     }
     check 'client->close();
 }
+
+@test:Config {}
+function disabledValidationWithInvalidMessageTest() returns error? {
+    Child child = {name: "Philip Dunphy", age: 27};
+    check produceMessage(child.toString(), CONSTRAINT_DISABLED_VALIDATION_QUEUE);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT, {validation: false});
+    Child|error result = 'client->consumePayload(CONSTRAINT_DISABLED_VALIDATION_QUEUE);
+    if result is error {
+        test:assertFail(result.message());
+    } else {
+        test:assertEquals(result, child);
+    }
+    check 'client->close();
+}
