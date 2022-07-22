@@ -32,6 +32,7 @@ import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.Parameter;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
@@ -170,7 +171,8 @@ public class MessageDispatcher {
         Object[] arguments = new Object[parameters.length * 2];
         int index = 0;
         for (Parameter parameter : parameters) {
-            switch (parameter.type.getTag()) {
+            Type referredType = TypeUtils.getReferredType(parameter.type);
+            switch (referredType.getTag()) {
                 case OBJECT_TYPE_TAG:
                     if (callerExists) {
                         returnErrorValue("Invalid remote function signature");
@@ -187,7 +189,7 @@ public class MessageDispatcher {
                         }
                         messageExists = true;
                         arguments[index++] = createAndPopulateMessageRecord(message, envelope,
-                                properties, parameter.type);
+                                properties, referredType);
                         arguments[index++] = true;
                         break;
                     }
@@ -197,7 +199,7 @@ public class MessageDispatcher {
                         returnErrorValue("Invalid remote function signature");
                     }
                     payloadExists = true;
-                    arguments[index++] = createPayload(message, parameter.type);
+                    arguments[index++] = createPayload(message, referredType);
                     arguments[index++] = true;
                     break;
             }
@@ -235,7 +237,8 @@ public class MessageDispatcher {
         StrandMetadata metadata = new StrandMetadata(ORG_NAME, RABBITMQ,
                 ModuleUtils.getModule().getVersion(), FUNC_ON_ERROR);
         executeResource(FUNC_ON_ERROR, null, metadata, onErrorMethod.getReturnType(),
-                createAndPopulateMessageRecord(message, envelope, properties, onErrorMethod.getParameters()[0].type),
+                createAndPopulateMessageRecord(message, envelope, properties,
+                        TypeUtils.getReferredType(onErrorMethod.getParameters()[0].type)),
                 true, returnErrorValue(exception.getMessage()), true);
     }
 
@@ -268,7 +271,7 @@ public class MessageDispatcher {
                 return false;
             }
         }
-        return invokeIsAnydataMessageTypeMethod(parameter.type);
+        return invokeIsAnydataMessageTypeMethod(TypeUtils.getReferredType(parameter.type));
     }
 
     private boolean invokeIsAnydataMessageTypeMethod(Type paramType) {
