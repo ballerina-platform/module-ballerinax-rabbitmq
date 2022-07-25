@@ -13,6 +13,9 @@ distribution = "2201.1.0"
 path = "./lib/amqp-client-5.10.0.jar"
 
 [[platform.java11.dependency]]
+groupId = "io.ballerina.stdlib"
+artifactId = "rabbitmq-native"
+version = "2.4.0"
 path = "../native/build/libs/rabbitmq-native-2.4.0-SNAPSHOT.jar"
 
 [[platform.java11.dependency]]
