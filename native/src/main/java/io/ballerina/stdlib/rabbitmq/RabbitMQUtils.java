@@ -37,7 +37,7 @@ import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BTypedesc;
-import io.ballerina.stdlib.rabbitmq.util.ModuleUtils;
+import io.ballerina.stdlib.constraint.Constraints;
 import org.ballerinalang.langlib.value.CloneReadOnly;
 import org.ballerinalang.langlib.value.CloneWithType;
 import org.ballerinalang.langlib.value.FromJsonWithType;
@@ -53,6 +53,9 @@ import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.MESSAGE_DELIVERY_TA
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.MESSAGE_EXCHANGE_FIELD;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.MESSAGE_PROPERTIES_FIELD;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.MESSAGE_ROUTINE_KEY_FIELD;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.PAYLOAD_BINDING_ERROR;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.PAYLOAD_VALIDATION_ERROR;
+import static io.ballerina.stdlib.rabbitmq.util.ModuleUtils.getModule;
 
 /**
  * Util class used to bridge the RabbitMQ connector's native code and the Ballerina API.
@@ -63,8 +66,18 @@ public class RabbitMQUtils {
 
     public static BError returnErrorValue(String errorMessage) {
         return ErrorCreator.createDistinctError(RabbitMQConstants.RABBITMQ_ERROR,
-                                                ModuleUtils.getModule(),
+                                                getModule(),
                                                 StringUtils.fromString(errorMessage));
+    }
+
+    public static BError createPayloadValidationError(String message, Object results) {
+        return ErrorCreator.createError(getModule(), PAYLOAD_VALIDATION_ERROR, StringUtils.fromString(message),
+                ErrorCreator.createError(StringUtils.fromString(results.toString())), null);
+    }
+
+    public static BError createPayloadBindingError(String message, BError cause) {
+        return ErrorCreator.createError(getModule(), PAYLOAD_BINDING_ERROR, StringUtils.fromString(message),
+                cause, null);
     }
 
     public static boolean checkIfInt(Object object) {
@@ -105,7 +118,8 @@ public class RabbitMQUtils {
         BMap<BString, Object> messageRecord = ValueCreator.createRecordValue(recordType);
         Object messageContent = getValueWithIntendedType(intendedType, message);
         if (messageContent instanceof BError) {
-            throw (BError) messageContent;
+            throw createPayloadBindingError(String.format("Data binding failed: %s", ((BError) messageContent)
+                    .getMessage()), (BError) messageContent);
         }
         messageRecord.put(StringUtils.fromString(MESSAGE_CONTENT_FIELD), messageContent);
         messageRecord.put(StringUtils.fromString(MESSAGE_ROUTINE_KEY_FIELD), StringUtils.fromString(
@@ -120,7 +134,7 @@ public class RabbitMQUtils {
             String contentEncoding = properties.getContentEncoding();
             String correlationId = properties.getCorrelationId();
             BMap<BString, Object> basicProperties =
-                    ValueCreator.createRecordValue(ModuleUtils.getModule(),
+                    ValueCreator.createRecordValue(getModule(),
                             RabbitMQConstants.RECORD_BASIC_PROPERTIES);
             Object[] propValues = new Object[4];
             propValues[0] = replyTo;
@@ -139,7 +153,8 @@ public class RabbitMQUtils {
     public static Object createPayload(byte[] message, Type payloadType) {
         Object messageContent = getValueWithIntendedType(getPayloadType(payloadType), message);
         if (messageContent instanceof BError) {
-            throw (BError) messageContent;
+            throw createPayloadBindingError(String.format("Data binding failed: %s", ((BError) messageContent)
+                    .getMessage()), (BError) messageContent);
         }
         if (payloadType.isReadOnly()) {
             return CloneReadOnly.cloneReadOnly(messageContent);
@@ -173,7 +188,7 @@ public class RabbitMQUtils {
                     return getValueFromJson(type, strValue);
             }
         } catch (BError bError) {
-            throw returnErrorValue(String.format("Data binding failed: %s", bError.getMessage()));
+            throw createPayloadBindingError(String.format("Data binding failed: %s", bError.getMessage()), bError);
         }
     }
 
@@ -194,8 +209,7 @@ public class RabbitMQUtils {
     public static RecordType getRecordType(BTypedesc bTypedesc) {
         RecordType recordType;
         if (bTypedesc.getDescribingType().isReadOnly()) {
-            recordType = (RecordType)
-                    ((IntersectionType) (bTypedesc.getDescribingType())).getConstituentTypes().get(0);
+            recordType = (RecordType) ((IntersectionType) (bTypedesc.getDescribingType())).getConstituentTypes().get(0);
         } else {
             recordType = (RecordType) bTypedesc.getDescribingType();
         }
@@ -214,6 +228,23 @@ public class RabbitMQUtils {
             return  ((IntersectionType) definedType).getConstituentTypes().get(0);
         }
         return definedType;
+    }
+
+    public static void validateConstraints(Object value, BTypedesc bTypedesc, boolean constraintValidation) {
+        if (constraintValidation) {
+            Object validationResult = Constraints.validate(value, bTypedesc);
+            if (validationResult instanceof BError) {
+                throw createPayloadValidationError(((BError) validationResult).getMessage(), value);
+            }
+        }
+    }
+
+    public static BTypedesc getElementTypeDescFromArrayTypeDesc(BTypedesc bTypedesc) {
+        if (bTypedesc.getDescribingType().getTag() == INTERSECTION_TAG) {
+            return ValueCreator.createTypedescValue((((IntersectionType) bTypedesc.getDescribingType())
+                    .getConstituentTypes().get(0)));
+        }
+        return ValueCreator.createTypedescValue((bTypedesc.getDescribingType()));
     }
 
     private RabbitMQUtils() {

@@ -45,9 +45,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
+import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.CONSTRAINT_VALIDATION;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.createAndPopulateMessageRecord;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.createPayload;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.getElementTypeDescFromArrayTypeDesc;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.getRecordType;
+import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.validateConstraints;
 
 /**
  * Util class for RabbitMQ Channel handling.
@@ -65,6 +68,8 @@ public class ChannelUtils {
                 RabbitMQMetricsUtil.reportNewChannel(channel);
                 String connectorId = channelObj.getStringValue(RabbitMQConstants.CONNECTOR_ID).getValue();
                 channelObj.addNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT, channel);
+                channelObj.addNativeData(CONSTRAINT_VALIDATION,
+                        connectionConfig.getBooleanValue(StringUtils.fromString(CONSTRAINT_VALIDATION)));
                 channelObj.addNativeData(RabbitMQConstants.RABBITMQ_TRANSACTION_CONTEXT,
                         new RabbitMQTransactionContext(channel, connectorId));
                 return null;
@@ -125,12 +130,18 @@ public class ChannelUtils {
             if (Objects.isNull(response)) {
                 return RabbitMQUtils.returnErrorValue("No messages are found in the queue.");
             }
-            return createAndPopulateMessageRecord(response.getBody(), response.getEnvelope(),
-                                                                    response.getProps(), getRecordType(bTypedesc));
-        } catch (IOException | ShutdownSignalException | BError e) {
+            boolean constraintValidation = (boolean) clientObj.getNativeData(CONSTRAINT_VALIDATION);
+            Object message = createAndPopulateMessageRecord(response.getBody(), response.getEnvelope(),
+                    response.getProps(), getRecordType(bTypedesc));
+            validateConstraints(message, getElementTypeDescFromArrayTypeDesc(bTypedesc), constraintValidation);
+            return message;
+        } catch (IOException | ShutdownSignalException e) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_BASIC_GET);
             return RabbitMQUtils.returnErrorValue("error occurred while retrieving the message: " +
                                                           e.getMessage());
+        } catch (BError bError) {
+            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_BASIC_GET);
+            return bError;
         }
     }
 
@@ -141,11 +152,17 @@ public class ChannelUtils {
             if (Objects.isNull(response)) {
                 return RabbitMQUtils.returnErrorValue("No messages are found in the queue.");
             }
-            return createPayload(response.getBody(), bTypedesc.getDescribingType());
-        } catch (IOException | ShutdownSignalException | BError e) {
+            boolean constraintValidation = (boolean) clientObj.getNativeData(CONSTRAINT_VALIDATION);
+            Object payload = createPayload(response.getBody(), bTypedesc.getDescribingType());
+            validateConstraints(payload, getElementTypeDescFromArrayTypeDesc(bTypedesc), constraintValidation);
+            return payload;
+        } catch (IOException | ShutdownSignalException e) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_BASIC_GET);
             return RabbitMQUtils.returnErrorValue("error occurred while retrieving the message: " +
                     e.getMessage());
+        } catch (BError bError) {
+            RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_BASIC_GET);
+            return bError;
         }
     }
 

@@ -15,5 +15,11 @@ path = "./lib/amqp-client-@amqp.client.version@.jar"
 [[platform.java11.dependency]]
 path = "../native/build/libs/rabbitmq-native-@project.version@.jar"
 
+[[platform.java11.dependency]]
+groupId = "io.ballerina.stdlib"
+artifactId = "constraint-native"
+version = "@constraint.version@"
+path = "./lib/constraint-native-@constraint.native.version@.jar"
+
 [build-options]
 observabilityIncluded=true
