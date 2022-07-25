@@ -230,14 +230,13 @@ public class RabbitMQUtils {
         return definedType;
     }
 
-    public static Object validateConstraints(Object value, BTypedesc bTypedesc, boolean constraintValidation) {
+    public static void validateConstraints(Object value, BTypedesc bTypedesc, boolean constraintValidation) {
         if (constraintValidation) {
             Object validationResult = Constraints.validate(value, bTypedesc);
             if (validationResult instanceof BError) {
                 throw createPayloadValidationError(((BError) validationResult).getMessage(), value);
             }
         }
-        return value;
     }
 
     public static BTypedesc getElementTypeDescFromArrayTypeDesc(BTypedesc bTypedesc) {

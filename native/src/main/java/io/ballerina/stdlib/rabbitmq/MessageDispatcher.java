@@ -32,7 +32,6 @@ import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.Parameter;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
-import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
@@ -190,7 +189,7 @@ public class MessageDispatcher {
                     }
                     callerExists = true;
                     arguments[index++] = getCallerBObject(envelope.getDeliveryTag());
-                    arguments[index++] = true;
+
                     break;
                 case INTERSECTION_TAG:
                 case RECORD_TYPE_TAG:
@@ -204,7 +203,6 @@ public class MessageDispatcher {
                         validateConstraints(record, getElementTypeDescFromArrayTypeDesc(ValueCreator
                                 .createTypedescValue(parameter.type)), constraintValidation);
                         arguments[index++] = record;
-                        arguments[index++] = true;
                         break;
                     }
                     /*-fallthrough*/
@@ -217,9 +215,9 @@ public class MessageDispatcher {
                     validateConstraints(value, getElementTypeDescFromArrayTypeDesc(ValueCreator
                             .createTypedescValue(parameter.type)), constraintValidation);
                     arguments[index++] = value;
-                    arguments[index++] = true;
                     break;
             }
+            arguments[index++] = true;
         }
         return arguments;
     }
