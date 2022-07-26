@@ -106,7 +106,7 @@ function stringMaxLengthConstraintMessageTest() returns error? {
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     StringConstraintMessage|error result = 'client->consumeMessage(CONSTRAINT_STRING_MAX_LENGTH_QUEUE);
     if result is PayloadValidationError {
-        test:assertEquals(result.message(), "Validation failed for 'maxLength' constraint(s).");
+        test:assertEquals(result.message(), "Validation failed for '$.content:maxLength' constraint(s).");
     } else {
         test:assertFail("Expected a constraint validation error");
     }
@@ -120,7 +120,7 @@ function stringMinLengthConstraintMessageTest() returns error? {
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     StringConstraintMessage|error result = 'client->consumeMessage(CONSTRAINT_STRING_MIN_LENGTH_QUEUE);
     if result is PayloadValidationError {
-        test:assertEquals(result.message(), "Validation failed for 'minLength' constraint(s).");
+        test:assertEquals(result.message(), "Validation failed for '$.content:minLength' constraint(s).");
     } else {
         test:assertFail("Expected a constraint validation error");
     }
@@ -137,7 +137,7 @@ function stringLengthConstraintRecordTest() returns error? {
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     Child|error result = 'client->consumePayload(CONSTRAINT_STRING_LENGTH_QUEUE);
     if result is PayloadValidationError {
-        test:assertEquals(result.message(), "Validation failed for 'length' constraint(s).");
+        test:assertEquals(result.message(), "Validation failed for '$.name:length' constraint(s).");
     } else {
         test:assertFail("Expected a constraint validation error");
     }
@@ -150,7 +150,7 @@ function floatMaxValueConstraintPayloadTest() returns error? {
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     Price|error result = 'client->consumePayload(CONSTRAINT_FLOAT_MAX_VALUE_QUEUE);
     if result is PayloadValidationError {
-        test:assertEquals(result.message(), "Validation failed for 'maxValue' constraint(s).");
+        test:assertEquals(result.message(), "Validation failed for '$:maxValue' constraint(s).");
     } else {
         test:assertFail("Expected a constraint validation error");
     }
@@ -163,7 +163,7 @@ function floatMinValueConstraintPayloadTest() returns error? {
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     Price|error result = 'client->consumePayload(CONSTRAINT_FLOAT_MIN_VALUE_QUEUE);
     if result is PayloadValidationError {
-        test:assertEquals(result.message(), "Validation failed for 'minValue' constraint(s).");
+        test:assertEquals(result.message(), "Validation failed for '$:minValue' constraint(s).");
     } else {
         test:assertFail("Expected a constraint validation error");
     }
@@ -176,7 +176,7 @@ function arrayMaxLengthConstraintPayloadTest() returns error? {
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     NameList|error result = 'client->consumePayload(CONSTRAINT_ARRAY_MAX_LENGTH_QUEUE);
     if result is PayloadValidationError {
-        test:assertEquals(result.message(), "Validation failed for 'maxLength' constraint(s).");
+        test:assertEquals(result.message(), "Validation failed for '$:maxLength' constraint(s).");
     } else {
         test:assertFail("Expected a constraint validation error");
     }
@@ -189,7 +189,7 @@ function arrayMinLengthConstraintPayloadTest() returns error? {
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     NameList|error result = 'client->consumePayload(CONSTRAINT_ARRAY_MIN_LENGTH_QUEUE);
     if result is PayloadValidationError {
-        test:assertEquals(result.message(), "Validation failed for 'minLength' constraint(s).");
+        test:assertEquals(result.message(), "Validation failed for '$:minLength' constraint(s).");
     } else {
         test:assertFail("Expected a constraint validation error");
     }
@@ -222,7 +222,7 @@ public function intMinValueConstraintListenerMessageTest() returns error? {
     check channelListener.attach(intService);
     check channelListener.'start();
     runtime:sleep(2);
-    test:assertEquals(receivedIntMinValueConstraintError, "Validation failed for 'minValue' constraint(s).");
+    test:assertEquals(receivedIntMinValueConstraintError, "Validation failed for '$.content:minValue' constraint(s).");
     check channelListener.gracefulStop();
 }
 
@@ -249,7 +249,7 @@ function intMaxValueConstraintListenerMessageTest() returns error? {
     check channelListener.attach(intConstraintService);
     check channelListener.'start();
     runtime:sleep(2);
-    test:assertEquals(receivedIntMaxValueConstraintError, "Validation failed for 'maxValue' constraint(s).");
+    test:assertEquals(receivedIntMaxValueConstraintError, "Validation failed for '$.content:maxValue' constraint(s).");
     check channelListener.gracefulStop();
 }
 
@@ -276,7 +276,7 @@ function numberMaxValueConstraintListenerPayloadTest() returns error? {
     check channelListener.attach(numberConstraintService);
     check channelListener.'start();
     runtime:sleep(2);
-    test:assertEquals(receivedNumberMaxValueConstraintError, "Validation failed for 'maxValue' constraint(s).");
+    test:assertEquals(receivedNumberMaxValueConstraintError, "Validation failed for '$:maxValue' constraint(s).");
     check channelListener.gracefulStop();
 }
 
@@ -303,7 +303,7 @@ function numberMinValueConstraintListenerPayloadTest() returns error? {
     check channelListener.attach(numberConstraintService);
     check channelListener.'start();
     runtime:sleep(2);
-    test:assertEquals(receivedNumberMinValueConstraintError, "Validation failed for 'minValue' constraint(s).");
+    test:assertEquals(receivedNumberMinValueConstraintError, "Validation failed for '$:minValue' constraint(s).");
     check channelListener.gracefulStop();
 }
 
