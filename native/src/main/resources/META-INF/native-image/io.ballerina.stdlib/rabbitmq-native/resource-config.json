@@ -2,9 +2,6 @@
   "resources":{
   "includes":[
     {
-      "pattern":"\\Qorg/slf4j/impl/StaticLoggerBinder.class\\E"
-    }, 
-    {
       "pattern":"\\Qrabbitmq-amqp-client.properties\\E"
     }
   ]},
