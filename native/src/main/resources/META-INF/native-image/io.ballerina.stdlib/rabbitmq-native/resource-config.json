@@ -1,0 +1,9 @@
+{
+  "resources": {
+    "includes": [
+      {
+        "pattern": "\\Qrabbitmq-amqp-client.properties\\E"
+      }
+    ]
+  }
+}
