@@ -1,9 +1,9 @@
 {
-  "resources":{
-  "includes":[
-    {
-      "pattern":"\\Qrabbitmq-amqp-client.properties\\E"
-    }
-  ]},
-  "bundles":[]
+  "resources": {
+    "includes": [
+      {
+        "pattern": "\\Qrabbitmq-amqp-client.properties\\E"
+      }
+    ]
+  }
 }
