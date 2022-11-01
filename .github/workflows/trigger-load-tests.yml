@@ -12,7 +12,7 @@ on:
         default: 'rabbitmq-perf-cluster-test'
         required: false
   schedule:
-    - cron: '30 9 * * *'
+    - cron: '30 20 * * *'
 
 jobs:
   invokeLoadTests:
