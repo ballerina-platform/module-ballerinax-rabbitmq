@@ -65,8 +65,13 @@ clean {
     }
 }
 
+def nativeFlag = ""
+
 task testExamples {
     doLast {
+        if (project.hasProperty('balNativeTest')) {
+            nativeFlag = '--native'
+        }
         def moduleVersion = "${project.version}".replace("-SNAPSHOT", "")
         examples.each { example ->
             def dependenciesTomlFile = new File("${project.projectDir}/resources/Dependencies.toml")
@@ -77,9 +82,9 @@ task testExamples {
                 exec {
                     workingDir project.projectDir
                     if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                        commandLine 'cmd', '/c', "${ballerinaDist}/bin/bal.bat build ${example} && exit %%ERRORLEVEL%%"
+                        commandLine 'cmd', '/c', "${ballerinaDist}/bin/bal.bat build ${nativeFlag} ${example} && exit %%ERRORLEVEL%%"
                     } else {
-                        commandLine 'sh', '-c', "${ballerinaDist}/bin/bal build ${example}"
+                        commandLine 'sh', '-c', "${ballerinaDist}/bin/bal build ${nativeFlag} ${example}"
                     }
                 }
             } catch (Exception e) {
