@@ -85,6 +85,10 @@ public class ConnectionUtils {
             int portInt = Math.toIntExact(port);
             connectionFactory.setPort(portInt);
 
+            Object vhost = connectionConfig.get(RabbitMQConstants.VHOST);
+            if (vhost != null) {
+                connectionFactory.setVirtualHost(vhost.toString());
+            }
             Object username = connectionConfig.get(RabbitMQConstants.RABBITMQ_CONNECTION_USER);
             if (username != null) {
                 connectionFactory.setUsername(username.toString());
