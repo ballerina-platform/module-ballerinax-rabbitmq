@@ -30,4 +30,4 @@ services:
             - 5674:5672
             - 15674:15672
         volumes:
-            - ./rabbitmq-auth.conf:/etc/rabbitmq/rabbitmq-vhost.conf
+            - ./rabbitmq-vhost.conf:/etc/rabbitmq/rabbitmq-vhost.conf

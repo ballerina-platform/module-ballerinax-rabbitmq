@@ -305,7 +305,7 @@ public function testClientVhost() returns error? {
     };
     Client|error newClient = new (DEFAULT_HOST, 5674);
     if newClient is error {
-        test:assertFail("Error occurred while creating the connection");
+        test:assertFail("Error occurred while creating the connection with virtual host");
     }
 }
 
