@@ -23,3 +23,11 @@ services:
             - 15673:15672
         volumes:
             - ./rabbitmq-auth.conf:/etc/rabbitmq/rabbitmq.conf
+    rabbitmq-vhost:
+        image: rabbitmq:3-management
+        hostname: rabbitmq-vhost
+        ports:
+            - 5674:5672
+            - 15674:15672
+        volumes:
+            - ./rabbitmq-auth.conf:/etc/rabbitmq/rabbitmq-vhost.conf

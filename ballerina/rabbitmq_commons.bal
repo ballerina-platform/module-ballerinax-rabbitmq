@@ -78,6 +78,7 @@ public type ExchangeConfig record {|
 #
 # + username - The username used for establishing the connection
 # + password - The password used for establishing the connection
+# + vhost - The virtual host to use when connecting to the broker
 # + connectionTimeout - Connection TCP establishment timeout in seconds and zero for infinite
 # + handshakeTimeout -  The AMQP 0-9-1 protocol handshake timeout in seconds
 # + shutdownTimeout - Shutdown timeout in seconds, zero for infinite, and the default value is 10. If the consumers exceed
@@ -89,6 +90,7 @@ public type ExchangeConfig record {|
 public type ConnectionConfiguration record {|
     string username?;
     string password?;
+    string vhost?;
     decimal connectionTimeout?;
     decimal handshakeTimeout?;
     decimal shutdownTimeout?;

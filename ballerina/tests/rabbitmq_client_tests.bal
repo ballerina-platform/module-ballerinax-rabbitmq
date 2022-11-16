@@ -297,6 +297,19 @@ public function testClient() returns error? {
 }
 
 @test:Config {
+    groups: ["rabbitmq"]
+}
+public function testClientVhost() returns error? {
+    ConnectionConfiguration connConfig = {
+        vhost: "ballerina"
+    };
+    Client|error newClient = new (DEFAULT_HOST, 5674);
+    if newClient is error {
+        test:assertFail("Error occurred while creating the connection");
+    }
+}
+
+@test:Config {
     dependsOn: [testClient],
     groups: ["rabbitmq"]
 }

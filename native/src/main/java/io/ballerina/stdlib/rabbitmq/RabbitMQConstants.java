@@ -46,6 +46,7 @@ public class RabbitMQConstants {
     public static final BString EXCHANGE_ARGUMENTS = StringUtils.fromString("arguments");
 
     public static final BString AUTH_CONFIG = StringUtils.fromString("auth");
+    public static final BString VHOST = StringUtils.fromString("vhost");
     public static final BString AUTH_USERNAME = StringUtils.fromString("username");
     public static final BString AUTH_PASSWORD = StringUtils.fromString("password");
 
