@@ -362,7 +362,7 @@ modules = [
 [[package]]
 org = "ballerinax"
 name = "rabbitmq"
-version = "2.3.0"
+version = "2.3.1"
 dependencies = [
 	{org = "ballerina", name = "crypto"},
 	{org = "ballerina", name = "jballerina.java"},
