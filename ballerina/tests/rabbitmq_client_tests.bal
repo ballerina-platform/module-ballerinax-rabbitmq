@@ -280,6 +280,44 @@ public function testProducer() returns error? {
 }
 
 @test:Config {
+    groups: ["rabbitmq"]
+}
+public function testClientVhost() returns error? {
+    ConnectionConfiguration connConfig = {
+        virtualHost: "ballerina"
+    };
+    Client|error newClient = new (DEFAULT_HOST, 5674);
+    if newClient is error {
+        test:assertFail("Error occurred while creating the connection with virtual host");
+    }
+}
+
+@test:Config {
+    groups: ["rabbitmq"]
+}
+public function testClientVhost2() returns error? {
+    string message = "Test vhost connection";
+    string QUEUE_NAME = "vhostQueue";
+    ConnectionConfiguration connConfig = {
+        virtualHost: "ballerina"
+    };
+    Client|error newClient = new (DEFAULT_HOST, 5674);
+    if newClient is error {
+        test:assertFail("Error occurred while creating the connection with virtual host");
+    }
+    check newClient->queueDeclare(QUEUE_NAME);
+    check newClient->publishMessage({content: message.toBytes(), routingKey: QUEUE_NAME});
+    Message|Error consumeResult = newClient->consumeMessage(QUEUE_NAME, true);
+    if consumeResult is Message {
+        string messageContent = check 'string:fromBytes(consumeResult.content);
+        log:printInfo("The message received: " + messageContent);
+        test:assertEquals(messageContent, message, msg = "Message received does not match.");
+    } else {
+        test:assertFail("Error when trying to consume messages using client.");
+    }
+}
+
+@test:Config {
     dependsOn: [testClient],
     groups: ["rabbitmq"]
 }

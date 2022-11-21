@@ -37,6 +37,7 @@ public class RabbitMQConstants {
     public static final BString QUEUE_NAME = StringUtils.fromString("queueName");
     public static final BString QUEUE_DURABLE = StringUtils.fromString("durable");
     public static final BString QUEUE_EXCLUSIVE = StringUtils.fromString("exclusive");
+    public static final BString VHOST = StringUtils.fromString("virtualHost");
     public static final BString QUEUE_AUTO_DELETE = StringUtils.fromString("autoDelete");
     public static final BString QUEUE_ARGUMENTS = StringUtils.fromString("arguments");
 
