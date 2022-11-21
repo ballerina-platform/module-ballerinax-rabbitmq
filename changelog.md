@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- [Add support for virtual host configuration in connection config.](https://github.com/ballerina-platform/ballerina-standard-library/issues/3658)
+
+## [2.3.0] - 2022-05-30
+
+### Added
 - [Add code-actions to generate rabbitmq:Service template.](https://github.com/ballerina-platform/ballerina-standard-library/issues/2770)
 - [Add data-binding support.](https://github.com/ballerina-platform/ballerina-standard-library/issues/2812)
 
