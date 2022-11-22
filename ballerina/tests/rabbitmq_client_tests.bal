@@ -397,7 +397,7 @@ public isolated function testDeclareQueueWithArgs() returns error? {
     groups: ["rabbitmq"]
 }
 public isolated function testDeclareQueueWithArgsNegative() returns error? {
-    string queue = "declareArgs";
+    string queue = "declareArgs2";
     Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
 
     map<int> m = {
