@@ -26,6 +26,7 @@ import com.rabbitmq.client.ShutdownSignalException;
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BDecimal;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
@@ -87,7 +88,7 @@ public class ChannelUtils {
         boolean durable = false;
         boolean exclusive = false;
         boolean autoDelete = true;
-        Map<String, Object> argumentsMap = null;
+        Map<String, Object> argumentsMap = new HashMap<>();
         Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         try {
             if (queueConfig != null) {
@@ -97,18 +98,34 @@ public class ChannelUtils {
                 exclusive = config.getBooleanValue(RabbitMQConstants.QUEUE_EXCLUSIVE);
                 autoDelete = config.getBooleanValue(RabbitMQConstants.QUEUE_AUTO_DELETE);
                 if (config.getMapValue(RabbitMQConstants.QUEUE_ARGUMENTS) != null) {
-                    argumentsMap = (HashMap<String, Object>) config.getMapValue(RabbitMQConstants.QUEUE_ARGUMENTS);
+                    @SuppressWarnings(RabbitMQConstants.UNCHECKED)
+                    HashMap<BString, Object> queueArgs =
+                            (HashMap<BString, Object>) config.getMapValue(RabbitMQConstants.QUEUE_ARGUMENTS);
+                    queueArgs.forEach((k, v) -> argumentsMap.put(k.getValue(), getConvertedValue(v)));
                 }
             }
             channel.queueDeclare(queueName.getValue(), durable, exclusive, autoDelete, argumentsMap);
             RabbitMQMetricsUtil.reportNewQueue(channel, queueName.getValue());
             RabbitMQTracingUtil.traceQueueResourceInvocation(channel, queueName.getValue(), environment);
-        } catch (IOException | ShutdownSignalException exception) {
+        } catch (IOException | ShutdownSignalException | BError exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_QUEUE_DECLARE);
             return RabbitMQUtils.returnErrorValue("Error occurred while declaring the queue: "
                                                           + exception.getMessage());
         }
         return null;
+    }
+
+    private static Object getConvertedValue(Object v) {
+        if (v instanceof BString) {
+            return ((BString) v).getValue();
+        } else if (v instanceof BDecimal) {
+            return ((BDecimal) v).decimalValue();
+        } else if (v instanceof Long) {
+            return ((Long) v).intValue();
+        } else {
+            throw RabbitMQUtils.returnErrorValue(
+                    "Unsupported type in arguments map passed while declaring a queue.");
+        }
     }
 
     public static Object queueAutoGenerate(BObject clientObj) {

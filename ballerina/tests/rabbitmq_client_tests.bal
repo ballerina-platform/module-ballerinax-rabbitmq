@@ -380,6 +380,46 @@ public isolated function testProducerTransactional() returns error? {
     dependsOn: [testClient],
     groups: ["rabbitmq"]
 }
+public isolated function testDeclareQueueWithArgs() returns error? {
+    string queue = "declareArgs";
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
+    map<anydata> args = {
+        "x-message-ttl": 60000,
+        "x-expires": 800000
+    };
+    check newClient->queueDeclare(queue, { arguments: args });
+    check newClient->close();
+    return;
+}
+
+@test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
+public isolated function testDeclareQueueWithArgsNegative() returns error? {
+    string queue = "declareArgs";
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
+
+    map<int> m = {
+        "x": 1,
+        "y": 2
+    };
+    map<anydata> args = {
+        "x-message-ttl": m,
+        "x-expires": 800000
+    };
+    error? result = newClient->queueDeclare(queue, { arguments: args });
+    if result !is error {
+        test:assertFail("Error when trying to consume messages using client.");
+    }
+    check newClient->close();
+    return;
+}
+
+@test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
 public isolated function testProducerTransactionalRollback() returns error? {
     string queue = "testProducerTransactionalRollback";
     Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
