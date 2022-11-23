@@ -46,6 +46,54 @@ function floatConsumeMessageTest() returns error? {
     check 'client->close();
 }
 
+@test:Config {
+    dependsOn: [stringConsumeMessageTest]
+}
+function stringConsumeMessageTestWithAck() returns error? {
+    string message = "This is a data binding related message";
+    check produceMessage(message.toString(), DATA_BINDING_STRING_CONSUME_QUEUE);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
+    StringMessage receivedMessage = check 'client->consumeMessage(DATA_BINDING_STRING_CONSUME_QUEUE, false);
+    test:assertEquals(receivedMessage.content, message);
+    error? result = 'client->basicAck(receivedMessage);
+    if result is error {
+        test:assertFail("Acknowledging the message with data binding failed.");
+    }
+    check 'client->close();
+}
+
+@test:Config {
+    dependsOn: [intConsumeMessageTest]
+}
+function intConsumeMessageTestWithAck() returns error? {
+    int message = 445;
+    check produceMessage(message.toString(), DATA_BINDING_INT_CONSUME_QUEUE);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
+    IntMessage receivedMessage = check 'client->consumeMessage(DATA_BINDING_INT_CONSUME_QUEUE, false);
+    test:assertEquals(receivedMessage.content, message);
+    error? result = 'client->basicAck(receivedMessage);
+    if result is error {
+        test:assertFail("Acknowledging the message with data binding failed.");
+    }
+    check 'client->close();
+}
+
+@test:Config {
+    dependsOn: [floatConsumeMessageTest]
+}
+function floatConsumeMessageTestWithAck() returns error? {
+    float message = 43.201;
+    check produceMessage(message.toString(), DATA_BINDING_FLOAT_CONSUME_QUEUE);
+    Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
+    FloatMessage receivedMessage = check 'client->consumeMessage(DATA_BINDING_FLOAT_CONSUME_QUEUE, false);
+    test:assertEquals(receivedMessage.content, message);
+    error? result = 'client->basicNack(receivedMessage);
+    if result is error {
+        test:assertFail("Acknowledging the message with data binding failed.");
+    }
+    check 'client->close();
+}
+
 @test:Config {}
 function decimalConsumeMessageTest() returns error? {
     decimal message = 59.382;
