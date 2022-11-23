@@ -26,7 +26,6 @@ import com.rabbitmq.client.ShutdownSignalException;
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
-import io.ballerina.runtime.api.values.BDecimal;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
@@ -107,10 +106,13 @@ public class ChannelUtils {
             channel.queueDeclare(queueName.getValue(), durable, exclusive, autoDelete, argumentsMap);
             RabbitMQMetricsUtil.reportNewQueue(channel, queueName.getValue());
             RabbitMQTracingUtil.traceQueueResourceInvocation(channel, queueName.getValue(), environment);
-        } catch (IOException | ShutdownSignalException | BError exception) {
+        } catch (IOException | ShutdownSignalException exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_QUEUE_DECLARE);
             return RabbitMQUtils.returnErrorValue("Error occurred while declaring the queue: "
                                                           + exception.getMessage());
+        } catch (BError error) {
+            return RabbitMQUtils.returnErrorValueWithCause("Error occurred while declaring the queue: "
+                    + error.getMessage(), error);
         }
         return null;
     }
@@ -118,8 +120,8 @@ public class ChannelUtils {
     private static Object getConvertedValue(Object v) {
         if (v instanceof BString) {
             return ((BString) v).getValue();
-        } else if (v instanceof BDecimal) {
-            return ((BDecimal) v).decimalValue();
+        } else if (v instanceof Float) {
+            return v;
         } else if (v instanceof Long) {
             return ((Long) v).intValue();
         } else {

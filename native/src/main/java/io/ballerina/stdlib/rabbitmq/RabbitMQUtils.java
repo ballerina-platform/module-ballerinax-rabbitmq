@@ -70,6 +70,12 @@ public class RabbitMQUtils {
                                                 StringUtils.fromString(errorMessage));
     }
 
+    public static BError returnErrorValueWithCause(String errorMessage, BError cause) {
+        return ErrorCreator.createDistinctError(RabbitMQConstants.RABBITMQ_ERROR,
+                getModule(),
+                StringUtils.fromString(errorMessage), cause);
+    }
+
     public static BError createPayloadValidationError(String message, Object results) {
         return ErrorCreator.createError(getModule(), PAYLOAD_VALIDATION_ERROR, StringUtils.fromString(message),
                 ErrorCreator.createError(StringUtils.fromString(results.toString())), null);

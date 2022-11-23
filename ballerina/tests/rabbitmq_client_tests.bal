@@ -411,9 +411,13 @@ public isolated function testDeclareQueueWithArgsNegative() returns error? {
     error? result = newClient->queueDeclare(queue, { arguments: args });
     if result !is error {
         test:assertFail("Error when trying to consume messages using client.");
+    } else {
+        string expectedError = "Error occurred while declaring the queue: Unsupported type in arguments map passed "
+                        + "while declaring a queue.";
+        test:assertEquals(result.message(), expectedError,
+                    msg = "Error message mismatch in declaring queue with invalid args.");
     }
-    check newClient->close();
-    return;
+    return newClient->close();
 }
 
 @test:Config {
@@ -428,8 +432,7 @@ public isolated function testProducerTransactionalRollback() returns error? {
     if consumeResult is Message {
         test:assertFail("Rolled back message is in queue.");
     }
-    check newClient->close();
-    return;
+    return newClient->close();
 }
 
 isolated function rabbitMQTransactionFail(string queue) returns error? {
