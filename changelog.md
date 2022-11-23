@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [Fix error in passing additional arguments when declaring a queue.](https://github.com/ballerina-platform/ballerina-standard-library/issues/3686)
 
 ### Added
+- [Add support for AnydataMessage in client acknowledgment APIs.](https://github.com/ballerina-platform/ballerina-standard-library/issues/3685)
 - [Add support for virtual host configuration in connection config.](https://github.com/ballerina-platform/ballerina-standard-library/issues/3658)
 
 ## [2.4.0] - 2022-09-08
