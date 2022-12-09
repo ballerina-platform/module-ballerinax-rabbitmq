@@ -224,7 +224,7 @@ public class RabbitMQUtils {
 
     public static RecordType getRecordType(Type type) {
         if (type.getTag() == TypeTags.INTERSECTION_TAG) {
-            return (RecordType) ((IntersectionType) (type)).getConstituentTypes().get(0);
+            return (RecordType) TypeUtils.getReferredType(((IntersectionType) (type)).getConstituentTypes().get(0));
         }
         return (RecordType) type;
     }
