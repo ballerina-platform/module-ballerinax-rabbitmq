@@ -29,9 +29,11 @@ import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.async.StrandMetadata;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.MethodType;
+import io.ballerina.runtime.api.types.ObjectType;
 import io.ballerina.runtime.api.types.Parameter;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
@@ -101,8 +103,9 @@ public class MessageDispatcher {
         if (service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue()) != null) {
             return (String) service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue());
         } else {
+            ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(service.getType());
             @SuppressWarnings("unchecked")
-            BMap<BString, Object> serviceConfig = (BMap<BString, Object>) (service.getType())
+            BMap<BString, Object> serviceConfig = (BMap<BString, Object>) serviceType
                     .getAnnotation(StringUtils.fromString(ModuleUtils.getModule().getOrg() + ORG_NAME_SEPARATOR
                                                                   + ModuleUtils.getModule().getName() +
                                                                   VERSION_SEPARATOR
@@ -258,8 +261,9 @@ public class MessageDispatcher {
 
     private void executeResource(String function, Callback callback, StrandMetadata metaData, Type returnType,
                                  Object... args) {
+        ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(service.getType());
         if (ObserveUtils.isTracingEnabled()) {
-            if (service.getType().isIsolated() && service.getType().isIsolated(function)) {
+            if (serviceType.isIsolated() && serviceType.isIsolated(function)) {
                 runtime.invokeMethodAsyncConcurrently(service, function, null, metaData, callback,
                         getNewObserverContextInProperties(), returnType, args);
             } else {
@@ -268,7 +272,7 @@ public class MessageDispatcher {
             }
             return;
         }
-        if (service.getType().isIsolated() && service.getType().isIsolated(function)) {
+        if (serviceType.isIsolated() && serviceType.isIsolated(function)) {
             runtime.invokeMethodAsyncConcurrently(service, function, null, metaData, callback, null,
                     returnType, args);
         } else {
@@ -315,7 +319,7 @@ public class MessageDispatcher {
 
     private static MethodType getAttachedFunctionType(BObject serviceObject, String functionName) {
         MethodType function = null;
-        MethodType[] resourceFunctions = serviceObject.getType().getMethods();
+        MethodType[] resourceFunctions = ((ObjectType) TypeUtils.getReferredType(serviceObject.getType())).getMethods();
         for (MethodType resourceFunction : resourceFunctions) {
             if (functionName.equals(resourceFunction.getName())) {
                 function = resourceFunction;

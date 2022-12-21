@@ -25,6 +25,7 @@ import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Runtime;
 import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.types.AnnotatableType;
+import io.ballerina.runtime.api.types.ObjectType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BMap;
@@ -208,8 +209,9 @@ public class ListenerUtils {
     }
 
     private static boolean getAckMode(BObject service) {
+        ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(service.getType());
         @SuppressWarnings("unchecked")
-        BMap<BString, Object> serviceConfig = (BMap<BString, Object>) (service.getType())
+        BMap<BString, Object> serviceConfig = (BMap<BString, Object>) serviceType
                 .getAnnotation(StringUtils.fromString(ModuleUtils.getModule().getOrg() + ORG_NAME_SEPARATOR
                                                               + ModuleUtils.getModule().getName() + VERSION_SEPARATOR
                                                               + ModuleUtils.getModule().getVersion() + ":"
