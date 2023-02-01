@@ -404,4 +404,3 @@ modules = [
 	{org = "ballerinax", packageName = "rabbitmq", moduleName = "rabbitmq"}
 ]
 
-
