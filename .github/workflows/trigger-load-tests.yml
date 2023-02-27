@@ -26,7 +26,7 @@ jobs:
     with:
       repo_name: 'module-ballerinax-rabbitmq'
       runtime_artifacts_url: 'https://api.github.com/repos/ballerina-platform/module-ballerinax-rabbitmq/actions/artifacts'
-      dispatch_type: 'nats-load-test'
+      dispatch_type: 'rabbitmq-load-test'
       cluster_name: ${{ inputs.clusterName }}
       tests: ${{ inputs.tests }}
       branch: ${{ inputs.branch }}
