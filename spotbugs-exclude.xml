@@ -60,4 +60,12 @@
         <Class name="io.ballerina.stdlib.rabbitmq.RabbitMQUtils" />
         <Bug pattern="BC_UNCONFIRMED_CAST" />
     </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.rabbitmq.RabbitMQTypeCheckCallback"/>
+        <Bug pattern="DM_EXIT"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.rabbitmq.RabbitMQResourceCallback"/>
+        <Bug pattern="DM_EXIT"/>
+    </Match>
 </FindBugsFilter>

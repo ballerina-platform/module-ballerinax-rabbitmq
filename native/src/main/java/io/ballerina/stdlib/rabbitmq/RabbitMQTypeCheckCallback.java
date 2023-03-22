@@ -45,6 +45,10 @@ public class RabbitMQTypeCheckCallback implements Callback {
     @Override
     public void notifyFailure(BError error) {
         semaphore.release();
+        // Service level `panic` is captured in this method.
+        // Since, `panic` is due to a critical application bug or resource exhaustion we need to exit the application.
+        // Please refer: https://github.com/ballerina-platform/ballerina-standard-library/issues/2714
+        System.exit(1);
         error.printStackTrace();
     }
 
