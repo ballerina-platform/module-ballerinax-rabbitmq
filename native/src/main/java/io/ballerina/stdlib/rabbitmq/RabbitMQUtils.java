@@ -31,6 +31,7 @@ import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.TypeUtils;
+import io.ballerina.runtime.api.utils.ValueUtils;
 import io.ballerina.runtime.api.utils.XmlUtils;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
@@ -39,8 +40,6 @@ import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BTypedesc;
 import io.ballerina.stdlib.constraint.Constraints;
 import org.ballerinalang.langlib.value.CloneReadOnly;
-import org.ballerinalang.langlib.value.CloneWithType;
-import org.ballerinalang.langlib.value.FromJsonWithType;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -179,7 +178,7 @@ public class RabbitMQUtils {
                 case TypeTags.ANYDATA_TAG:
                     return ValueCreator.createArrayValue(value);
                 case TypeTags.RECORD_TYPE_TAG:
-                    return CloneWithType.convert(type, JsonUtils.parse(strValue));
+                    return ValueUtils.convert(JsonUtils.parse(strValue), type);
                 case UNION_TAG:
                     if (hasStringType((UnionType) type)) {
                         return StringUtils.fromString(strValue);
@@ -208,8 +207,7 @@ public class RabbitMQUtils {
     }
 
     private static Object getValueFromJson(Type type, String stringValue) {
-        BTypedesc typeDesc = ValueCreator.createTypedescValue(type);
-        return FromJsonWithType.fromJsonWithType(JsonUtils.parse(stringValue), typeDesc);
+        return ValueUtils.convert(JsonUtils.parse(stringValue), type);
     }
 
     public static RecordType getRecordType(BTypedesc bTypedesc) {
