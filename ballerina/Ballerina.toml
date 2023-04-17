@@ -16,7 +16,7 @@ path = "./lib/amqp-client-5.10.0.jar"
 groupId = "io.ballerina.stdlib"
 artifactId = "rabbitmq-native"
 version = "2.7.0"
-path = "../native/build/libs/rabbitmq-native-2.7.0-SNAPSHOT.jar"
+path = "../native/build/libs/rabbitmq-native-2.7.0.jar"
 
 [[platform.java11.dependency]]
 groupId = "io.ballerina.stdlib"
