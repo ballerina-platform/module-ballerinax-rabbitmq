@@ -147,7 +147,7 @@ public class ListenerUtils {
         @SuppressWarnings(RabbitMQConstants.UNCHECKED)
         ArrayList<BObject> services =
                 (ArrayList<BObject>) listenerBObject.getNativeData(RabbitMQConstants.CONSUMER_SERVICES);
-        String serviceName = service.getType().getName();
+        String serviceName = TypeUtils.getType(service).getName();
         String queueName = (String) service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue());
         try {
             channel.basicCancel(serviceName);
@@ -165,7 +165,7 @@ public class ListenerUtils {
     }
 
     private static void declareQueueIfNotExists(BObject service, Channel channel) throws IOException {
-        BMap serviceConfig = (BMap) ((AnnotatableType) service.getType())
+        BMap serviceConfig = (BMap) ((AnnotatableType) TypeUtils.getType(service))
                 .getAnnotation(StringUtils.fromString(ModuleUtils.getModule().getOrg() + ORG_NAME_SEPARATOR
                                                               + ModuleUtils.getModule().getName() + VERSION_SEPARATOR
                                                               + ModuleUtils.getModule().getVersion() + ":"
@@ -209,7 +209,7 @@ public class ListenerUtils {
     }
 
     private static boolean getAckMode(BObject service) {
-        ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(service.getType());
+        ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(TypeUtils.getType(service));
         @SuppressWarnings("unchecked")
         BMap<BString, Object> serviceConfig = (BMap<BString, Object>) serviceType
                 .getAnnotation(StringUtils.fromString(ModuleUtils.getModule().getOrg() + ORG_NAME_SEPARATOR

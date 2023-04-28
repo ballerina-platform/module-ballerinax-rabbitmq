@@ -94,7 +94,7 @@ public class MessageDispatcher {
         this.autoAck = autoAck;
         this.service = service;
         this.queueName = getQueueNameFromConfig(service);
-        this.consumerTag = service.getType().getName();
+        this.consumerTag = TypeUtils.getType(service).getName();
         this.runtime = runtime;
         this.listenerObj = listener;
     }
@@ -103,7 +103,7 @@ public class MessageDispatcher {
         if (service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue()) != null) {
             return (String) service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue());
         } else {
-            ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(service.getType());
+            ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(TypeUtils.getType(service));
             @SuppressWarnings("unchecked")
             BMap<BString, Object> serviceConfig = (BMap<BString, Object>) serviceType
                     .getAnnotation(StringUtils.fromString(ModuleUtils.getModule().getOrg() + ORG_NAME_SEPARATOR
@@ -261,7 +261,7 @@ public class MessageDispatcher {
 
     private void executeResource(String function, Callback callback, StrandMetadata metaData, Type returnType,
                                  Object... args) {
-        ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(service.getType());
+        ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(TypeUtils.getType(service));
         if (ObserveUtils.isTracingEnabled()) {
             if (serviceType.isIsolated() && serviceType.isIsolated(function)) {
                 runtime.invokeMethodAsyncConcurrently(service, function, null, metaData, callback,
@@ -319,7 +319,8 @@ public class MessageDispatcher {
 
     private static MethodType getAttachedFunctionType(BObject serviceObject, String functionName) {
         MethodType function = null;
-        MethodType[] resourceFunctions = ((ObjectType) TypeUtils.getReferredType(serviceObject.getType())).getMethods();
+        MethodType[] resourceFunctions = ((ObjectType) TypeUtils.getReferredType(
+                TypeUtils.getType(serviceObject))).getMethods();
         for (MethodType resourceFunction : resourceFunctions) {
             if (functionName.equals(resourceFunction.getName())) {
                 function = resourceFunction;
