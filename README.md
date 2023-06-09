@@ -4,7 +4,7 @@ Ballerina RabbitMQ Library
 [![Build](https://github.com/ballerina-platform/module-ballerinax-rabbitmq/actions/workflows/build-timestamped-master.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerinax-rabbitmq/actions/workflows/build-timestamped-master.yml)
 [![codecov](https://codecov.io/gh/ballerina-platform/module-ballerinax-rabbitmq/branch/master/graph/badge.svg)](https://codecov.io/gh/ballerina-platform/module-ballerinax-rabbitmq)
 [![Trivy](https://github.com/ballerina-platform/module-ballerinax-rabbitmq/actions/workflows/trivy-scan.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerinax-rabbitmq/actions/workflows/trivy-scan.yml)
-[![GraalVM Check](https://github.com/ballerina-platform/module-ballerinax-rabbitmq/actions/workflows/build-with-bal-test-native.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerinax-rabbitmq/actions/workflows/build-with-bal-test-native.yml)
+[![GraalVM Check](https://github.com/ballerina-platform/module-ballerinax-rabbitmq/actions/workflows/build-with-bal-test-graalvm.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerinax-rabbitmq/actions/workflows/build-with-bal-test-graalvm.yml)
 [![GitHub Last Commit](https://img.shields.io/github/last-commit/ballerina-platform/module-ballerinax-rabbitmq.svg)](https://github.com/ballerina-platform/module-ballerinax-rabbitmq/commits/master)
 
 This library provides the capability to send and receive messages by connecting to the RabbitMQ server.
