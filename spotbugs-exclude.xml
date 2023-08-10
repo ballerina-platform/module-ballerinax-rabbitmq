@@ -68,4 +68,16 @@
         <Class name="io.ballerina.stdlib.rabbitmq.RabbitMQResourceCallback"/>
         <Bug pattern="DM_EXIT"/>
     </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.rabbitmq.plugin.RabbitmqFunctionValidator"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.rabbitmq.MessageDispatcher"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="io.ballerina.stdlib.rabbitmq.RabbitMQTransactionContext"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
 </FindBugsFilter>
