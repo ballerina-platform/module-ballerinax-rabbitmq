@@ -22,18 +22,7 @@ listener rabbitmq:Listener channelListener =
 @display {
     label: "rabbitmqService"
 }
-@rabbitmq:ServiceConfig {
-    queueName: "MyQueue"
-}
 service rabbitmq:Service on channelListener {
-    remote function onMessage(rabbitmq:Message message) returns error? {
-    }
-}
-
-@display {
-    label: "natsService"
-}
-service "MyQueue" on channelListener {
-    remote function onMessage(rabbitmq:Message message) returns error? {
+    remote function onMessage(rabbitmq:Message message) {
     }
 }
