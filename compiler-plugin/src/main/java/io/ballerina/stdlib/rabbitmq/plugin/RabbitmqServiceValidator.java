@@ -96,51 +96,41 @@ public class RabbitmqServiceValidator {
         SemanticModel semanticModel = context.semanticModel();
         ServiceDeclarationNode serviceDeclarationNode = (ServiceDeclarationNode) context.node();
         Optional<Symbol> symbol = semanticModel.symbol(serviceDeclarationNode);
+
         if (symbol.isPresent()) {
             ServiceDeclarationSymbol serviceDeclarationSymbol = (ServiceDeclarationSymbol) symbol.get();
             Optional<ServiceAttachPoint> serviceNameAttachPoint = serviceDeclarationSymbol.attachPoint();
             List<AnnotationSymbol> annotations = serviceDeclarationSymbol.annotations();
 
-            // RabbitMQ gets the subject name from either the service name or the
-            // service config, so either one of them should be present.
-            if (annotations.isEmpty()) {
-                if (serviceNameAttachPoint.isEmpty()) {
-                    // Case 1: No service name and no annotation
-                    context.reportDiagnostic(PluginUtils.getDiagnostic(CompilationErrors.NO_ANNOTATION,
-                            DiagnosticSeverity.ERROR, serviceDeclarationNode.location()));
-                } else if (serviceNameAttachPoint.get().kind() != ServiceAttachPointKind.STRING_LITERAL) {
-                    // Case 2: Service name is not a string and no annotation
-                    context.reportDiagnostic(PluginUtils.getDiagnostic(
-                            CompilationErrors.INVALID_SERVICE_ATTACH_POINT,
-                            DiagnosticSeverity.ERROR, serviceDeclarationNode.location()));
-                }
-            } else if (!hasServiceConfig(annotations)) {
-                if (serviceNameAttachPoint.isEmpty()) {
-                    // Case 1: No service name and no annotation
-                    context.reportDiagnostic(PluginUtils.getDiagnostic(CompilationErrors.NO_ANNOTATION,
-                            DiagnosticSeverity.ERROR, serviceDeclarationNode.location()));
-                } else if (serviceNameAttachPoint.get().kind() != ServiceAttachPointKind.STRING_LITERAL) {
-                    // Case 2: Service name is not a string and no annotation
-                    context.reportDiagnostic(PluginUtils.getDiagnostic(CompilationErrors.INVALID_SERVICE_ATTACH_POINT,
-                            DiagnosticSeverity.ERROR, serviceDeclarationNode.location()));
-                }
+            boolean serviceNameIsStringLiteral = serviceNameAttachPoint.isPresent() &&
+                    serviceNameAttachPoint.get().kind() == ServiceAttachPointKind.STRING_LITERAL;
+
+            if (annotations.isEmpty() && !serviceNameIsStringLiteral) {
+                // Case 1: No service name and no annotation
+                reportError(context, CompilationErrors.INVALID_SERVICE_ATTACH_POINT, serviceDeclarationNode);
+            } else if (!hasServiceConfig(annotations) && !serviceNameIsStringLiteral) {
+                // Case 2: Service name is not a string and no annotation
+                reportError(context, CompilationErrors.NO_ANNOTATION, serviceDeclarationNode);
             }
         }
     }
 
+    private void reportError(SyntaxNodeAnalysisContext context, CompilationErrors error, Node locationNode) {
+        context.reportDiagnostic(PluginUtils.getDiagnostic(error, DiagnosticSeverity.ERROR, locationNode.location()));
+    }
+
     private boolean hasServiceConfig(List<AnnotationSymbol> annotationSymbols) {
-        boolean flag = false;
         for (AnnotationSymbol annotationSymbol : annotationSymbols) {
             Optional<ModuleSymbol> moduleSymbolOptional = annotationSymbol.getModule();
             if (moduleSymbolOptional.isPresent()) {
                 ModuleSymbol moduleSymbol = moduleSymbolOptional.get();
-                if (moduleSymbol.id().orgName().equals(PluginConstants.PACKAGE_ORG) ||
-                        moduleSymbol.id().moduleName().equals(PluginConstants.PACKAGE_PREFIX)) {
+                if (PluginConstants.PACKAGE_ORG.equals(moduleSymbol.id().orgName()) &&
+                        PluginConstants.PACKAGE_PREFIX.equals(moduleSymbol.id().moduleName())) {
                     // not checking name as rabbitmq has only two annotations and only one is allowed on services.
-                    flag = true;
+                    return true;
                 }
             }
         }
-        return flag;
+        return false;
     }
 }
