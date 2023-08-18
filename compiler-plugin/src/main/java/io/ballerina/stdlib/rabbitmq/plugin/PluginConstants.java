@@ -96,8 +96,7 @@ public class PluginConstants {
                 "RABBITMQ_117"),
         INVALID_MULTIPLE_LISTENERS("Multiple listener attachments. Only one rabbitmq:Listener is allowed.",
                 "RABBITMQ_118"),
-        NO_ANNOTATION("No @rabbitmq:ServiceConfig{} annotation is found.",
-                "RABBITMQ_119"),
+        NO_ANNOTATION("No ServiceConfig annotation is found.", "RABBITMQ_119"),
         INVALID_SERVICE_ATTACH_POINT("Invalid service attach point. Only string literals are allowed.",
                 "RABBITMQ_120"),
         TEMPLATE_CODE_GENERATION_HINT("Template generation for empty service", "RABBITMQ_121");

@@ -103,13 +103,26 @@ public class RabbitmqServiceValidator {
 
             // RabbitMQ gets the subject name from either the service name or the
             // service config, so either one of them should be present.
-            if (annotations.isEmpty() || !hasServiceConfig(annotations)) {
+            if (annotations.isEmpty()) {
                 if (serviceNameAttachPoint.isEmpty()) {
                     // Case 1: No service name and no annotation
-                    reportError(context, CompilationErrors.NO_ANNOTATION, serviceDeclarationNode);
+                    context.reportDiagnostic(PluginUtils.getDiagnostic(CompilationErrors.NO_ANNOTATION,
+                            DiagnosticSeverity.ERROR, serviceDeclarationNode.location()));
                 } else if (serviceNameAttachPoint.get().kind() != ServiceAttachPointKind.STRING_LITERAL) {
                     // Case 2: Service name is not a string and no annotation
-                    reportError(context, CompilationErrors.INVALID_SERVICE_ATTACH_POINT, serviceDeclarationNode);
+                    context.reportDiagnostic(PluginUtils.getDiagnostic(
+                            CompilationErrors.INVALID_SERVICE_ATTACH_POINT,
+                            DiagnosticSeverity.ERROR, serviceDeclarationNode.location()));
+                }
+            } else if (!hasServiceConfig(annotations)) {
+                if (serviceNameAttachPoint.isEmpty()) {
+                    // Case 1: No service name and no annotation
+                    context.reportDiagnostic(PluginUtils.getDiagnostic(CompilationErrors.NO_ANNOTATION,
+                            DiagnosticSeverity.ERROR, serviceDeclarationNode.location()));
+                } else if (serviceNameAttachPoint.get().kind() != ServiceAttachPointKind.STRING_LITERAL) {
+                    // Case 2: Service name is not a string and no annotation
+                    context.reportDiagnostic(PluginUtils.getDiagnostic(CompilationErrors.INVALID_SERVICE_ATTACH_POINT,
+                            DiagnosticSeverity.ERROR, serviceDeclarationNode.location()));
                 }
             }
         }
@@ -129,9 +142,5 @@ public class RabbitmqServiceValidator {
             }
         }
         return flag;
-    }
-
-    private void reportError(SyntaxNodeAnalysisContext context, CompilationErrors error, Node locationNode) {
-        context.reportDiagnostic(PluginUtils.getDiagnostic(error, DiagnosticSeverity.ERROR, locationNode.location()));
     }
 }
