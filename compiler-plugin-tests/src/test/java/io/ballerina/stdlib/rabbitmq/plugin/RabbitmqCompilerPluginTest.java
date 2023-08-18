@@ -128,7 +128,7 @@ public class RabbitmqCompilerPluginTest {
         Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
-    @Test(enabled = true, description = "Validate `rabbitmq:Service` with `display` annotation")
+    @Test(description = "Validate `rabbitmq:Service` with `display` annotation")
     public void testValidService10() {
         Package currentPackage = loadPackage("valid_service_10");
         PackageCompilation compilation = currentPackage.getCompilation();
@@ -388,7 +388,7 @@ public class RabbitmqCompilerPluginTest {
         }
     }
 
-    @Test(enabled = true, description = "Validate `rabbitmq:Service` no service name or service config annotation")
+    @Test(description = "Validate `rabbitmq:Service` no service name or service config annotation")
     public void testInvalidService22() {
         Package currentPackage = loadPackage("invalid_service_22");
         PackageCompilation compilation = currentPackage.getCompilation();
