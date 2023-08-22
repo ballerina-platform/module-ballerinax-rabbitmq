@@ -45,6 +45,7 @@ import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErr
 import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.INVALID_RETURN_TYPE_ERROR_OR_NIL;
 import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.MUST_HAVE_MESSAGE;
 import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.MUST_HAVE_MESSAGE_AND_ERROR;
+import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.NO_ANNOTATION;
 import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.NO_ON_MESSAGE_OR_ON_REQUEST;
 import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.ONLY_PARAMS_ALLOWED;
 import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.ONLY_PARAMS_ALLOWED_ON_ERROR;
@@ -122,6 +123,14 @@ public class RabbitmqCompilerPluginTest {
     @Test
     public void testValidService9() {
         Package currentPackage = loadPackage("valid_service_9");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 0);
+    }
+
+    @Test(description = "Validate `rabbitmq:Service` with `display` annotation")
+    public void testValidService10() {
+        Package currentPackage = loadPackage("valid_service_10");
         PackageCompilation compilation = currentPackage.getCompilation();
         DiagnosticResult diagnosticResult = compilation.diagnosticResult();
         Assert.assertEquals(diagnosticResult.errorCount(), 0);
@@ -377,6 +386,16 @@ public class RabbitmqCompilerPluginTest {
             Diagnostic diagnostic = (Diagnostic) obj;
             assertDiagnostic(diagnostic, INVALID_FUNCTION_PARAM_PAYLOAD);
         }
+    }
+
+    @Test(description = "Validate `rabbitmq:Service` no service name or service config annotation")
+    public void testInvalidService22() {
+        Package currentPackage = loadPackage("invalid_service_22");
+        PackageCompilation compilation = currentPackage.getCompilation();
+        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        Assert.assertEquals(diagnosticResult.errorCount(), 1);
+        Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
+        assertDiagnostic(diagnostic, NO_ANNOTATION);
     }
 
     private Package loadPackage(String path) {
