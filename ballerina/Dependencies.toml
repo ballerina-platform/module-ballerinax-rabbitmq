@@ -71,7 +71,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "http"
-version = "2.10.0"
+version = "2.10.5"
 scope = "testOnly"
 dependencies = [
 	{org = "ballerina", name = "auth"},
@@ -386,7 +386,7 @@ modules = [
 [[package]]
 org = "ballerinax"
 name = "rabbitmq"
-version = "2.10.0"
+version = "2.10.1"
 dependencies = [
 	{org = "ballerina", name = "constraint"},
 	{org = "ballerina", name = "crypto"},
