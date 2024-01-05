@@ -16,51 +16,25 @@
  * under the License.
  */
 
+import org.apache.tools.ant.taskdefs.condition.Os
+
 plugins {
-    id "com.github.spotbugs" version "5.0.14"
-    id "com.github.johnrengelman.shadow" version "8.1.1"
-    id "de.undercouch.download" version "5.4.0"
-    id "net.researchgate.release" version "2.8.0"
+    id "com.github.spotbugs-base"
+    id "com.github.johnrengelman.shadow"
+    id "de.undercouch.download"
+    id "net.researchgate.release"
 }
 
-ext.ballerinaLangVersion = project.ballerinaLangVersion
-ext.slf4jVersion = "1.7.30"
-ext.amqpVersion = project.amqpClientVersion
-ext.puppycrawlCheckstyleVersion = project.puppycrawlCheckstyleVersion
-ext.stdlibFileVersion = project.stdlibFileVersion
-ext.stdlibIoVersion = project.stdlibIoVersion
-ext.stdlibLogVersion = project.stdlibLogVersion
-ext.stdlibUuidVersion = project.stdlibUuidVersion
-ext.stdlibCryptoVersion = project.stdlibCryptoVersion
-ext.stdlibTimeVersion = project.stdlibTimeVersion
-ext.stdlibTransactionVersion = project.stdlibTransactionVersion
-ext.stdlibJwtVersion = project.stdlibJwtVersion
-ext.stdlibTaskVersion = project.stdlibTaskVersion
-ext.stdlibMimeVersion = project.stdlibMimeVersion
-ext.stdlibHttpVersion = project.stdlibHttpVersion
-ext.stdlibOAuth2Version = project.stdlibOAuth2Version
-ext.stdlibOsVersion = project.stdlibOsVersion
-ext.stdlibCacheVersion = project.stdlibCacheVersion
-ext.stdlibAuthVersion = project.stdlibAuthVersion
-ext.amqpClientVersion = project.amqpClientVersion
-ext.stdlibTransactionVersion = project.stdlibTransactionVersion
+description = 'Ballerina - RabbitMQ'
 
 allprojects {
     group = project.group
     version = project.version
 
-    apply plugin: 'jacoco'
     apply plugin: 'maven-publish'
 
     repositories {
         mavenLocal()
-        maven {
-            url = 'https://maven.wso2.org/nexus/content/repositories/releases/'
-        }
-
-        maven {
-            url = 'https://mvnrepository.com/artifact/org.testng/testng'
-        }
 
         maven {
             url = 'https://maven.wso2.org/nexus/content/groups/wso2-public/'
@@ -80,64 +54,25 @@ allprojects {
     }
 
     ext {
-        snapshotVersion= '-SNAPSHOT'
+        snapshotVersion = '-SNAPSHOT'
         timestampedVersionRegex = '.*-\\d{8}-\\d{6}-\\w.*\$'
     }
 }
 
-subprojects {
-
-    configurations {
-        ballerinaStdLibs
-        jbalTools
-    }
-    dependencies {
-        /* JBallerina Tools */
-        jbalTools ("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
-            transitive = false
-        }
-
-        /* Standard libraries */
-        ballerinaStdLibs "io.ballerina.stdlib:file-ballerina:${stdlibFileVersion}"
-        ballerinaStdLibs "io.ballerina.stdlib:io-ballerina:${stdlibIoVersion}"
-        ballerinaStdLibs "io.ballerina.stdlib:log-ballerina:${stdlibLogVersion}"
-        ballerinaStdLibs "io.ballerina.stdlib:uuid-ballerina:${stdlibUuidVersion}"
-        ballerinaStdLibs "io.ballerina.stdlib:crypto-ballerina:${stdlibCryptoVersion}"
-        ballerinaStdLibs "io.ballerina.stdlib:time-ballerina:${stdlibTimeVersion}"
-        ballerinaStdLibs "org.ballerinalang:transaction-ballerina:${stdlibTransactionVersion}"
-        ballerinaStdLibs "io.ballerina.stdlib:task-ballerina:${stdlibTaskVersion}"
-        ballerinaStdLibs "io.ballerina.stdlib:jwt-ballerina:${stdlibJwtVersion}"
-        ballerinaStdLibs "io.ballerina.stdlib:mime-ballerina:${stdlibMimeVersion}"
-        ballerinaStdLibs "io.ballerina.stdlib:http-ballerina:${stdlibHttpVersion}"
-        ballerinaStdLibs "io.ballerina.stdlib:oauth2-ballerina:${stdlibOAuth2Version}"
-        ballerinaStdLibs "io.ballerina.stdlib:os-ballerina:${stdlibOsVersion}"
-        ballerinaStdLibs "io.ballerina.stdlib:url-ballerina:${stdlibUrlVersion}"
-        ballerinaStdLibs "io.ballerina.stdlib:cache-ballerina:${stdlibCacheVersion}"
-        ballerinaStdLibs "io.ballerina.stdlib:auth-ballerina:${stdlibAuthVersion}"
-        ballerinaStdLibs "io.ballerina.stdlib:constraint-ballerina:${stdlibConstraintVersion}"
-        ballerinaStdLibs "io.ballerina.stdlib:observe-ballerina:${observeVersion}"
-        ballerinaStdLibs "io.ballerina:observe-ballerina:${observeInternalVersion}"
-    }
+task build {
+    dependsOn(":rabbitmq-native:build")
+    dependsOn(":rabbitmq-ballerina:build")
 }
-def moduleVersion = project.version
-if (moduleVersion.indexOf('-') != -1) {
-    moduleVersion = moduleVersion.replace("-SNAPSHOT", "")
-}
+
+def moduleVersion = project.version.replace("-SNAPSHOT", "")
 
 release {
-    failOnPublishNeeded = false
-    failOnSnapshotDependencies = true
-
     buildTasks = ['build']
+    failOnSnapshotDependencies = true
     versionPropertyFile = 'gradle.properties'
-    tagTemplate = 'v$version'
-
+    tagTemplate = 'v${version}'
     git {
         requireBranch = "release-${moduleVersion}"
         pushToRemote = 'origin'
     }
-}
-
-task build {
-    dependsOn('rabbitmq-ballerina:build')
 }

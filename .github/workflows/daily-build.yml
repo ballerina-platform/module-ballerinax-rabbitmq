@@ -1,55 +1,14 @@
 name: Daily build
 
 on:
-  repository_dispatch:
-    types:
-      check_connector_for_breaking_changes
+  schedule:
+    - cron: "30 2 * * *"
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: 17.0.7
-
-      - name: Set environment variable
-        if: github.event.action == 'check_connector_for_breaking_changes'
-        run: |
-          echo "BUILD_USING_DOCKER=-PbuildUsingDocker=nightly" >> $GITHUB_ENV
-          echo "GRADLE_SKIP_TASKS=-x :rabbitmq-compiler-plugin-tests:test"  >> $GITHUB_ENV
-
-      # Build the project with Gradle
-      - name: Build with Gradle
-        env:
-          packageUser: ${{ github.actor }}
-          packagePAT: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          ./gradlew clean build $GRADLE_SKIP_TASKS $BUILD_USING_DOCKER
-
-      # Send notification when build fails
-      - name: Notify failure
-        if: ${{ failure() }}
-        run: |
-          eventType="notify-build-failure"
-
-          if [[ "${{ github.event.action }}" == "check_connector_for_breaking_changes" ]]; then
-            eventType="notify-ballerinax-connector-build-failure"
-          fi
-
-          curl -X POST \
-          'https://api.github.com/repos/ballerina-platform/ballerina-release/dispatches' \
-          -H 'Accept: application/vnd.github.v3+json' \
-          -H 'Authorization: Bearer ${{ secrets.BALLERINA_BOT_TOKEN }}' \
-          --data "{
-            \"event_type\": \"$eventType\",
-            \"client_payload\": {
-              \"repoName\": \"module-ballerinax-rabbitmq\",
-              \"workflow\": \"Daily build\"
-            }
-          }"
+  call_workflow:
+    name: Run Daily Build Workflow
+    if: ${{ github.repository_owner == 'ballerina-platform' }}
+    uses: ballerina-platform/ballerina-standard-library/.github/workflows/daily-build-connector-template.yml@main
+    secrets: inherit
+    with:
+      repo-name: module-ballerinax-rabbitmq

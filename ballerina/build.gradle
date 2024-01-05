@@ -17,19 +17,8 @@
 
 import org.apache.tools.ant.taskdefs.condition.Os
 
-buildscript {
-    repositories {
-        maven {
-            url = 'https://maven.pkg.github.com/ballerina-platform/plugin-gradle'
-            credentials {
-                username System.getenv("packageUser")
-                password System.getenv("packagePAT")
-            }
-        }
-    }
-    dependencies {
-        classpath "io.ballerina:plugin-gradle:${project.ballerinaGradlePluginVersion}"
-    }
+plugins {
+    id 'io.ballerina.plugin'
 }
 
 description = 'Ballerina - rabbitmq Ballerina Generator'
@@ -44,7 +33,7 @@ def compilerPluginTomlFile = new File("$project.projectDir/CompilerPlugin.toml")
 
 def stripBallerinaExtensionVersion(String extVersion) {
     if (extVersion.matches(project.ext.timestampedVersionRegex)) {
-        def splitVersion = extVersion.split('-');
+        def splitVersion = extVersion.split('-')
         if (splitVersion.length > 3) {
             def strippedValues = splitVersion[0..-4]
             return strippedValues.join('-')
@@ -56,13 +45,12 @@ def stripBallerinaExtensionVersion(String extVersion) {
     }
 }
 
-
-apply plugin: 'io.ballerina.plugin'
-
-ballerina{
+ballerina {
     packageOrganization = packageOrg
     module = packageName
-    langVersion = ballerinaLangVersion
+    testCoverageParam = "--code-coverage --coverage-format=xml"
+    isConnector = true
+    platform = "java17"
 }
 
 configurations {
@@ -70,7 +58,7 @@ configurations {
 }
 
 dependencies {
-    externalJars (group: 'com.rabbitmq', name: 'amqp-client', version: "${amqpVersion}") {
+    externalJars (group: 'com.rabbitmq', name: 'amqp-client', version: "${amqpClientVersion}") {
         transitive = false
     }
     externalJars(group: 'io.ballerina.stdlib', name: 'constraint-native', version: "${stdlibConstraintVersion}")
@@ -153,35 +141,15 @@ task stopRabbitmqServer() {
     }
 }
 
-publishing {
-    publications {
-        maven(MavenPublication) {
-            artifact source: createArtifactZip, extension: 'zip'
-        }
-    }
-
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/ballerina-platform/module-${packageOrg}-${packageName}")
-            credentials {
-                username = System.getenv("publishUser")
-                password = System.getenv("publishPAT")
-            }
-        }
-    }
+clean {
+    delete 'build'
 }
 
-
-updateTomlFiles.dependsOn copyStdlibs
-
-build.dependsOn "generatePomFileForMavenPublication"
+build.dependsOn copyToLib
 build.dependsOn ":${packageName}-native:build"
 build.dependsOn ":${packageName}-compiler-plugin:build"
 test.dependsOn ":${packageName}-native:build"
 test.dependsOn ":${packageName}-compiler-plugin:build"
 test.dependsOn startRabbitmqServer
 build.finalizedBy stopRabbitmqServer
-
-publishToMavenLocal.dependsOn build
 publish.dependsOn build
