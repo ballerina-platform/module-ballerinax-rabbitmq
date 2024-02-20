@@ -17,7 +17,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 17.0.7
-
+      
       - name: Set environment variable
         if: github.event.action == 'check_connector_for_breaking_changes'
         run: |

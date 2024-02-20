@@ -78,8 +78,6 @@ dependencies {
 
 task updateTomlFiles {
     doLast {
-        def amqpClientVersion = project.amqpClientVersion
-
         def newConfig = ballerinaTomlFilePlaceHolder.text.replace("@project.version@", project.version)
         def constraintVersion = stripBallerinaExtensionVersion("${project.stdlibConstraintVersion}")
         newConfig = newConfig.replace("@toml.version@", tomlVersion)

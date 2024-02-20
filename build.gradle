@@ -23,28 +23,6 @@ plugins {
     id "net.researchgate.release" version "2.8.0"
 }
 
-ext.ballerinaLangVersion = project.ballerinaLangVersion
-ext.slf4jVersion = "1.7.30"
-ext.amqpVersion = project.amqpClientVersion
-ext.puppycrawlCheckstyleVersion = project.puppycrawlCheckstyleVersion
-ext.stdlibFileVersion = project.stdlibFileVersion
-ext.stdlibIoVersion = project.stdlibIoVersion
-ext.stdlibLogVersion = project.stdlibLogVersion
-ext.stdlibUuidVersion = project.stdlibUuidVersion
-ext.stdlibCryptoVersion = project.stdlibCryptoVersion
-ext.stdlibTimeVersion = project.stdlibTimeVersion
-ext.stdlibTransactionVersion = project.stdlibTransactionVersion
-ext.stdlibJwtVersion = project.stdlibJwtVersion
-ext.stdlibTaskVersion = project.stdlibTaskVersion
-ext.stdlibMimeVersion = project.stdlibMimeVersion
-ext.stdlibHttpVersion = project.stdlibHttpVersion
-ext.stdlibOAuth2Version = project.stdlibOAuth2Version
-ext.stdlibOsVersion = project.stdlibOsVersion
-ext.stdlibCacheVersion = project.stdlibCacheVersion
-ext.stdlibAuthVersion = project.stdlibAuthVersion
-ext.amqpClientVersion = project.amqpClientVersion
-ext.stdlibTransactionVersion = project.stdlibTransactionVersion
-
 allprojects {
     group = project.group
     version = project.version
@@ -91,6 +69,7 @@ subprojects {
         ballerinaStdLibs
         jbalTools
     }
+
     dependencies {
         /* JBallerina Tools */
         jbalTools ("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {
@@ -119,10 +98,7 @@ subprojects {
         ballerinaStdLibs "io.ballerina:observe-ballerina:${observeInternalVersion}"
     }
 }
-def moduleVersion = project.version
-if (moduleVersion.indexOf('-') != -1) {
-    moduleVersion = moduleVersion.replace("-SNAPSHOT", "")
-}
+def moduleVersion = project.version.replace("-SNAPSHOT", "")
 
 release {
     failOnPublishNeeded = false
