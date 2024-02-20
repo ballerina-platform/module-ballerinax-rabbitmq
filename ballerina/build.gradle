@@ -70,7 +70,7 @@ configurations {
 }
 
 dependencies {
-    externalJars (group: 'com.rabbitmq', name: 'amqp-client', version: "${amqpVersion}") {
+    externalJars (group: 'com.rabbitmq', name: 'amqp-client', version: "${amqpClientVersion}") {
         transitive = false
     }
     externalJars(group: 'io.ballerina.stdlib', name: 'constraint-native', version: "${stdlibConstraintVersion}")
