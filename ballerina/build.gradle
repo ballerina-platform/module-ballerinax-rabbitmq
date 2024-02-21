@@ -70,7 +70,7 @@ configurations {
 }
 
 dependencies {
-    externalJars (group: 'com.rabbitmq', name: 'amqp-client', version: "${amqpVersion}") {
+    externalJars (group: 'com.rabbitmq', name: 'amqp-client', version: "${amqpClientVersion}") {
         transitive = false
     }
     externalJars(group: 'io.ballerina.stdlib', name: 'constraint-native', version: "${stdlibConstraintVersion}")
@@ -78,8 +78,6 @@ dependencies {
 
 task updateTomlFiles {
     doLast {
-        def amqpClientVersion = project.amqpClientVersion
-
         def newConfig = ballerinaTomlFilePlaceHolder.text.replace("@project.version@", project.version)
         def constraintVersion = stripBallerinaExtensionVersion("${project.stdlibConstraintVersion}")
         newConfig = newConfig.replace("@toml.version@", tomlVersion)
