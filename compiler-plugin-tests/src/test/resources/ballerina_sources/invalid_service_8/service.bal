@@ -23,7 +23,7 @@ listener rabbitmq:Listener channelListener =
     queueName: "MyQueue"
 }
 service rabbitmq:Service on channelListener {
-    remote function onMessage(rabbitmq:Message message) returns string {
+    remote function onMessage(rabbitmq:AnydataMessage message) returns string {
         return "Hello";
     }
 }
@@ -32,9 +32,9 @@ service rabbitmq:Service on channelListener {
     queueName: "MyQueue"
 }
 service rabbitmq:Service on channelListener {
-    remote function onMessage(rabbitmq:Message message) {
+    remote function onMessage(rabbitmq:AnydataMessage message) {
     }
 
-    remote function onError(rabbitmq:Message msg, rabbitmq:Error err) returns string? {
+    remote function onError(rabbitmq:AnydataMessage msg, rabbitmq:Error err) returns string? {
     }
 }

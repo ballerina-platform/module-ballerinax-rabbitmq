@@ -130,7 +130,7 @@ public isolated client class Client {
     # + queueName - The name of the queue
     # + autoAck - If false, should manually acknowledge
     # + T - Optional type description of the required data type
-    # + return - A `rabbitmq:Message` object containing the retrieved message data or else a`rabbitmq:Error` if an
+    # + return - A `rabbitmq:AnydataMessage` object containing the retrieved message data or else a`rabbitmq:Error` if an
     #            I/O error occurred
     isolated remote function consumeMessage(string queueName, boolean autoAck = true, typedesc<AnydataMessage> T = <>)
         returns T|Error =
@@ -162,7 +162,7 @@ public isolated client class Client {
     # + multiple - Set to `true` to acknowledge all messages up to and including the called on message and
     #              `false` to acknowledge just the called on message
     # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
-    isolated remote function basicAck(Message|AnydataMessage message, boolean multiple = false) returns Error? =
+    isolated remote function basicAck(AnydataMessage message, boolean multiple = false) returns Error? =
     @java:Method {
         'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
     } external;
@@ -177,7 +177,7 @@ public isolated client class Client {
     #              `false` to reject just the called on message
     # + requeue - `true` if the rejected message(s) should be re-queued rather than discarded/dead-lettered
     # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
-    isolated remote function basicNack(Message|AnydataMessage message, boolean multiple = false, boolean requeue = true)
+    isolated remote function basicNack(AnydataMessage message, boolean multiple = false, boolean requeue = true)
                             returns Error? =
     @java:Method {
         'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"

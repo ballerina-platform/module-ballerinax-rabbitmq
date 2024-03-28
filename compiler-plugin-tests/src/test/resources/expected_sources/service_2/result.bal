@@ -5,7 +5,7 @@ listener rabbitmq:Listener rabbitListener = new(rabbitmq:DEFAULT_HOST, rabbitmq:
 service "demo" on rabbitListener {
     int x = 5;
     string hello = "hello";
-	remote function onMessage(rabbitmq:Message message) returns rabbitmq:Error? {
+	remote function onMessage(rabbitmq:AnydataMessage message) returns rabbitmq:Error? {
 
 	}
 }
