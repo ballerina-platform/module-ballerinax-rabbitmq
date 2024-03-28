@@ -209,7 +209,7 @@ public function intMinValueConstraintListenerMessageTest() returns error? {
             log:printInfo("The message received: " + message.toString());
         }
 
-        remote function onError(Message msg, Error e) {
+        remote function onError(BytesMessage msg, Error e) {
             if e is PayloadValidationError {
                 receivedIntMinValueConstraintError = e.message();
             }
@@ -237,7 +237,7 @@ function intMaxValueConstraintListenerMessageTest() returns error? {
             log:printInfo("The message received: " + message.toString());
         }
 
-        remote function onError(Message msg, Error e) {
+        remote function onError(BytesMessage msg, Error e) {
             if e is PayloadValidationError {
                 receivedIntMaxValueConstraintError = e.message();
             }
@@ -264,7 +264,7 @@ function numberMaxValueConstraintListenerPayloadTest() returns error? {
             log:printInfo("The message received: " + message.toString());
         }
 
-        remote function onError(Message msg, Error e) {
+        remote function onError(BytesMessage msg, Error e) {
             if e is PayloadValidationError {
                 receivedNumberMaxValueConstraintError = e.message();
             }
@@ -291,7 +291,7 @@ function numberMinValueConstraintListenerPayloadTest() returns error? {
             log:printInfo("The message received: " + message.toString());
         }
 
-        remote function onError(Message msg, Error e) {
+        remote function onError(BytesMessage msg, Error e) {
             if e is PayloadValidationError {
                 receivedNumberMinValueConstraintError = e.message();
             }

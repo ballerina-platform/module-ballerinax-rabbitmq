@@ -23,21 +23,10 @@ listener rabbitmq:Listener channelListener =
     queueName: "MyQueue"
 }
 service rabbitmq:Service on channelListener {
-    remote function onMessage(rabbitmq:Message message) {
+    remote function onMessage(rabbitmq:AnydataMessage message) {
     }
 
-    remote function onError(rabbitmq:Message message, rabbitmq:Error err) {
-    }
-}
-
-@rabbitmq:ServiceConfig {
-    queueName: "MyQueue"
-}
-service rabbitmq:Service on channelListener {
-    remote function onMessage(rabbitmq:Message message) {
-    }
-
-    remote function onError(rabbitmq:Message message, rabbitmq:Error err) returns error? {
+    remote function onError(rabbitmq:AnydataMessage message, rabbitmq:Error err) {
     }
 }
 
@@ -45,10 +34,10 @@ service rabbitmq:Service on channelListener {
     queueName: "MyQueue"
 }
 service rabbitmq:Service on channelListener {
-    remote function onMessage(rabbitmq:Message message) {
+    remote function onMessage(rabbitmq:AnydataMessage message) {
     }
 
-    remote function onError(rabbitmq:Message message, rabbitmq:Error err) returns rabbitmq:Error? {
+    remote function onError(rabbitmq:AnydataMessage message, rabbitmq:Error err) returns error? {
     }
 }
 
@@ -56,9 +45,20 @@ service rabbitmq:Service on channelListener {
     queueName: "MyQueue"
 }
 service rabbitmq:Service on channelListener {
-    remote function onMessage(rabbitmq:Message message) {
+    remote function onMessage(rabbitmq:AnydataMessage message) {
     }
 
-    remote function onError(rabbitmq:Message message, rabbitmq:Error err) returns ()|rabbitmq:Error {
+    remote function onError(rabbitmq:AnydataMessage message, rabbitmq:Error err) returns rabbitmq:Error? {
+    }
+}
+
+@rabbitmq:ServiceConfig {
+    queueName: "MyQueue"
+}
+service rabbitmq:Service on channelListener {
+    remote function onMessage(rabbitmq:AnydataMessage message) {
+    }
+
+    remote function onError(rabbitmq:AnydataMessage message, rabbitmq:Error err) returns ()|rabbitmq:Error {
     }
 }

@@ -110,8 +110,8 @@ public isolated function testClientConsumeNegative() returns error? {
     check newClient->queueDeclare(queue);
     check newClient->publishMessage({ content: message.toBytes(), routingKey: queue });
     check newClient->close();
-    Message|Error consumeResult = newClient->consumeMessage(queue, false);
-    if consumeResult is Message {
+    BytesMessage|Error consumeResult = newClient->consumeMessage(queue, false);
+    if consumeResult is BytesMessage {
         test:assertFail("Error expected when trying to consume messages using client.");
     }
     return;
@@ -127,8 +127,8 @@ public isolated function testClientBasicAckNegative() returns error? {
     Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
     check newClient->queueDeclare(queue);
     check newClient->publishMessage({ content: message.toBytes(), routingKey: queue });
-    Message|Error consumeResult = newClient->consumeMessage(queue, false);
-    if consumeResult is Message {
+    BytesMessage|Error consumeResult = newClient->consumeMessage(queue, false);
+    if consumeResult is BytesMessage {
         string messageContent = check 'string:fromBytes(consumeResult.content);
         log:printInfo("The message received: " + messageContent);
         test:assertEquals(messageContent, message, msg = "Message received does not match.");
@@ -153,8 +153,8 @@ public isolated function testClientBasicNackNegative() returns error? {
     Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
     check newClient->queueDeclare(queue);
     check newClient->publishMessage({ content: message.toBytes(), routingKey: queue });
-    Message|Error consumeResult = newClient->consumeMessage(queue, false);
-    if consumeResult is Message {
+    BytesMessage|Error consumeResult = newClient->consumeMessage(queue, false);
+    if consumeResult is BytesMessage {
         string messageContent = check 'string:fromBytes(consumeResult.content);
         test:assertEquals(messageContent, message, msg = "Message received does not match.");
         log:printInfo("The message received: " + messageContent);

@@ -29,7 +29,7 @@ string readOnlyConsumerRequestCaller = "";
     groups: ["rabbitmq"]
 }
 public function testConsumerReadOnlyMessage() returns error? {
-    string message = "Testing Async Consumer with ReadOnly Message";
+    string message = "Testing Async Consumer with ReadOnly BytesMessage";
     check produceMessage(message, READONLY_MESSAGE_QUEUE);
     Listener? channelListener = rabbitmqListener;
     if channelListener is Listener {
@@ -97,7 +97,7 @@ Service readOnlyMessageService =
     queueName: READONLY_MESSAGE_QUEUE
 }
 service object {
-    remote function onMessage(readonly & Message message) {
+    remote function onMessage(readonly & BytesMessage message) {
         string|error messageContent = 'string:fromBytes(message.content);
         if messageContent is string {
             readOnlyConsumerMessage = messageContent;
@@ -113,7 +113,7 @@ Service readOnlyMessageService2 =
     queueName: READONLY_MESSAGE_QUEUE_CALLER
 }
 service object {
-    remote function onMessage(readonly & Message message, Caller caller) {
+    remote function onMessage(readonly & BytesMessage message, Caller caller) {
         string|error messageContent = 'string:fromBytes(message.content);
         if messageContent is string {
             readOnlyConsumerMessageCaller = messageContent;
@@ -129,7 +129,7 @@ Service readOnlyMessageServiceRequest =
     queueName: READONLY_REQUEST_QUEUE
 }
 service object {
-    remote function onRequest(readonly & Message message) returns string {
+    remote function onRequest(readonly & BytesMessage message) returns string {
         string|error messageContent = 'string:fromBytes(message.content);
         if messageContent is string {
             readOnlyConsumerRequest = messageContent;
@@ -146,7 +146,7 @@ Service readOnlyMessageServiceRequest2 =
     queueName: READONLY_REQUEST_QUEUE_CALLER
 }
 service object {
-    remote function onRequest(readonly & Message message, Caller caller) returns string {
+    remote function onRequest(readonly & BytesMessage message, Caller caller) returns string {
         string|error messageContent = 'string:fromBytes(message.content);
         if messageContent is string {
             readOnlyConsumerRequestCaller = messageContent;

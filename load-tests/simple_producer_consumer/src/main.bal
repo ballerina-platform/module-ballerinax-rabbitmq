@@ -124,7 +124,7 @@ rabbitmq:Service rabbitmqService =
     queueName: QUEUE_NAME
 }
 service object {
-    remote function onMessage(rabbitmq:Message message) returns error? {
+    remote function onMessage(rabbitmq:BytesMessage message) returns error? {
         string|error messageContent = 'string:fromBytes(message.content);
         if messageContent is error {
             lock {

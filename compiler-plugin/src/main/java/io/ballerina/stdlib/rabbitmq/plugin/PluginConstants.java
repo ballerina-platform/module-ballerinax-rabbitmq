@@ -72,7 +72,7 @@ public class PluginConstants {
         INVALID_FUNCTION("Resource functions are not allowed.", "RABBITMQ_104"),
         FUNCTION_SHOULD_BE_REMOTE("Method must have the remote qualifier.", "RABBITMQ_105"),
         MUST_HAVE_MESSAGE("Must have the method parameter rabbitmq:AnydataMessage.", "RABBITMQ_106"),
-        MUST_HAVE_MESSAGE_AND_ERROR("Must have the method parameters rabbitmq:Message and rabbitmq:Error.",
+        MUST_HAVE_MESSAGE_AND_ERROR("Must have the method parameters rabbitmq:AnydataMessage and rabbitmq:Error.",
                 "RABBITMQ_107"),
         INVALID_FUNCTION_PARAM_MESSAGE_OR_PAYLOAD("Invalid method parameter. Only subtypes of " +
                 "rabbitmq:AnydataMessage or subtypes of anydata are allowed.", "RABBITMQ_108"),
@@ -88,7 +88,7 @@ public class PluginConstants {
                 "RABBITMQ_113"),
         ONLY_PARAMS_ALLOWED("Invalid method parameter count. Only subtypes of rabbitmq:AnydataMessage, " +
                 "subtypes of anydata and rabbitmq:Caller are allowed.", "RABBITMQ_114"),
-        ONLY_PARAMS_ALLOWED_ON_ERROR("Invalid method parameter count. Only rabbitmq:Message and " +
+        ONLY_PARAMS_ALLOWED_ON_ERROR("Invalid method parameter count. Only rabbitmq:AnydataMessage and " +
                 "rabbitmq:Error are allowed.", "RABBITMQ_115"),
         INVALID_RETURN_TYPE_ERROR_OR_NIL("Invalid return type. Only error? or rabbitmq:Error? is allowed.",
                 "RABBITMQ_116"),

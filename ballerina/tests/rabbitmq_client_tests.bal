@@ -324,8 +324,8 @@ public function testClientVhost2() returns error? {
     }
     check newClient->queueDeclare(QUEUE_NAME);
     check newClient->publishMessage({content: message.toBytes(), routingKey: QUEUE_NAME});
-    Message|Error consumeResult = newClient->consumeMessage(QUEUE_NAME, true);
-    if consumeResult is Message {
+    BytesMessage|Error consumeResult = newClient->consumeMessage(QUEUE_NAME, true);
+    if consumeResult is BytesMessage {
         string messageContent = check 'string:fromBytes(consumeResult.content);
         log:printInfo("The message received: " + messageContent);
         test:assertEquals(messageContent, message, msg = "Message received does not match.");
@@ -364,8 +364,8 @@ public isolated function testProducerTransactional() returns error? {
             test:assertFail(msg = "Commit failed for transactional producer.");
         }
     }
-    Message|Error consumeResult = newClient->consumeMessage(queue, false);
-    if consumeResult is Message {
+    BytesMessage|Error consumeResult = newClient->consumeMessage(queue, false);
+    if consumeResult is BytesMessage {
         string messageContent = check 'string:fromBytes(consumeResult.content);
         log:printInfo("The message received: " + messageContent);
         test:assertEquals(messageContent, message, msg = "Message received does not match.");
@@ -428,8 +428,8 @@ public isolated function testProducerTransactionalRollback() returns error? {
     string queue = "testProducerTransactionalRollback";
     Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     error? rollbackError = rabbitMQTransactionFail(queue);
-    Message|Error consumeResult = newClient->consumeMessage(queue, false);
-    if consumeResult is Message {
+    BytesMessage|Error consumeResult = newClient->consumeMessage(queue, false);
+    if consumeResult is BytesMessage {
         test:assertFail("Rolled back message is in queue.");
     }
     return newClient->close();
@@ -494,7 +494,7 @@ public function testSyncConsumer() returns error? {
     check produceMessage(message, QUEUE);
     Client? channelObj = rabbitmqChannel;
     if channelObj is Client {
-        Message getResult = check channelObj->consumeMessage(QUEUE);
+        BytesMessage getResult = check channelObj->consumeMessage(QUEUE);
         string messageContent = check 'string:fromBytes(getResult.content);
         test:assertEquals(messageContent, message, msg = "Message received does not match.");
     }
@@ -736,8 +736,8 @@ public isolated function testClientBasicAck() returns error? {
     Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     check newClient->queueDeclare(queue);
     check newClient->publishMessage({content: message.toBytes(), routingKey: queue});
-    Message|Error consumeResult = newClient->consumeMessage(queue, false);
-    if consumeResult is Message {
+    BytesMessage|Error consumeResult = newClient->consumeMessage(queue, false);
+    if consumeResult is BytesMessage {
         string messageContent = check 'string:fromBytes(consumeResult.content);
         log:printInfo("The message received: " + messageContent);
         test:assertEquals(messageContent, message, msg = "Message received does not match.");
@@ -784,8 +784,8 @@ public isolated function testClientBasicNack() returns error? {
     Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     check newClient->queueDeclare(queue);
     check newClient->publishMessage({content: message.toBytes(), routingKey: queue});
-    Message|Error consumeResult = newClient->consumeMessage(queue, false);
-    if consumeResult is Message {
+    BytesMessage|Error consumeResult = newClient->consumeMessage(queue, false);
+    if consumeResult is BytesMessage {
         string messageContent = check 'string:fromBytes(consumeResult.content);
         test:assertEquals(messageContent, message, msg = "Message received does not match.");
         log:printInfo("The message received: " + messageContent);
@@ -991,7 +991,7 @@ Service asyncTestService =
     queueName: QUEUE
 }
 service object {
-    remote function onMessage(Message message) {
+    remote function onMessage(BytesMessage message) {
         string|error messageContent = 'string:fromBytes(message.content);
         if messageContent is string {
             asyncConsumerMessage = messageContent;
@@ -1001,7 +1001,7 @@ service object {
         }
     }
 
-    remote function onRequest(Message message) returns string {
+    remote function onRequest(BytesMessage message) returns string {
         string|error messageContent = 'string:fromBytes(message.content);
         if messageContent is string {
             asyncConsumerMessage = messageContent;
@@ -1018,7 +1018,7 @@ Service asyncTestService2 =
     queueName: REQ_QUEUE
 }
 service object {
-    remote function onRequest(Message message, Caller caller) returns string {
+    remote function onRequest(BytesMessage message, Caller caller) returns string {
         string|error messageContent = 'string:fromBytes(message.content);
         if messageContent is string {
             onRequestMessage = messageContent;
@@ -1032,7 +1032,7 @@ service object {
 
 Service asyncTestService3 =
 service object {
-    remote function onMessage(Message message) {
+    remote function onMessage(BytesMessage message) {
         string|error messageContent = 'string:fromBytes(message.content);
         if messageContent is string {
             asyncConsumerMessage2 = messageContent;
@@ -1049,7 +1049,7 @@ Service ackTestService =
     autoAck: false
 }
 service object {
-    remote isolated function onMessage(Message message, Caller caller) {
+    remote isolated function onMessage(BytesMessage message, Caller caller) {
         checkpanic caller->basicAck();
     }
 };
@@ -1060,7 +1060,7 @@ Service ackTestService2 =
     autoAck: true
 }
 service object {
-    remote function onMessage(Message message, Caller caller) {
+    remote function onMessage(BytesMessage message, Caller caller) {
         error? ackResult = caller->basicAck();
         if ackResult is error {
             negativeAck = true;
@@ -1074,7 +1074,7 @@ Service ackTestService3 =
     autoAck: false
 }
 service object {
-    remote function onMessage(Message message, Caller caller) {
+    remote function onMessage(BytesMessage message, Caller caller) {
         error? ackResult = caller->basicAck();
         error? ackResult2 = caller->basicAck();
         if ackResult2 is error {
@@ -1089,7 +1089,7 @@ Service nackTestService2 =
     autoAck: true
 }
 service object {
-    remote function onMessage(Message message, Caller caller) {
+    remote function onMessage(BytesMessage message, Caller caller) {
         error? ackResult = caller->basicNack(false, false);
         if ackResult is error {
             negativeNack = true;
@@ -1103,7 +1103,7 @@ Service nackTestService3 =
     autoAck: false
 }
 service object {
-    remote function onMessage(Message message, Caller caller) {
+    remote function onMessage(BytesMessage message, Caller caller) {
         error? ackResult = caller->basicNack(false, false);
         error? ackResult2 = caller->basicNack(false, false);
         if ackResult2 is error {
@@ -1118,7 +1118,7 @@ Service nackTestService =
     autoAck: false
 }
 service object {
-    remote isolated function onMessage(Message message, Caller caller) {
+    remote isolated function onMessage(BytesMessage message, Caller caller) {
         checkpanic caller->basicNack(false, false);
     }
 };
@@ -1128,7 +1128,7 @@ Service mockService =
     queueName: MOCK_QUEUE
 }
 service object {
-    remote function onMessage(Message message) {
+    remote function onMessage(BytesMessage message) {
     }
 };
 
@@ -1137,7 +1137,7 @@ Service replyService =
     queueName: REPLYTO
 }
 service object {
-    remote function onMessage(Message message) {
+    remote function onMessage(BytesMessage message) {
         string|error messageContent = 'string:fromBytes(message.content);
         if messageContent is string {
             replyMessage = messageContent;
@@ -1153,7 +1153,7 @@ Service replyService2 =
     queueName: REQ_REPLYTO
 }
 service object {
-    remote function onMessage(Message message) {
+    remote function onMessage(BytesMessage message) {
         string|error messageContent = 'string:fromBytes(message.content);
         if messageContent is string {
             reqReplyMessage = messageContent;

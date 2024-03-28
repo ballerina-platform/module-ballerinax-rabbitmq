@@ -26,7 +26,7 @@ service rabbitmq:Service on channelListener {
     rabbitmq:Client newClient =
                 checkpanic new (rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
 
-    remote function onMessage(rabbitmq:Message message) {
+    remote function onMessage(rabbitmq:AnydataMessage message) {
     }
 }
 
@@ -36,6 +36,6 @@ service rabbitmq:Service on channelListener {
 service rabbitmq:Service on channelListener {
     string hello = "Hello";
 
-    remote function onMessage(rabbitmq:Message message) returns error? {
+    remote function onMessage(rabbitmq:AnydataMessage message) returns error? {
     }
 }

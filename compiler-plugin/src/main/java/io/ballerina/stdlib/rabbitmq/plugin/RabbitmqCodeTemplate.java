@@ -48,7 +48,8 @@ public class RabbitmqCodeTemplate implements CodeAction {
 
     public static final String NODE_LOCATION = "node.location";
     public static final String LS = System.lineSeparator();
-    public static final String REMOTE_FUNCTION_TEXT = LS + "\tremote function onMessage(rabbitmq:Message message)" +
+    public static final String REMOTE_FUNCTION_TEXT = LS +
+            "\tremote function onMessage(rabbitmq:AnydataMessage message)" +
             " returns rabbitmq:Error? {" + LS + LS + "\t}" + LS;
 
     @Override

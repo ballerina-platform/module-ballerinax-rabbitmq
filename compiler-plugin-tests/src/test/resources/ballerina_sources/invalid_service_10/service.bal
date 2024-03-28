@@ -23,7 +23,7 @@ listener rabbitmq:Listener channelListener =
     queueName: "MyQueue"
 }
 service rabbitmq:Service on channelListener {
-    remote function onRequest(rabbitmq:Message message) returns rabbitmq:Listener|error {
+    remote function onRequest(rabbitmq:AnydataMessage message) returns rabbitmq:Listener|error {
         return channelListener;
     }
 }
@@ -32,6 +32,6 @@ service rabbitmq:Service on channelListener {
     queueName: "MyQueue"
 }
 service rabbitmq:Service on channelListener {
-    remote function onRequest(rabbitmq:Message message) returns rabbitmq:Client? {
+    remote function onRequest(rabbitmq:AnydataMessage message) returns rabbitmq:Client? {
     }
 }

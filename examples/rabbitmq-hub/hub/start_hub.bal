@@ -108,8 +108,8 @@ isolated function pollForNewUpdates(websubhub:HubClient clientEp, rabbitmq:Clien
     do {
         while true {
             // Set autoAck mode to false.
-            rabbitmq:Message|error records = consumerEp->consumeMessage(topicName, false);
-            if (records is rabbitmq:Message) {
+            rabbitmq:BytesMessage|error records = consumerEp->consumeMessage(topicName, false);
+            if (records is rabbitmq:BytesMessage) {
                 if !isValidConsumer(topicName, groupName) {
                     fail error(string `Consumer with group name ${groupName} or topic ${topicName} is invalid`);
                 }
@@ -139,7 +139,7 @@ isolated function isValidConsumer(string topicName, string groupName) returns bo
     return topicAvailable && subscriberAvailable;
 }
 
-isolated function notifySubscribers(rabbitmq:Message records, websubhub:HubClient clientEp, rabbitmq:Client consumerEp) returns error? {
+isolated function notifySubscribers(rabbitmq:BytesMessage records, websubhub:HubClient clientEp, rabbitmq:Client consumerEp) returns error? {
     var message = deSerializeRecord(records);
     if message is websubhub:ContentDistributionMessage {
         var response = clientEp->notifyContentDistribution(message);
@@ -154,7 +154,7 @@ isolated function notifySubscribers(rabbitmq:Message records, websubhub:HubClien
     }
 }
 
-isolated function deSerializeRecord(rabbitmq:Message records) returns websubhub:ContentDistributionMessage|error {
+isolated function deSerializeRecord(rabbitmq:BytesMessage records) returns websubhub:ContentDistributionMessage|error {
     byte[] content = records.content;
     string message = check string:fromBytes(content);
     json payload =  check value:fromJsonString(message);
@@ -170,7 +170,7 @@ rabbitmq:Service topicService =
     queueName: config:REGISTERED_WEBSUB_TOPICS_QUEUE
 }
 service object {
-    remote function onMessage(rabbitmq:Message message) {
+    remote function onMessage(rabbitmq:BytesMessage message) {
         string|error messageContent = string:fromBytes(message.content);
         if messageContent is string {
             websubhub:TopicRegistration[]|error persistedTopics = deSerializeTopicsMessage(messageContent);
@@ -188,7 +188,7 @@ rabbitmq:Service subscribersService =
     queueName: config:WEBSUB_SUBSCRIBERS_QUEUE
 }
 service object {
-     remote function onMessage(rabbitmq:Message message) returns error? {
+     remote function onMessage(rabbitmq:BytesMessage message) returns error? {
         string|error messageContent = string:fromBytes(message.content);
         if messageContent is string {
             websubhub:VerifiedSubscription[]|error persistedSubscribers = deSerializeSubscribersMessage(messageContent);

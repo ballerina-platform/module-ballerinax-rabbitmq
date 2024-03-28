@@ -110,7 +110,6 @@ public class RabbitMQConstants {
     public static final String CHANNEL_NATIVE_OBJECT = "rabbitmq_channel_object";
 
     // Message constant fields
-    public static final String MESSAGE_RECORD = "Message";
     public static final String MESSAGE_CONTENT_FIELD = "content";
     public static final String MESSAGE_ROUTINE_KEY_FIELD = "routingKey";
     public static final String MESSAGE_EXCHANGE_FIELD = "exchange";

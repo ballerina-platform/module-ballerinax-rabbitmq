@@ -23,6 +23,6 @@ listener foo:Listener channelListener =
     queueName: "MyQueue"
 }
 service foo:Service on channelListener {
-    remote function onMessage(foo:Message message) {
+    remote function onMessage(foo:AnydataMessage message) {
     }
 }

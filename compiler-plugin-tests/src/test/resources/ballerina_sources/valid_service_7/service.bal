@@ -23,6 +23,6 @@ listener rabbitmq:Listener channelListener =
     queueName: "MyQueue"
 }
 service rabbitmq:Service on channelListener {
-    remote function onMessage(readonly & rabbitmq:Message message) {
+    remote function onMessage(readonly & rabbitmq:AnydataMessage message) {
     }
 }

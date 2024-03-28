@@ -9,7 +9,7 @@ _Updated_: 2023/04/25
 
 # Overview
 
-The purpose of this example is to demonstrate the usage of ballerina RabbbitMQ package in a production ready application. 
+The purpose of this example is to demonstrate the usage of ballerina RabbitMQ package in a production ready application. 
 
 This is a websub hub implementation based on message brokers. In this case hub is backed by RabbitMQ message broker. Message brokers are a natural fit for the implementation of websub hubs as they serve a similar purpose.
 
