@@ -128,13 +128,13 @@ The most efficient way to receive messages is to set up a subscription using a B
         queueName: "MyQueue"
     }
     service rabbitmq:Service on channelListener {
-        remote function onRequest(rabbitmq:BytesMessage message) returns string {
+        remote function onRequest(rabbitmq:AnydataMessage message) returns string {
             return "Hello Back!";
         }
     }
 ```
 
-The `rabbitmq:BytesMessage` record received can be used to retrieve its contents.
+The `rabbitmq:AnydataMessage` record received can be used to retrieve its contents.
 
 ### Advanced usage
 

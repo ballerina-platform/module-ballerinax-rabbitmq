@@ -15,7 +15,7 @@ Data binding helps to access the incoming and outgoing message data in the user'
 
 ## Motivation
 
-As of now, the Ballerina `rabbitmq` package does not provide direct data binding for sending and receiving messages. Only `rabbitmq:Message` is the supported data type to send and receive messages which only support `byte[]` as the message content type. Therefore, users have to do data manipulations by themselves. With this new feature, the user experience can be improved by introducing data binding to reduce the burden of developers converting byte data to the desired format as discussed in the next section.
+As of now, the Ballerina `rabbitmq` package does not provide direct data binding for sending and receiving messages. Only `rabbitmq:AnydataMessage` is the supported data type to send and receive messages which only support `byte[]` as the message content type. Therefore, users have to do data manipulations by themselves. With this new feature, the user experience can be improved by introducing data binding to reduce the burden of developers converting byte data to the desired format as discussed in the next section.
 
 ## Description
 
