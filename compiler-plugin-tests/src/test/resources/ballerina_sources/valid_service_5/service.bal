@@ -18,7 +18,7 @@ import ballerinax/rabbitmq;
 
 listener rabbitmq:Listener channelListener =
         new(rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
-type Foo rabbitmq:Message;
+type Foo rabbitmq:AnydataMessage;
 
 @rabbitmq:ServiceConfig {
     queueName: "MyQueue"

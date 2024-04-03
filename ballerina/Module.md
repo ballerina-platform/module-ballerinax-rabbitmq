@@ -114,7 +114,7 @@ The most efficient way to receive messages is to set up a subscription using a B
         queueName: "MyQueue"
     }
     service rabbitmq:Service on channelListener {
-        remote function onMessage(rabbitmq:Message message) {
+        remote function onMessage(rabbitmq:AnydataMessage message) {
         }
     }
 ```
@@ -128,13 +128,13 @@ The most efficient way to receive messages is to set up a subscription using a B
         queueName: "MyQueue"
     }
     service rabbitmq:Service on channelListener {
-        remote function onRequest(rabbitmq:Message message) returns string {
+        remote function onRequest(rabbitmq:AnydataMessage message) returns string {
             return "Hello Back!";
         }
     }
 ```
 
-The `rabbitmq:Message` record received can be used to retrieve its contents.
+The `rabbitmq:AnydataMessage` record received can be used to retrieve its contents.
 
 ### Advanced usage
 
@@ -154,7 +154,7 @@ The default acknowledgement mode is auto-ack (messages are acknowledged immediat
         autoAck: false
     }
     service rabbitmq:Service on channelListener {
-        remote function onMessage(rabbitmq:Message message, rabbitmq:Caller caller) {
+        remote function onMessage(rabbitmq:BytesMessage message, rabbitmq:Caller caller) {
             rabbitmq:Error? result = caller->basicAck();
         }
     }
@@ -169,7 +169,7 @@ The default acknowledgement mode is auto-ack (messages are acknowledged immediat
         autoAck: false
     }
     service rabbitmq:Service on channelListener {
-        remote function onMessage(rabbitmq:Message message) {
+        remote function onMessage(rabbitmq:BytesMessage message) {
             rabbitmq:Error? result = caller->basicNack(true, requeue = false);
         }
     }

@@ -704,7 +704,7 @@ public function testListenerDataBindingError() returns error? {
             log:printInfo("The message received: " + intMessage.toString());
         }
 
-        remote function onError(Message msg, Error e) returns Error? {
+        remote function onError(BytesMessage msg, Error e) returns Error? {
             if e.message().includes("ConversionError", 0) {
                 receivedErrorCount += 1;
             }
@@ -739,7 +739,7 @@ public function testListenerRequestDataBindingError() returns error? {
             return "Hello Back!!";
         }
 
-        remote function onError(Message msg, Error e) returns Error? {
+        remote function onError(BytesMessage msg, Error e) returns Error? {
             if e.message().includes("ConversionError", 0) {
                 receivedErrorCount += 1;
             }

@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## Unreleased
 
 ### Changed
+- [[#5069] Remove the definition and the usages of the deprecated rabbitmq:Message record](https://github.com/ballerina-platform/ballerina-library/issues/5069)
+
+## [2.10.0] - 2023-09-18
+
+### Changed
 - [[#4734] Changed disallowing service level annotations in the compiler plugin](https://github.com/ballerina-platform/ballerina-standard-library/issues/4734)
 
 ## [2.7.0] - 2023-04-10

@@ -26,7 +26,7 @@ function stringPublishTest() returns error? {
     };
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     check 'client->publishMessage(message);
-    Message receivedMessage = check 'client->consumeMessage(DATA_BINDING_STRING_PUBLISH_QUEUE);
+    BytesMessage receivedMessage = check 'client->consumeMessage(DATA_BINDING_STRING_PUBLISH_QUEUE);
     string receivedContent = check string:fromBytes(receivedMessage.content);
     test:assertEquals(receivedContent, content);
     check 'client->close();
@@ -41,7 +41,7 @@ function intPublishTest() returns error? {
     };
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     check 'client->publishMessage(message);
-    Message receivedMessage = check 'client->consumeMessage(DATA_BINDING_INT_PUBLISH_QUEUE);
+    BytesMessage receivedMessage = check 'client->consumeMessage(DATA_BINDING_INT_PUBLISH_QUEUE);
     string receivedString = check string:fromBytes(receivedMessage.content);
     int receivedContent = check int:fromString(receivedString);
     test:assertEquals(receivedContent, content);
@@ -57,7 +57,7 @@ function floatPublishTest() returns error? {
     };
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     check 'client->publishMessage(message);
-    Message receivedMessage = check 'client->consumeMessage(DATA_BINDING_FLOAT_PUBLISH_QUEUE);
+    BytesMessage receivedMessage = check 'client->consumeMessage(DATA_BINDING_FLOAT_PUBLISH_QUEUE);
     string receivedString = check string:fromBytes(receivedMessage.content);
     float receivedContent = check float:fromString(receivedString);
     test:assertEquals(receivedContent, content);
@@ -73,7 +73,7 @@ function decimalPublishTest() returns error? {
     };
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     check 'client->publishMessage(message);
-    Message receivedMessage = check 'client->consumeMessage(DATA_BINDING_DECIMAL_PUBLISH_QUEUE);
+    BytesMessage receivedMessage = check 'client->consumeMessage(DATA_BINDING_DECIMAL_PUBLISH_QUEUE);
     string receivedString = check string:fromBytes(receivedMessage.content);
     decimal receivedContent = check decimal:fromString(receivedString);
     test:assertEquals(receivedContent, content);
@@ -89,7 +89,7 @@ function booleanPublishTest() returns error? {
     };
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     check 'client->publishMessage(message);
-    Message receivedMessage = check 'client->consumeMessage(DATA_BINDING_BOOLEAN_PUBLISH_QUEUE);
+    BytesMessage receivedMessage = check 'client->consumeMessage(DATA_BINDING_BOOLEAN_PUBLISH_QUEUE);
     string receivedString = check string:fromBytes(receivedMessage.content);
     boolean receivedContent = check boolean:fromString(receivedString);
     test:assertEquals(receivedContent, content);
@@ -104,7 +104,7 @@ function recordPublishTest() returns error? {
     };
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     check 'client->publishMessage(message);
-    Message receivedMessage = check 'client->consumeMessage(DATA_BINDING_RECORD_PUBLISH_QUEUE);
+    BytesMessage receivedMessage = check 'client->consumeMessage(DATA_BINDING_RECORD_PUBLISH_QUEUE);
     string receivedString = check string:fromBytes(receivedMessage.content);
     Person receivedContent = check value:fromJsonStringWithType(receivedString);
     test:assertEquals(receivedContent, personRecord);
@@ -119,7 +119,7 @@ function mapPublishTest() returns error? {
     };
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     check 'client->publishMessage(message);
-    Message receivedMessage = check 'client->consumeMessage(DATA_BINDING_MAP_PUBLISH_QUEUE);
+    BytesMessage receivedMessage = check 'client->consumeMessage(DATA_BINDING_MAP_PUBLISH_QUEUE);
     string receivedString = check string:fromBytes(receivedMessage.content);
     map<Person> receivedContent = check value:fromJsonStringWithType(receivedString);
     test:assertEquals(receivedContent, personMap);
@@ -137,7 +137,7 @@ function tablePublishTest() returns error? {
     };
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     check 'client->publishMessage(message);
-    Message receivedMessage = check 'client->consumeMessage(DATA_BINDING_TABLE_PUBLISH_QUEUE);
+    BytesMessage receivedMessage = check 'client->consumeMessage(DATA_BINDING_TABLE_PUBLISH_QUEUE);
     string receivedString = check string:fromBytes(receivedMessage.content);
     table<Person> receivedContent = check value:fromJsonStringWithType(receivedString);
     test:assertEquals(receivedContent, content);
@@ -153,7 +153,7 @@ function xmlPublishTest() returns error? {
     };
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     check 'client->publishMessage(message);
-    Message receivedMessage = check 'client->consumeMessage(DATA_BINDING_XML_PUBLISH_QUEUE);
+    BytesMessage receivedMessage = check 'client->consumeMessage(DATA_BINDING_XML_PUBLISH_QUEUE);
     string receivedString = check string:fromBytes(receivedMessage.content);
     xml receivedContent = check xml:fromString(receivedString);
     test:assertEquals(receivedContent, content);
@@ -170,7 +170,7 @@ function jsonPublishTest() returns error? {
     };
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     check 'client->publishMessage(message);
-    Message receivedMessage = check 'client->consumeMessage(DATA_BINDING_JSON_PUBLISH_QUEUE);
+    BytesMessage receivedMessage = check 'client->consumeMessage(DATA_BINDING_JSON_PUBLISH_QUEUE);
     string receivedString = check string:fromBytes(receivedMessage.content);
     json receivedContent = check value:fromJsonString(receivedString);
     test:assertEquals(receivedContent, content);
@@ -187,7 +187,7 @@ function bytesPublishTest() returns error? {
     };
     Client 'client = check new (DEFAULT_HOST, DEFAULT_PORT);
     check 'client->publishMessage(message);
-    Message receivedMessage = check 'client->consumeMessage(DATA_BINDING_BYTES_PUBLISH_QUEUE);
+    BytesMessage receivedMessage = check 'client->consumeMessage(DATA_BINDING_BYTES_PUBLISH_QUEUE);
     test:assertEquals(receivedMessage.content, content);
     check 'client->close();
 }
