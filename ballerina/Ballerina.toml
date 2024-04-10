@@ -7,7 +7,7 @@ keywords = ["service", "client", "messaging", "network", "pubsub"]
 repository = "https://github.com/ballerina-platform/module-ballerinax-rabbitmq"
 icon = "icon.png"
 license = ["Apache-2.0"]
-distribution = "2201.8.0"
+distribution = "2201.9.0"
 
 [platform.java17]
 graalvmCompatible = true
@@ -24,8 +24,8 @@ path = "../native/build/libs/rabbitmq-native-3.0.0-SNAPSHOT.jar"
 [[platform.java17.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "constraint-native"
-version = "1.4.0"
-path = "./lib/constraint-native-1.4.0.jar"
+version = "1.5.0"
+path = "./lib/constraint-native-1.5.0.jar"
 
 [build-options]
 observabilityIncluded=true
