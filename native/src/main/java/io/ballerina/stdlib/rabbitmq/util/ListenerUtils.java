@@ -172,17 +172,21 @@ public class ListenerUtils {
                         + ModuleUtils.getModule().getName() + VERSION_SEPARATOR
                         + ModuleUtils.getModule().getVersion() + ":"
                         + RabbitMQConstants.SERVICE_CONFIG));
-        String queueName;
+        String queueName = "";
+        Map<String, Object> argumentsMap = new HashMap<>();
+        boolean durable = false;
+        boolean exclusive = false;
+        boolean autoDelete = true;
+
+
         if (service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue()) != null) {
-            // Queue name is given as the service name
+            // if the queue name is given as the service name
             queueName = (String) service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue());
-        } else {
-            // Queue name and config given in the service config
+        }
+
+        // if serviceConfig is not null, name and configs given in the service config will replace the service name
+        if (serviceConfig != null) {
             queueName = serviceConfig.getStringValue(RabbitMQConstants.QUEUE_NAME).getValue();
-            Map<String, Object> argumentsMap = new HashMap<>();
-            boolean durable = false;
-            boolean exclusive = false;
-            boolean autoDelete = true;
 
             if ((BMap<BString, Object>) serviceConfig.getMapValue(RabbitMQConstants.QUEUE_CONFIG) != null) {
 
@@ -192,15 +196,17 @@ public class ListenerUtils {
                 durable = queueConfig.getBooleanValue(RabbitMQConstants.QUEUE_DURABLE);
                 exclusive = queueConfig.getBooleanValue(RabbitMQConstants.QUEUE_EXCLUSIVE);
                 autoDelete = queueConfig.getBooleanValue(RabbitMQConstants.QUEUE_AUTO_DELETE);
-                if (queueConfig.getMapValue(RabbitMQConstants.QUEUE_ARGUMENTS) != null) {
+                if (queueConfig.containsKey(RabbitMQConstants.QUEUE_ARGUMENTS)) {
                     @SuppressWarnings(RabbitMQConstants.UNCHECKED)
                     HashMap<BString, Object> queueArgs =
                             (HashMap<BString, Object>) queueConfig.getMapValue(RabbitMQConstants.QUEUE_ARGUMENTS);
                     queueArgs.forEach((k, v) -> argumentsMap.put(k.getValue(), ChannelUtils.getConvertedValue(v)));
                 }
             }
-            channel.queueDeclare(queueName, durable, exclusive, autoDelete, null);
         }
+
+        // declare queue with user given values or default set
+        channel.queueDeclare(queueName, durable, exclusive, autoDelete, null);
         RabbitMQMetricsUtil.reportNewQueue(channel, queueName);
     }
 
