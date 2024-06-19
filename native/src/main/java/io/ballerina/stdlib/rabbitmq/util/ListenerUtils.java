@@ -104,7 +104,7 @@ public class ListenerUtils {
         } catch (IOException e) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_REGISTER);
             return RabbitMQUtils.returnErrorValue("I/O Error occurred while declaring the queue: " +
-                    e.getMessage());
+                    e.getCause().getMessage());
         }
         if (isStarted()) {
             services =

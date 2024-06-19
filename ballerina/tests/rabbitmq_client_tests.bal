@@ -195,7 +195,7 @@ function setup() returns error? {
         check clientObj->queueDeclare(DATA_BINDING_JSON_PUBLISH_QUEUE);
         check clientObj->queueDeclare(DATA_BINDING_BYTES_PUBLISH_QUEUE);
         check clientObj->queueDeclare(DATA_BINDING_REPLY_QUEUE);
-        check clientObj->queueDeclare(QUEUE_CONFIG_DUPLICATE, config = {durable: true, autoDelete: true, exclusive: true});
+        check clientObj->queueDeclare(QUEUE_CONFIG_DUPLICATE, config = {durable: true, autoDelete: true, exclusive: false});
         check setup2(clientObj);
     }
     Listener lis = check new (DEFAULT_HOST, DEFAULT_PORT);
@@ -603,7 +603,6 @@ public function testListenerQueueDeclareDuplicateError() returns error? {
         error? result = channelListener.attach(queueConfigDuplicateError);
         test:assertTrue(result is error, msg = "Error expected when declaring same queue with different properties.");
     }
-    check channelListener.gracefulStop();
     return;
 }
 
@@ -1241,7 +1240,7 @@ Service queueConfigDuplicateQueue =
     queueName: QUEUE_CONFIG_DUPLICATE,
     config: {
         durable: true,
-        exclusive: true,
+        exclusive: false,
         autoDelete: true
     }
 }
@@ -1262,7 +1261,7 @@ Service queueConfigDuplicateError =
     queueName: QUEUE_CONFIG_DUPLICATE,
     config: {
         durable: false,
-        exclusive: true,
+        exclusive: false,
         autoDelete: false
     }
 }
