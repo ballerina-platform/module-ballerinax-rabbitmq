@@ -187,7 +187,8 @@ public class ListenerUtils {
             if ((BMap<BString, Object>) serviceConfig.getMapValue(RabbitMQConstants.QUEUE_CONFIG) != null) {
 
                 @SuppressWarnings(RabbitMQConstants.UNCHECKED)
-                BMap<BString, Object> queueConfig = (BMap<BString, Object>) serviceConfig.getMapValue(RabbitMQConstants.QUEUE_CONFIG);
+                BMap<BString, Object> queueConfig =
+                        (BMap<BString, Object>) serviceConfig.getMapValue(RabbitMQConstants.QUEUE_CONFIG);
                 durable = queueConfig.getBooleanValue(RabbitMQConstants.QUEUE_DURABLE);
                 exclusive = queueConfig.getBooleanValue(RabbitMQConstants.QUEUE_EXCLUSIVE);
                 autoDelete = queueConfig.getBooleanValue(RabbitMQConstants.QUEUE_AUTO_DELETE);
