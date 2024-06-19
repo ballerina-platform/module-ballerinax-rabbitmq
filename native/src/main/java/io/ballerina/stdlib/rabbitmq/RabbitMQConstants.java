@@ -34,6 +34,7 @@ public class RabbitMQConstants {
     static final String RABBITMQ = "rabbitmq";
 
     // Queue configuration constant fields
+    public static final BString QUEUE_CONFIG = StringUtils.fromString("config");
     public static final BString QUEUE_NAME = StringUtils.fromString("queueName");
     public static final BString QUEUE_DURABLE = StringUtils.fromString("durable");
     public static final BString QUEUE_EXCLUSIVE = StringUtils.fromString("exclusive");

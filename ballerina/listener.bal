@@ -110,9 +110,11 @@ public isolated class Listener {
 # Configurations required to create a subscription.
 #
 # + queueName - The name of the queue to be subscribed
+# + config - The configurations required to declare a queue
 # + autoAck - If false, should manually acknowledge
 public type RabbitMQServiceConfig record {|
     string queueName;
+    QueueConfig config?;
     boolean autoAck = true;
 |};
 

@@ -41,6 +41,8 @@ import io.ballerina.stdlib.rabbitmq.observability.RabbitMQTracingUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 import static io.ballerina.runtime.api.constants.RuntimeConstants.ORG_NAME_SEPARATOR;
@@ -88,7 +90,7 @@ public class ListenerUtils {
     }
 
     public static Object attach(Environment environment, BObject listenerBObject, BObject service,
-                                          Object queueName) {
+                                Object queueName) {
         runtime = environment.getRuntime();
         Channel channel = (Channel) listenerBObject.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         if (service == null) {
@@ -102,7 +104,7 @@ public class ListenerUtils {
         } catch (IOException e) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_REGISTER);
             return RabbitMQUtils.returnErrorValue("I/O Error occurred while declaring the queue: " +
-                                                          e.getMessage());
+                    e.getCause().getMessage());
         }
         if (isStarted()) {
             services =
@@ -156,9 +158,9 @@ public class ListenerUtils {
             return RabbitMQUtils.returnErrorValue("Error occurred while detaching the service");
         }
         listenerBObject.addNativeData(RabbitMQConstants.CONSUMER_SERVICES,
-                                      RabbitMQUtils.removeFromList(services, service));
+                RabbitMQUtils.removeFromList(services, service));
         listenerBObject.addNativeData(RabbitMQConstants.STARTED_SERVICES,
-                                      RabbitMQUtils.removeFromList(startedServices, service));
+                RabbitMQUtils.removeFromList(startedServices, service));
         RabbitMQMetricsUtil.reportUnsubscription(channel, service);
         RabbitMQTracingUtil.traceQueueResourceInvocation(channel, queueName, environment);
         return null;
@@ -167,16 +169,44 @@ public class ListenerUtils {
     private static void declareQueueIfNotExists(BObject service, Channel channel) throws IOException {
         BMap serviceConfig = (BMap) ((AnnotatableType) TypeUtils.getType(service))
                 .getAnnotation(StringUtils.fromString(ModuleUtils.getModule().getOrg() + ORG_NAME_SEPARATOR
-                                                              + ModuleUtils.getModule().getName() + VERSION_SEPARATOR
-                                                              + ModuleUtils.getModule().getVersion() + ":"
-                                                              + RabbitMQConstants.SERVICE_CONFIG));
-        String queueName;
+                        + ModuleUtils.getModule().getName() + VERSION_SEPARATOR
+                        + ModuleUtils.getModule().getVersion() + ":"
+                        + RabbitMQConstants.SERVICE_CONFIG));
+        String queueName = "";
+        Map<String, Object> argumentsMap = new HashMap<>();
+        boolean durable = false;
+        boolean exclusive = false;
+        boolean autoDelete = true;
+
+
         if (service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue()) != null) {
+            // if the queue name is given as the service name
             queueName = (String) service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue());
-        } else {
-            queueName = serviceConfig.getStringValue(RabbitMQConstants.QUEUE_NAME).getValue();
         }
-        channel.queueDeclare(queueName, false, false, true, null);
+
+        // if serviceConfig is not null, name and configs given in the service config will replace the service name
+        if (serviceConfig != null) {
+            queueName = serviceConfig.getStringValue(RabbitMQConstants.QUEUE_NAME).getValue();
+
+            if ((BMap<BString, Object>) serviceConfig.getMapValue(RabbitMQConstants.QUEUE_CONFIG) != null) {
+
+                @SuppressWarnings(RabbitMQConstants.UNCHECKED)
+                BMap<BString, Object> queueConfig =
+                        (BMap<BString, Object>) serviceConfig.getMapValue(RabbitMQConstants.QUEUE_CONFIG);
+                durable = queueConfig.getBooleanValue(RabbitMQConstants.QUEUE_DURABLE);
+                exclusive = queueConfig.getBooleanValue(RabbitMQConstants.QUEUE_EXCLUSIVE);
+                autoDelete = queueConfig.getBooleanValue(RabbitMQConstants.QUEUE_AUTO_DELETE);
+                if (queueConfig.getMapValue(RabbitMQConstants.QUEUE_ARGUMENTS) != null) {
+                    @SuppressWarnings(RabbitMQConstants.UNCHECKED)
+                    HashMap<BString, Object> queueArgs =
+                            (HashMap<BString, Object>) queueConfig.getMapValue(RabbitMQConstants.QUEUE_ARGUMENTS);
+                    queueArgs.forEach((k, v) -> argumentsMap.put(k.getValue(), ChannelUtils.getConvertedValue(v)));
+                }
+            }
+        }
+
+        // declare queue with user given values or default set
+        channel.queueDeclare(queueName, durable, exclusive, autoDelete, null);
         RabbitMQMetricsUtil.reportNewQueue(channel, queueName);
     }
 
@@ -213,9 +243,9 @@ public class ListenerUtils {
         @SuppressWarnings("unchecked")
         BMap<BString, Object> serviceConfig = (BMap<BString, Object>) serviceType
                 .getAnnotation(StringUtils.fromString(ModuleUtils.getModule().getOrg() + ORG_NAME_SEPARATOR
-                                                              + ModuleUtils.getModule().getName() + VERSION_SEPARATOR
-                                                              + ModuleUtils.getModule().getVersion() + ":"
-                                                              + RabbitMQConstants.SERVICE_CONFIG));
+                        + ModuleUtils.getModule().getName() + VERSION_SEPARATOR
+                        + ModuleUtils.getModule().getVersion() + ":"
+                        + RabbitMQConstants.SERVICE_CONFIG));
         boolean autoAck = true;
         if (serviceConfig != null && serviceConfig.containsKey(RabbitMQConstants.AUTO_ACK)) {
             autoAck = serviceConfig.getBooleanValue(RabbitMQConstants.AUTO_ACK);
@@ -239,7 +269,7 @@ public class ListenerUtils {
                 connection.close();
             } catch (IOException | TimeoutException | ShutdownSignalException exception) {
                 return RabbitMQUtils.returnErrorValue(RabbitMQConstants.CLOSE_CHANNEL_ERROR
-                                                              + exception.getMessage());
+                        + exception.getMessage());
             }
         }
         return null;

@@ -13,10 +13,9 @@
 // KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations
 // under the License.
-
 import ballerina/lang.'string;
-import ballerina/log;
 import ballerina/lang.runtime as runtime;
+import ballerina/log;
 import ballerina/test;
 
 Client? rabbitmqChannel = ();
@@ -29,6 +28,8 @@ const ACK_QUEUE2 = "MyAckQueue2";
 const ACK_QUEUE3 = "MyAckQueue3";
 const NACK_QUEUE2 = "MyNackQueue2";
 const NACK_QUEUE3 = "MyNackQueue3";
+const QUEUE_CONFIG_NEW = "MyDurableQueue";
+const QUEUE_CONFIG_DUPLICATE = "MyDurableQueueDup";
 const READONLY_MESSAGE_QUEUE = "ReadOnlyMessage";
 const READONLY_MESSAGE_QUEUE_CALLER = "ReadOnlyMessageCaller";
 const READONLY_REQUEST_QUEUE = "ReadOnlyRequest";
@@ -139,7 +140,8 @@ const CONSTRAINT_VALID_STRING_QUEUE = "ConstraintValidStringQueue";
 const CONSTRAINT_VALID_NUMBER_QUEUE = "ConstraintValidNumberQueue";
 const CONSTRAINT_VALID_RECORD_QUEUE = "ConstraintValidRecordQueue";
 const CONSTRAINT_DISABLED_VALIDATION_QUEUE = "ConstraintDisabledValidationQueue";
-
+string queueConfigNew = "";
+string queueConfigDuplicate = "";
 string asyncConsumerMessage = "";
 string asyncConsumerMessage2 = "";
 string onRequestMessage = "";
@@ -193,6 +195,7 @@ function setup() returns error? {
         check clientObj->queueDeclare(DATA_BINDING_JSON_PUBLISH_QUEUE);
         check clientObj->queueDeclare(DATA_BINDING_BYTES_PUBLISH_QUEUE);
         check clientObj->queueDeclare(DATA_BINDING_REPLY_QUEUE);
+        check clientObj->queueDeclare(QUEUE_CONFIG_DUPLICATE, config = {durable: true, autoDelete: true, exclusive: false});
         check setup2(clientObj);
     }
     Listener lis = check new (DEFAULT_HOST, DEFAULT_PORT);
@@ -387,7 +390,7 @@ public isolated function testDeclareQueueWithArgs() returns error? {
         "x-message-ttl": 60000,
         "x-expires": 800000
     };
-    check newClient->queueDeclare(queue, { arguments: args });
+    check newClient->queueDeclare(queue, {arguments: args});
     check newClient->close();
     return;
 }
@@ -408,7 +411,7 @@ public isolated function testDeclareQueueWithArgsNegative() returns error? {
         "x-message-ttl": m,
         "x-expires": 800000
     };
-    error? result = newClient->queueDeclare(queue, { arguments: args });
+    error? result = newClient->queueDeclare(queue, {arguments: args});
     if result !is error {
         test:assertFail("Error when trying to consume messages using client.");
     } else {
@@ -552,6 +555,53 @@ public function testAsyncConsumer2() returns error? {
         string replyMsg = "Hello back from ballerina!";
         test:assertEquals(onRequestMessage, message, msg = "Message received does not match.");
         test:assertEquals(reqReplyMessage, replyMsg, msg = "Message received does not match.");
+    }
+    return;
+}
+
+@test:Config {
+    dependsOn: [testListener, testSyncConsumer],
+    groups: ["rabbitmq"]
+}
+public function testListenerQueueDeclareNew() returns error? {
+    string message = "Testing Async Consumer With Durable Queue";
+    Listener? channelListener = rabbitmqListener;
+    if channelListener is Listener {
+        check channelListener.attach(queueConfigNewQueue);
+        check channelListener.'start();
+        check produceMessage(message, QUEUE_CONFIG_NEW);
+        runtime:sleep(5);
+        test:assertEquals(queueConfigNew, message, msg = "Message received does not match.");
+    }
+    return;
+}
+
+@test:Config {
+    dependsOn: [testListener, testSyncConsumer],
+    groups: ["rabbitmq"]
+}
+public function testListenerQueueDeclareDuplicate() returns error? {
+    string message = "Testing Async Consumer With Durable Queue Duplicate";
+    Listener? channelListener = rabbitmqListener;
+    if channelListener is Listener {
+        check channelListener.attach(queueConfigDuplicateQueue);
+        check channelListener.'start();
+        check produceMessage(message, QUEUE_CONFIG_DUPLICATE);
+        runtime:sleep(5);
+        test:assertEquals(queueConfigDuplicate, message, msg = "Message received does not match.");
+    }
+    return;
+}
+
+@test:Config {
+    dependsOn: [testListener, testSyncConsumer,testListenerQueueDeclareDuplicate],
+    groups: ["rabbitmq"]
+}
+public function testListenerQueueDeclareDuplicateError() returns error? {
+    Listener channelListener = check new(DEFAULT_HOST, DEFAULT_PORT);
+    if channelListener is Listener {
+        error? result = channelListener.attach(queueConfigDuplicateError);
+        test:assertTrue(result is error, msg = "Error expected when declaring same queue with different properties.");
     }
     return;
 }
@@ -1161,6 +1211,62 @@ service object {
         } else {
             log:printError("Error occurred while retrieving the message content.", 'error = messageContent);
         }
+    }
+};
+
+Service queueConfigNewQueue =
+@ServiceConfig {
+    queueName: QUEUE_CONFIG_NEW,
+    config: {
+        durable: true,
+        exclusive: true,
+        autoDelete: true
+    }
+}
+service object {
+    remote function onMessage(BytesMessage message) {
+        string|error messageContent = 'string:fromBytes(message.content);
+        if messageContent is string {
+            queueConfigNew = messageContent;
+            log:printInfo("The reply message received: " + messageContent);
+        } else {
+            log:printError("Error occurred while retrieving the message content.", 'error = messageContent);
+        }
+    }
+};
+
+Service queueConfigDuplicateQueue =
+@ServiceConfig {
+    queueName: QUEUE_CONFIG_DUPLICATE,
+    config: {
+        durable: true,
+        exclusive: false,
+        autoDelete: true
+    }
+}
+service object {
+    remote function onMessage(BytesMessage message) {
+        string|error messageContent = 'string:fromBytes(message.content);
+        if messageContent is string {
+            queueConfigDuplicate = messageContent;
+            log:printInfo("The reply message received: " + messageContent);
+        } else {
+            log:printError("Error occurred while retrieving the message content.", 'error = messageContent);
+        }
+    }
+};
+
+Service queueConfigDuplicateError =
+@ServiceConfig {
+    queueName: QUEUE_CONFIG_DUPLICATE,
+    config: {
+        durable: false,
+        exclusive: false,
+        autoDelete: false
+    }
+}
+service object {
+    remote function onMessage(BytesMessage message) {
     }
 };
 

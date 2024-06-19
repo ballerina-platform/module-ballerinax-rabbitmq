@@ -117,7 +117,7 @@ public class ChannelUtils {
         return null;
     }
 
-    private static Object getConvertedValue(Object v) {
+    public static Object getConvertedValue(Object v) {
         if (v instanceof BString) {
             return ((BString) v).getValue();
         } else if (v instanceof Float) {
