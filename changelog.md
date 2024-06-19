@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+### Fixed
+- [Fix error in rabbitmq:Listener trying to re-declare the queue internally with mismatching properties](https://github.com/ballerina-platform/ballerina-library/issues/6629)
+
+## [3.0.0] - 2024-05-06
+
 ### Changed
 - [[#5069] Remove the definition and the usages of the deprecated rabbitmq:Message record](https://github.com/ballerina-platform/ballerina-library/issues/5069)
 
