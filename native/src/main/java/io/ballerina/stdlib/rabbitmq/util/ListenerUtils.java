@@ -196,7 +196,7 @@ public class ListenerUtils {
                 durable = queueConfig.getBooleanValue(RabbitMQConstants.QUEUE_DURABLE);
                 exclusive = queueConfig.getBooleanValue(RabbitMQConstants.QUEUE_EXCLUSIVE);
                 autoDelete = queueConfig.getBooleanValue(RabbitMQConstants.QUEUE_AUTO_DELETE);
-                if (queueConfig.containsKey(RabbitMQConstants.QUEUE_ARGUMENTS)) {
+                if (queueConfig.getMapValue(RabbitMQConstants.QUEUE_ARGUMENTS) != null) {
                     @SuppressWarnings(RabbitMQConstants.UNCHECKED)
                     HashMap<BString, Object> queueArgs =
                             (HashMap<BString, Object>) queueConfig.getMapValue(RabbitMQConstants.QUEUE_ARGUMENTS);
