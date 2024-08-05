@@ -1,4 +1,3 @@
-version: "3"
 services:
     rabbitmq-tls:
         image: rabbitmq:3-management
