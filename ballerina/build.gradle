@@ -116,7 +116,7 @@ task startRabbitmqServer() {
             if (!stdOut.toString().contains("server_rabbitmq-1_1")) {
                 println "Starting RabbitMQ server."
                 exec {
-                    commandLine 'sh', '-c', "docker-compose -f tests/server/docker-compose.yaml up -d"
+                    commandLine 'sh', '-c', "docker compose -f tests/server/compose.yaml up -d"
                     standardOutput = stdOut
                 }
                 println stdOut.toString()
@@ -139,7 +139,7 @@ task stopRabbitmqServer() {
             if (stdOut.toString().contains("server_rabbitmq-1_1")) {
                 println "Stopping RabbitMQ server."
                 exec {
-                    commandLine 'sh', '-c', "docker-compose -f tests/server/docker-compose.yaml rm -svf"
+                    commandLine 'sh', '-c', "docker compose -f tests/server/compose.yaml rm -svf"
                     standardOutput = stdOut
                 }
                 println stdOut.toString()
