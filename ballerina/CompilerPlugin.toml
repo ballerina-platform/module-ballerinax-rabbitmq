@@ -3,4 +3,4 @@ id = "rabbitmq-compiler-plugin"
 class = "io.ballerina.stdlib.rabbitmq.plugin.RabbitmqCompilerPlugin"
 
 [[dependency]]
-path = "../compiler-plugin/build/libs/rabbitmq-compiler-plugin-3.1.0-SNAPSHOT.jar"
+path = "../compiler-plugin/build/libs/rabbitmq-compiler-plugin-3.1.0.jar"
