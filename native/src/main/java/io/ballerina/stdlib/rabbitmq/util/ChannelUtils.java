@@ -282,6 +282,7 @@ public class ChannelUtils {
                 String contentType = null;
                 String contentEncoding = null;
                 String correlationId = null;
+                Map<String, Object> headers = new HashMap<>();
                 if (basicPropsMap.containsKey(RabbitMQConstants.ALIAS_REPLY_TO)) {
                     replyTo = basicPropsMap.getStringValue(RabbitMQConstants.ALIAS_REPLY_TO).getValue();
                 }
@@ -295,6 +296,14 @@ public class ChannelUtils {
                 if (basicPropsMap.containsKey(RabbitMQConstants.ALIAS_CORRELATION_ID)) {
                     correlationId = basicPropsMap.getStringValue(RabbitMQConstants.ALIAS_CORRELATION_ID).getValue();
                 }
+                if (basicPropsMap.containsKey(RabbitMQConstants.ALIAS_HEADERS)) {
+                    @SuppressWarnings(RabbitMQConstants.UNCHECKED)
+                    BMap<BString, BString> headersMap = (BMap<BString, BString>) basicPropsMap
+                            .getMapValue(RabbitMQConstants.ALIAS_HEADERS);
+                    headersMap.entrySet()
+                            .forEach(entry -> headers.put(entry.getKey().getValue(),
+                                    headersMap.getStringValue(entry.getKey()).getValue()));
+                }
                 if (replyTo != null) {
                     builder.replyTo(replyTo);
                 }
@@ -306,6 +315,9 @@ public class ChannelUtils {
                 }
                 if (correlationId != null) {
                     builder.correlationId(correlationId);
+                }
+                if (!headers.isEmpty()) {
+                    builder.headers(headers);
                 }
             }
             if (TransactionResourceManager.getInstance().isInTransaction()) {
