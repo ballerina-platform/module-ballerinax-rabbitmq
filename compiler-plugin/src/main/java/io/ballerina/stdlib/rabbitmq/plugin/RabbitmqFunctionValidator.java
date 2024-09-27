@@ -107,6 +107,7 @@ import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.MESSAGE_CONTEN
 import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.MESSAGE_CORRELATION_ID;
 import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.MESSAGE_DELIVERY_TAG;
 import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.MESSAGE_EXCHANGE;
+import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.MESSAGE_HEADERS;
 import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.MESSAGE_PROPERTIES;
 import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.MESSAGE_REPLY_TO;
 import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.MESSAGE_ROUTING_KEY;
@@ -403,10 +404,11 @@ public class RabbitmqFunctionValidator {
             propertiesRecordSymbol = (RecordTypeSymbol) propertiesTypeSymbol;
         }
         Map<String, RecordFieldSymbol> propertiesFieldDescriptors = propertiesRecordSymbol.fieldDescriptors();
-        if (propertiesFieldDescriptors.size() != 4 || !propertiesFieldDescriptors.containsKey(MESSAGE_REPLY_TO) ||
+        if (propertiesFieldDescriptors.size() != 5 || !propertiesFieldDescriptors.containsKey(MESSAGE_REPLY_TO) ||
                 !propertiesFieldDescriptors.containsKey(MESSAGE_CONTENT_TYPE) ||
                 !propertiesFieldDescriptors.containsKey(MESSAGE_CONTENT_ENCODING) ||
-                !propertiesFieldDescriptors.containsKey(MESSAGE_CORRELATION_ID)) {
+                !propertiesFieldDescriptors.containsKey(MESSAGE_CORRELATION_ID) ||
+                !propertiesFieldDescriptors.containsKey(MESSAGE_HEADERS)) {
             return false;
         }
         if (propertiesFieldDescriptors.get(MESSAGE_REPLY_TO).typeDescriptor().typeKind() != STRING) {
@@ -419,6 +421,9 @@ public class RabbitmqFunctionValidator {
             return false;
         }
         if (propertiesFieldDescriptors.get(MESSAGE_CORRELATION_ID).typeDescriptor().typeKind() != STRING) {
+            return false;
+        }
+        if (propertiesFieldDescriptors.get(MESSAGE_HEADERS).typeDescriptor().typeKind() != MAP) {
             return false;
         }
         return true;
