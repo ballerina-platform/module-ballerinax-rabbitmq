@@ -383,6 +383,43 @@ public isolated function testProducerTransactional() returns error? {
     dependsOn: [testClient],
     groups: ["rabbitmq"]
 }
+public isolated function testProducerWithHeaders() returns error? {
+    string queue = "testProducerWithHeaders";
+    string message = "Test producing with headers";
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
+    map<string> headers = {
+        "header1": "value1",
+        "header2": "value2"
+    };
+    check newClient->queueDeclare(queue);
+    check newClient->publishMessage({content: message.toBytes(), routingKey: queue, properties: {headers: headers}});
+    BytesMessage|Error consumeResult = newClient->consumeMessage(queue, false);
+    if consumeResult is BytesMessage {
+        string messageContent = check 'string:fromBytes(consumeResult.content);
+        BasicProperties? properties = consumeResult.properties;
+
+        if properties is BasicProperties {
+            map<anydata>? receivedHeaders = properties.headers;
+            if receivedHeaders is () {
+                test:assertFail("No headers received.");
+            } else {
+                test:assertEquals(receivedHeaders["header1"], "value1", msg = "Header1 mismatch.");
+                test:assertEquals(receivedHeaders["header2"], "value2", msg = "Header2 mismatch.");
+            }
+        }
+        log:printInfo("The message received: " + messageContent);
+        test:assertEquals(messageContent, message, msg = "Message received does not match.");
+    } else {
+        test:assertFail("Error when trying to consume messages using client.");
+    }
+    check newClient->close();
+    return;
+}
+
+@test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
 public isolated function testDeclareQueueWithArgs() returns error? {
     string queue = "declareArgs";
     Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
@@ -418,7 +455,7 @@ public isolated function testDeclareQueueWithArgsNegative() returns error? {
         string expectedError = "Error occurred while declaring the queue: Unsupported type in arguments map passed "
                         + "while declaring a queue.";
         test:assertEquals(result.message(), expectedError,
-                    msg = "Error message mismatch in declaring queue with invalid args.");
+                msg = "Error message mismatch in declaring queue with invalid args.");
     }
     return newClient->close();
 }
@@ -594,11 +631,11 @@ public function testListenerQueueDeclareDuplicate() returns error? {
 }
 
 @test:Config {
-    dependsOn: [testListener, testSyncConsumer,testListenerQueueDeclareDuplicate],
+    dependsOn: [testListener, testSyncConsumer, testListenerQueueDeclareDuplicate],
     groups: ["rabbitmq"]
 }
 public function testListenerQueueDeclareDuplicateError() returns error? {
-    Listener channelListener = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
     if channelListener is Listener {
         error? result = channelListener.attach(queueConfigDuplicateError);
         test:assertTrue(result is error, msg = "Error expected when declaring same queue with different properties.");
