@@ -43,7 +43,7 @@ public const TOPIC_EXCHANGE = "topic";
 # + contentType - The content type of the message
 # + contentEncoding - The content encoding of the message
 # + correlationId - The client-specific ID that can be used to mark or identify messages between clients
-# + headers - A map of additional arbitrary headers to be included in the message.
+# + headers - A map of additional arbitrary headers to be included in the message
 public type BasicProperties record {|
     string replyTo?;
     string contentType?;
