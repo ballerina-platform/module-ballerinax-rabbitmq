@@ -44,6 +44,7 @@ public class PluginConstants {
     public static final String MESSAGE_CONTENT_TYPE = "contentType";
     public static final String MESSAGE_CONTENT_ENCODING = "contentEncoding";
     public static final String MESSAGE_CORRELATION_ID = "correlationId";
+    public static final String MESSAGE_HEADERS = "headers";
 
     // return types error or nil
     public static final String ERROR = "error";
