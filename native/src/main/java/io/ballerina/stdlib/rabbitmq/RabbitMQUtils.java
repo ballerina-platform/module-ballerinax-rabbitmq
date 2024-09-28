@@ -43,6 +43,7 @@ import org.ballerinalang.langlib.value.CloneReadOnly;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Map;
 
 import static io.ballerina.runtime.api.TypeTags.INTERSECTION_TAG;
 import static io.ballerina.runtime.api.TypeTags.STRING_TAG;
@@ -138,14 +139,24 @@ public class RabbitMQUtils {
             String contentType = properties.getContentType();
             String contentEncoding = properties.getContentEncoding();
             String correlationId = properties.getCorrelationId();
+            Map<String, Object> headersMap = properties.getHeaders();
+            BMap<BString, Object> headers = ValueCreator.createMapValue();
+
+            if (headersMap != null) {
+                headersMap.forEach((key, value) -> headers.put(StringUtils.fromString(key), StringUtils.fromString(
+                        value.toString())));
+            }
+
             BMap<BString, Object> basicProperties =
                     ValueCreator.createRecordValue(getModule(),
                             RabbitMQConstants.RECORD_BASIC_PROPERTIES);
-            Object[] propValues = new Object[4];
+            Object[] propValues = new Object[5];
             propValues[0] = replyTo;
             propValues[1] = contentType;
             propValues[2] = contentEncoding;
             propValues[3] = correlationId;
+            propValues[4] = headers;
+
             messageRecord.put(StringUtils.fromString(MESSAGE_PROPERTIES_FIELD), ValueCreator
                     .createRecordValue(basicProperties, propValues));
         }

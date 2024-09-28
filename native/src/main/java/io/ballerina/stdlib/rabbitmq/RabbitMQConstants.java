@@ -144,6 +144,7 @@ public class RabbitMQConstants {
     public static final BString ALIAS_CONTENT_TYPE = StringUtils.fromString("contentType");
     public static final BString ALIAS_CONTENT_ENCODING = StringUtils.fromString("contentEncoding");
     public static final BString ALIAS_CORRELATION_ID = StringUtils.fromString("correlationId");
+    public static final BString ALIAS_HEADERS = StringUtils.fromString("headers");
 
     private RabbitMQConstants() {
     }
