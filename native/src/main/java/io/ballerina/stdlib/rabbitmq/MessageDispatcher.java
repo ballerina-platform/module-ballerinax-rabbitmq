@@ -23,10 +23,8 @@ import com.rabbitmq.client.AlreadyClosedException;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
-import io.ballerina.runtime.api.PredefinedTypes;
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.async.Callback;
-import io.ballerina.runtime.api.async.StrandMetadata;
+import io.ballerina.runtime.api.concurrent.StrandMetadata;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.MethodType;
 import io.ballerina.runtime.api.types.ObjectType;
@@ -52,9 +50,9 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 
-import static io.ballerina.runtime.api.TypeTags.INTERSECTION_TAG;
-import static io.ballerina.runtime.api.TypeTags.OBJECT_TYPE_TAG;
-import static io.ballerina.runtime.api.TypeTags.RECORD_TYPE_TAG;
+import static io.ballerina.runtime.api.types.TypeTags.INTERSECTION_TAG;
+import static io.ballerina.runtime.api.types.TypeTags.OBJECT_TYPE_TAG;
+import static io.ballerina.runtime.api.types.TypeTags.RECORD_TYPE_TAG;
 import static io.ballerina.runtime.api.constants.RuntimeConstants.ORG_NAME_SEPARATOR;
 import static io.ballerina.runtime.api.constants.RuntimeConstants.VERSION_SEPARATOR;
 import static io.ballerina.runtime.api.utils.TypeUtils.getReferredType;
@@ -109,7 +107,7 @@ public class MessageDispatcher {
                     .getAnnotation(StringUtils.fromString(ModuleUtils.getModule().getOrg() + ORG_NAME_SEPARATOR
                                                                   + ModuleUtils.getModule().getName() +
                                                                   VERSION_SEPARATOR
-                                                                  + ModuleUtils.getModule().getVersion() + ":"
+                                                                  + ModuleUtils.getModule().getMajorVersion() + ":"
                                                                   + RabbitMQConstants.SERVICE_CONFIG));
             return serviceConfig.getStringValue(RabbitMQConstants.ALIAS_QUEUE_NAME).getValue();
         }
@@ -146,8 +144,8 @@ public class MessageDispatcher {
 
     private void handleDispatch(byte[] message, Envelope envelope, AMQP.BasicProperties properties) {
         CountDownLatch countDownLatch = new CountDownLatch(1);
-        Callback callback = new RabbitMQResourceCallback(countDownLatch, channel, queueName, message.length,
-                properties.getReplyTo(), envelope.getExchange());
+        RabbitMQResourceCallback callback = new RabbitMQResourceCallback(countDownLatch, channel, queueName,
+                message.length, properties.getReplyTo(), envelope.getExchange());
         try {
             if (properties.getReplyTo() != null && getAttachedFunctionType(service, FUNC_ON_REQUEST) != null) {
                 MethodType onRequestFunction = getAttachedFunctionType(service, FUNC_ON_REQUEST);
@@ -181,7 +179,7 @@ public class MessageDispatcher {
         boolean messageExists = false;
         boolean payloadExists = false;
         boolean constraintValidation = (boolean) listenerObj.getNativeData(CONSTRAINT_VALIDATION);
-        Object[] arguments = new Object[parameters.length * 2];
+        Object[] arguments = new Object[parameters.length];
         int index = 0;
         for (Parameter parameter : parameters) {
             Type referredType = getReferredType(parameter.type);
@@ -220,7 +218,6 @@ public class MessageDispatcher {
                     arguments[index++] = value;
                     break;
             }
-            arguments[index++] = true;
         }
         return arguments;
     }
@@ -238,47 +235,41 @@ public class MessageDispatcher {
         return callerObj;
     }
 
-    private void executeResourceOnMessage(Callback callback, Type returnType, Object... args) {
-        StrandMetadata metadata = new StrandMetadata(ORG_NAME, RABBITMQ,
-                                                     ModuleUtils.getModule().getVersion(), FUNC_ON_MESSAGE);
-        executeResource(RabbitMQConstants.FUNC_ON_MESSAGE, callback, metadata, returnType, args);
+    private void executeResourceOnMessage(RabbitMQResourceCallback callback, Type returnType, Object... args) {
+        executeResource(RabbitMQConstants.FUNC_ON_MESSAGE, callback, args);
     }
 
-    private void executeResourceOnRequest(Callback callback, Type returnType, Object... args) {
-        StrandMetadata metadata = new StrandMetadata(ORG_NAME, RABBITMQ,
-                                                     ModuleUtils.getModule().getVersion(), FUNC_ON_REQUEST);
-        executeResource(FUNC_ON_REQUEST, callback, metadata, returnType, args);
+    private void executeResourceOnRequest(RabbitMQResourceCallback callback, Type returnType, Object... args) {
+        executeResource(FUNC_ON_REQUEST, callback, args);
     }
 
     private void executeOnError(MethodType onErrorMethod, byte[] message, Envelope envelope,
                                AMQP.BasicProperties properties, BError bError) {
-        StrandMetadata metadata = new StrandMetadata(ORG_NAME, RABBITMQ,
-                ModuleUtils.getModule().getVersion(), FUNC_ON_ERROR);
-        executeResource(FUNC_ON_ERROR, null, metadata, onErrorMethod.getReturnType(),
-                createAndPopulateMessageRecord(message, envelope, properties,
-                        getReferredType(onErrorMethod.getParameters()[0].type)), true, bError, true);
+        executeResource(FUNC_ON_ERROR, null, createAndPopulateMessageRecord(message, envelope, properties,
+                        getReferredType(onErrorMethod.getParameters()[0].type)), bError);
     }
 
-    private void executeResource(String function, Callback callback, StrandMetadata metaData, Type returnType,
-                                 Object... args) {
+    private void executeResource(String function, RabbitMQResourceCallback callback, Object... args) {
         ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(TypeUtils.getType(service));
-        if (ObserveUtils.isTracingEnabled()) {
-            if (serviceType.isIsolated() && serviceType.isIsolated(function)) {
-                runtime.invokeMethodAsyncConcurrently(service, function, null, metaData, callback,
-                        getNewObserverContextInProperties(), returnType, args);
-            } else {
-                runtime.invokeMethodAsyncSequentially(service, function, null, metaData, callback,
-                        getNewObserverContextInProperties(), returnType, args);
+        Thread.startVirtualThread(() -> {
+            Map<String, Object> properties = getProperties(function);
+            if (ObserveUtils.isTracingEnabled()) {
+                properties = getNewObserverContextInProperties();
             }
-            return;
-        }
-        if (serviceType.isIsolated() && serviceType.isIsolated(function)) {
-            runtime.invokeMethodAsyncConcurrently(service, function, null, metaData, callback, null,
-                    returnType, args);
-        } else {
-            runtime.invokeMethodAsyncSequentially(service, function, null, metaData, callback, null,
-                    returnType, args);
-        }
+            boolean isConcurrentSafe = serviceType.isIsolated() && serviceType.isIsolated(function);
+            StrandMetadata strandMetadata = new StrandMetadata(isConcurrentSafe, properties);
+            try {
+                Object result = runtime.callMethod(service, function, strandMetadata, args);
+                if (callback != null) {
+                    callback.notifySuccess(result);
+                }
+            } catch (BError bError) {
+                if (callback != null) {
+                    callback.notifyFailure(bError);
+                }
+                throw bError;
+            }
+        });
     }
 
     private boolean isMessageType(Parameter parameter, BMap<BString, Object> annotations) {
@@ -296,15 +287,21 @@ public class MessageDispatcher {
         BObject client = ValueCreator.createObjectValue(ModuleUtils.getModule(), TYPE_CHECKER_OBJECT_NAME);
         Semaphore sem = new Semaphore(0);
         RabbitMQTypeCheckCallback messageTypeCheckCallback = new RabbitMQTypeCheckCallback(sem);
-        StrandMetadata metadata = new StrandMetadata(ORG_NAME, RABBITMQ,
-                ModuleUtils.getModule().getVersion(), IS_ANYDATA_MESSAGE);
-        runtime.invokeMethodAsyncSequentially(client, IS_ANYDATA_MESSAGE, null, metadata,
-                messageTypeCheckCallback, null, PredefinedTypes.TYPE_BOOLEAN,
-                ValueCreator.createTypedescValue(paramType), true);
+        StrandMetadata strandMetadata = new StrandMetadata(true, getProperties(IS_ANYDATA_MESSAGE));
+        Thread.startVirtualThread(() -> {
+            try {
+                Object result = runtime.callMethod(client, IS_ANYDATA_MESSAGE, strandMetadata,
+                        ValueCreator.createTypedescValue(paramType));
+                messageTypeCheckCallback.notifySuccess(result);
+            } catch (BError bError) {
+                messageTypeCheckCallback.notifyFailure(bError);
+                throw bError;
+            }
+        });
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-            returnErrorValue(e.getMessage());
+            throw returnErrorValue(e.getMessage());
         }
         return messageTypeCheckCallback.getIsMessageType();
     }
@@ -328,5 +325,14 @@ public class MessageDispatcher {
             }
         }
         return function;
+    }
+
+    public static Map<String, Object> getProperties(String resourceName) {
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("moduleOrg", ORG_NAME);
+        properties.put("moduleName", RABBITMQ);
+        properties.put("moduleVersion", ModuleUtils.getModule().getMajorVersion());
+        properties.put("parentFunctionName", resourceName);
+        return properties;
     }
 }

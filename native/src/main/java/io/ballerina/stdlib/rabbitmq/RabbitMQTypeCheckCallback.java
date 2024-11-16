@@ -18,7 +18,6 @@
 
 package io.ballerina.stdlib.rabbitmq;
 
-import io.ballerina.runtime.api.async.Callback;
 import io.ballerina.runtime.api.values.BError;
 
 import java.util.concurrent.Semaphore;
@@ -27,7 +26,7 @@ import java.util.concurrent.Semaphore;
  * {@code RabbitMQTypeCheckCallback} provides ability to check whether a given type is a subtype of
  * rabbitmq:AnydataMessage.
  */
-public class RabbitMQTypeCheckCallback implements Callback {
+public class RabbitMQTypeCheckCallback {
 
     private final Semaphore semaphore;
     private Boolean isMessageType = false;
@@ -36,19 +35,17 @@ public class RabbitMQTypeCheckCallback implements Callback {
         this.semaphore = semaphore;
     }
 
-    @Override
     public void notifySuccess(Object obj) {
         isMessageType = (Boolean) obj;
         semaphore.release();
     }
 
-    @Override
     public void notifyFailure(BError error) {
         semaphore.release();
         // Service level `panic` is captured in this method.
         // Since, `panic` is due to a critical application bug or resource exhaustion we need to exit the application.
         // Please refer: https://github.com/ballerina-platform/ballerina-standard-library/issues/2714
-        System.exit(1);
+//        System.exit(1);
         error.printStackTrace();
     }
 
