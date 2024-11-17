@@ -48,13 +48,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Semaphore;
 
+import static io.ballerina.runtime.api.constants.RuntimeConstants.ORG_NAME_SEPARATOR;
+import static io.ballerina.runtime.api.constants.RuntimeConstants.VERSION_SEPARATOR;
 import static io.ballerina.runtime.api.types.TypeTags.INTERSECTION_TAG;
 import static io.ballerina.runtime.api.types.TypeTags.OBJECT_TYPE_TAG;
 import static io.ballerina.runtime.api.types.TypeTags.RECORD_TYPE_TAG;
-import static io.ballerina.runtime.api.constants.RuntimeConstants.ORG_NAME_SEPARATOR;
-import static io.ballerina.runtime.api.constants.RuntimeConstants.VERSION_SEPARATOR;
 import static io.ballerina.runtime.api.utils.TypeUtils.getReferredType;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.CONSTRAINT_VALIDATION;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.FUNC_ON_ERROR;
@@ -285,25 +284,14 @@ public class MessageDispatcher {
 
     private boolean invokeIsAnydataMessageTypeMethod(Type paramType) {
         BObject client = ValueCreator.createObjectValue(ModuleUtils.getModule(), TYPE_CHECKER_OBJECT_NAME);
-        Semaphore sem = new Semaphore(0);
-        RabbitMQTypeCheckCallback messageTypeCheckCallback = new RabbitMQTypeCheckCallback(sem);
         StrandMetadata strandMetadata = new StrandMetadata(true, getProperties(IS_ANYDATA_MESSAGE));
-        Thread.startVirtualThread(() -> {
-            try {
-                Object result = runtime.callMethod(client, IS_ANYDATA_MESSAGE, strandMetadata,
-                        ValueCreator.createTypedescValue(paramType));
-                messageTypeCheckCallback.notifySuccess(result);
-            } catch (BError bError) {
-                messageTypeCheckCallback.notifyFailure(bError);
-                throw bError;
-            }
-        });
         try {
-            sem.acquire();
-        } catch (InterruptedException e) {
-            throw returnErrorValue(e.getMessage());
+            return (boolean) runtime.callMethod(client, IS_ANYDATA_MESSAGE, strandMetadata,
+                    ValueCreator.createTypedescValue(paramType));
+        } catch (BError bError) {
+            bError.printStackTrace();
+            throw bError;
         }
-        return messageTypeCheckCallback.getIsMessageType();
     }
 
     private Map<String, Object> getNewObserverContextInProperties() {
