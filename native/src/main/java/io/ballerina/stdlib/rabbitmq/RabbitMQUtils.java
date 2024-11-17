@@ -20,13 +20,13 @@ package io.ballerina.stdlib.rabbitmq;
 
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Envelope;
-import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.IntersectionType;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.types.TypeTags;
 import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.JsonUtils;
 import io.ballerina.runtime.api.utils.StringUtils;
@@ -45,9 +45,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Map;
 
-import static io.ballerina.runtime.api.TypeTags.INTERSECTION_TAG;
-import static io.ballerina.runtime.api.TypeTags.STRING_TAG;
-import static io.ballerina.runtime.api.TypeTags.UNION_TAG;
+import static io.ballerina.runtime.api.types.TypeTags.INTERSECTION_TAG;
+import static io.ballerina.runtime.api.types.TypeTags.STRING_TAG;
+import static io.ballerina.runtime.api.types.TypeTags.UNION_TAG;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.MESSAGE_CONTENT_FIELD;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.MESSAGE_DELIVERY_TAG_FIELD;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.MESSAGE_EXCHANGE_FIELD;
