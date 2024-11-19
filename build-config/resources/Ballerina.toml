@@ -7,25 +7,25 @@ keywords = ["service", "client", "messaging", "network", "pubsub"]
 repository = "https://github.com/ballerina-platform/module-ballerinax-rabbitmq"
 icon = "icon.png"
 license = ["Apache-2.0"]
-distribution = "2201.11.0"
+distribution = "2201.11.0-20241112-214900-6b80ab87"
 
-[platform.java17]
+[platform.java21]
 graalvmCompatible = true
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 path = "./lib/amqp-client-@amqp.client.version@.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "rabbitmq-native"
 version = "@toml.version@"
 path = "../native/build/libs/rabbitmq-native-@project.version@.jar"
 
-[[platform.java17.dependency]]
+[[platform.java21.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "constraint-native"
 version = "@constraint.version@"
 path = "./lib/constraint-native-@constraint.native.version@.jar"
 
 [build-options]
-observabilityIncluded=true
+observabilityIncluded=false

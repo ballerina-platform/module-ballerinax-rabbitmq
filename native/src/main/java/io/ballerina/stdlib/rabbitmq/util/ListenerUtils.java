@@ -23,9 +23,9 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ShutdownSignalException;
 import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.Runtime;
-import io.ballerina.runtime.api.TypeTags;
 import io.ballerina.runtime.api.types.AnnotatableType;
 import io.ballerina.runtime.api.types.ObjectType;
+import io.ballerina.runtime.api.types.TypeTags;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BMap;
@@ -170,7 +170,7 @@ public class ListenerUtils {
         BMap serviceConfig = (BMap) ((AnnotatableType) TypeUtils.getType(service))
                 .getAnnotation(StringUtils.fromString(ModuleUtils.getModule().getOrg() + ORG_NAME_SEPARATOR
                         + ModuleUtils.getModule().getName() + VERSION_SEPARATOR
-                        + ModuleUtils.getModule().getVersion() + ":"
+                        + ModuleUtils.getModule().getMajorVersion() + ":"
                         + RabbitMQConstants.SERVICE_CONFIG));
         String queueName = "";
         Map<String, Object> argumentsMap = new HashMap<>();
@@ -244,7 +244,7 @@ public class ListenerUtils {
         BMap<BString, Object> serviceConfig = (BMap<BString, Object>) serviceType
                 .getAnnotation(StringUtils.fromString(ModuleUtils.getModule().getOrg() + ORG_NAME_SEPARATOR
                         + ModuleUtils.getModule().getName() + VERSION_SEPARATOR
-                        + ModuleUtils.getModule().getVersion() + ":"
+                        + ModuleUtils.getModule().getMajorVersion() + ":"
                         + RabbitMQConstants.SERVICE_CONFIG));
         boolean autoAck = true;
         if (serviceConfig != null && serviceConfig.containsKey(RabbitMQConstants.AUTO_ACK)) {
