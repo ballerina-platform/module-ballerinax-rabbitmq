@@ -284,9 +284,8 @@ public class MessageDispatcher {
 
     private boolean invokeIsAnydataMessageTypeMethod(Type paramType) {
         BObject client = ValueCreator.createObjectValue(ModuleUtils.getModule(), TYPE_CHECKER_OBJECT_NAME);
-        StrandMetadata strandMetadata = new StrandMetadata(true, getProperties(IS_ANYDATA_MESSAGE));
         try {
-            return (boolean) runtime.callMethod(client, IS_ANYDATA_MESSAGE, strandMetadata,
+            return (boolean) runtime.callMethod(client, IS_ANYDATA_MESSAGE, null,
                     ValueCreator.createTypedescValue(paramType));
         } catch (BError bError) {
             bError.printStackTrace();
