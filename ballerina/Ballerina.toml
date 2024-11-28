@@ -28,4 +28,4 @@ version = "1.6.0"
 path = "./lib/constraint-native-1.6.0-20241122-133100-98689e2.jar"
 
 [build-options]
-observabilityIncluded=true
+observabilityIncluded=false
