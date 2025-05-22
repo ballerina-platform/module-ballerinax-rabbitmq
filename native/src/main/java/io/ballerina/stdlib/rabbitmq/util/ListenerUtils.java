@@ -206,7 +206,7 @@ public class ListenerUtils {
         }
 
         // declare queue with user given values or default set
-        channel.queueDeclare(queueName, durable, exclusive, autoDelete, null);
+        channel.queueDeclare(queueName, durable, exclusive, autoDelete, argumentsMap);
         RabbitMQMetricsUtil.reportNewQueue(channel, queueName);
     }
 
