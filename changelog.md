@@ -3,7 +3,13 @@ This file contains all the notable changes done to the Ballerina RabbitMQ packag
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [Unreleased]
+
+### Fixed
+
+- [Pass arguments when declaring the queue in the consumer side](https://github.com/ballerina-platform/ballerina-library/issues/7936)
+
+## [3.2.0] - 2025-02-10
 
 ### Fixed
 - [Fix error in rabbitmq:Listener trying to re-declare the queue internally with mismatching properties](https://github.com/ballerina-platform/ballerina-library/issues/6629)
