@@ -167,6 +167,11 @@ public isolated client class Client {
         'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
     } external;
 
+    isolated function basicAckWithDeliveryTag(int deliveryTag, boolean multiple = false) returns Error? =
+    @java:Method {
+        'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
+    } external;
+
     # Rejects one or several received messages.
     # ```ballerina
     # check rabbitmqClient->basicNack(<message>);
@@ -179,6 +184,12 @@ public isolated client class Client {
     # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
     isolated remote function basicNack(AnydataMessage message, boolean multiple = false, boolean requeue = true)
                             returns Error? =
+    @java:Method {
+        'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
+    } external;
+
+    isolated function basicNackWithDeliveryTag(int deliveryTag, boolean multiple = false, boolean requeue = true)
+        returns Error? =
     @java:Method {
         'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
     } external;
