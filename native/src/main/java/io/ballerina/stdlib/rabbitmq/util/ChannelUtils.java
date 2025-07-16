@@ -187,9 +187,13 @@ public class ChannelUtils {
 
     public static Object basicAck(Environment environment, BObject clientObj, BMap<BString, Object> message,
                                   boolean multiple) {
+        int deliveryTag = (int) ((long) message.getIntValue(RabbitMQConstants.DELIVERY_TAG));
+        return basicAckWithDeliveryTag(environment, clientObj, deliveryTag, multiple);
+    }
+
+    public static Object basicAckWithDeliveryTag(Environment environment, BObject clientObj, int deliveryTag,
+                                                 boolean multiple) {
         Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
-        int deliveryTag =
-                Integer.parseInt(message.getIntValue(RabbitMQConstants.DELIVERY_TAG).toString());
         try {
             channel.basicAck(deliveryTag, multiple);
             RabbitMQMetricsUtil.reportAcknowledgement(channel, RabbitMQObservabilityConstants.ACK);
@@ -203,8 +207,13 @@ public class ChannelUtils {
 
     public static Object basicNack(Environment environment, BObject clientObj, BMap<BString, Object> message,
                                    boolean multiple, boolean requeue) {
-        Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         int deliveryTag = (int) ((long) message.getIntValue(RabbitMQConstants.DELIVERY_TAG));
+        return basicNackWithDeliveryTag(environment, clientObj, deliveryTag, multiple, requeue);
+    }
+
+    public static Object basicNackWithDeliveryTag(Environment environment, BObject clientObj, int deliveryTag,
+                                                  boolean multiple, boolean requeue) {
+        Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         try {
             channel.basicNack(deliveryTag, multiple, requeue);
             RabbitMQMetricsUtil.reportAcknowledgement(channel, RabbitMQObservabilityConstants.NACK);
