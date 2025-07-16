@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+### Added
+- [Add message store implementation for RabbitMQ](https://github.com/ballerina-platform/ballerina-library/issues/8099)
+
 ### Fixed
 - [Fix error in rabbitmq:Listener trying to re-declare the queue internally with mismatching properties](https://github.com/ballerina-platform/ballerina-library/issues/6629)
 
