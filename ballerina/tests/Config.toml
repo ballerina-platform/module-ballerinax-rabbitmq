@@ -1,3 +1,6 @@
 [ballerina.observe]
 enabled=true
 provider="noop"
+
+[ballerina.log]
+level="DEBUG"
