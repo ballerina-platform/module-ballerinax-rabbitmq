@@ -142,15 +142,16 @@ public isolated client class MessageStore {
             }
             int? deliverTag = self.consumedMessageDeliverTags.get(id);
             if deliverTag is () {
+                // This is cannot happen since we are consuming with auto-acknowledge set to false
                 log:printWarn("message with the given ID does not have a delivery tag, cannot acknowledge",
                     msgId = id);
                 return;
             }
             error? result;
             if success {
-                result = self.rabbitMqClient.basicAckWithDeliveryTag(deliverTag);
+                result = self.rabbitMqClient->basicAck(deliverTag);
             } else {
-                result = self.rabbitMqClient.basicNackWithDeliveryTag(deliverTag);
+                result = self.rabbitMqClient->basicNack(deliverTag);
             }
             _ = self.consumedMessageDeliverTags.remove(id);
             if result is error {
