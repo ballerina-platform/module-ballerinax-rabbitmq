@@ -185,14 +185,12 @@ public class ChannelUtils {
         }
     }
 
-    public static Object basicAck(Environment environment, BObject clientObj, BMap<BString, Object> message,
+    public static Object basicAck(Environment environment, BObject clientObj, Object ackTarget,
                                   boolean multiple) {
-        int deliveryTag = (int) ((long) message.getIntValue(RabbitMQConstants.DELIVERY_TAG));
-        return basicAckWithDeliveryTag(environment, clientObj, deliveryTag, multiple);
-    }
-
-    public static Object basicAckWithDeliveryTag(Environment environment, BObject clientObj, int deliveryTag,
-                                                 boolean multiple) {
+        long deliveryTag = ackTarget instanceof BMap
+            ? ((BMap) ackTarget).getIntValue(RabbitMQConstants.DELIVERY_TAG)
+            : (long) ackTarget;
+        
         Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         try {
             channel.basicAck(deliveryTag, multiple);
@@ -205,14 +203,11 @@ public class ChannelUtils {
         return null;
     }
 
-    public static Object basicNack(Environment environment, BObject clientObj, BMap<BString, Object> message,
+    public static Object basicNack(Environment environment, BObject clientObj, Object ackTarget,
                                    boolean multiple, boolean requeue) {
-        int deliveryTag = (int) ((long) message.getIntValue(RabbitMQConstants.DELIVERY_TAG));
-        return basicNackWithDeliveryTag(environment, clientObj, deliveryTag, multiple, requeue);
-    }
-
-    public static Object basicNackWithDeliveryTag(Environment environment, BObject clientObj, int deliveryTag,
-                                                  boolean multiple, boolean requeue) {
+        long deliveryTag = ackTarget instanceof BMap
+            ? ((BMap) ackTarget).getIntValue(RabbitMQConstants.DELIVERY_TAG)
+            : (long) ackTarget;
         Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         try {
             channel.basicNack(deliveryTag, multiple, requeue);
