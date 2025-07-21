@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+### Changed
+
+- [Change acknowledge methods to support acknowledging with delivery tag](https://github.com/ballerina-platform/ballerina-library/issues/8104)
+
 ### Added
 - [Add message store implementation for RabbitMQ](https://github.com/ballerina-platform/ballerina-library/issues/8099)
 
