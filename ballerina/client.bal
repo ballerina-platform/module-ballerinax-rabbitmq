@@ -155,29 +155,29 @@ public isolated client class Client {
 
     # Acknowledges one or several received messages.
     # ```ballerina
-    # check rabbitmqClient->basicAck(<message>);
+    # check rabbitmqClient->basicAck(<message|deliveryTag>);
     # ```
     #
-    # + message - The message to be acknowledged
+    # + ackTarget - The message to be acknowledged or the delivery tag of the message
     # + multiple - Set to `true` to acknowledge all messages up to and including the called on message and
     #              `false` to acknowledge just the called on message
     # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
-    isolated remote function basicAck(AnydataMessage message, boolean multiple = false) returns Error? =
+    isolated remote function basicAck(AnydataMessage|int ackTarget, boolean multiple = false) returns Error? =
     @java:Method {
         'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
     } external;
 
     # Rejects one or several received messages.
     # ```ballerina
-    # check rabbitmqClient->basicNack(<message>);
+    # check rabbitmqClient->basicNack(<message|deliveryTag>);
     # ```
     #
-    # + message - The message to be rejected
+    # + ackTarget - The message to be rejected or the delivery tag of the message
     # + multiple - Set to `true` to reject all messages up to and including the called on message and
     #              `false` to reject just the called on message
     # + requeue - `true` if the rejected message(s) should be re-queued rather than discarded/dead-lettered
     # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
-    isolated remote function basicNack(AnydataMessage message, boolean multiple = false, boolean requeue = true)
+    isolated remote function basicNack(AnydataMessage|int ackTarget, boolean multiple = false, boolean requeue = true)
                             returns Error? =
     @java:Method {
         'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
