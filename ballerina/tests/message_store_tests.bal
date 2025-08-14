@@ -54,7 +54,7 @@ listener messaging:StoreListener messageStoreListenerWithDrop = new (messageStor
     pollingInterval = 3,
     maxRetries = 2,
     retryInterval = 1,
-    ackWithFailureAfterMaxRetries = true
+    ackWithFailureAfterMaxRetries = false
 );
 
 service on messageStoreListenerWithDLS {
