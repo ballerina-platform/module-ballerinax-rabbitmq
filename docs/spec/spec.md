@@ -3,7 +3,7 @@
 _Owners_: @aashikam @shafreenAnfar  
 _Reviewers_: @shafreenAnfar  
 _Created_: 2020/10/28  
-_Updated_: 2022/05/12   
+_Updated_: 2025/07/16   
 _Edition_: Swan Lake  
 
 ## Introduction
@@ -26,9 +26,10 @@ The conforming implementation of the specification is released to Ballerina cent
 6. [Subscribing](#6-subscribing)
 7. [Retrieving Individual Messages](#7-retrieving-individual-messages)
 8. [Client Acknowledgements](#8-client-acknowledgements)
-9. [Samples](#9-samples)
-    * 9.1. [Publish-Subscribe](#91-publish-subscribe)
-    * 9.2. [Request-Reply](#92-request-reply)
+9. [Message Store](#9-message-store)
+10. [Samples](#10-samples)
+    * 10.1. [Publish-Subscribe](#101-publish-subscribe)
+    * 10.2. [Request-Reply](#102-request-reply)
 
 ## 1. Overview
 
@@ -634,9 +635,77 @@ The default acknowledgement mode is auto-ack (messages are acknowledged immediat
 
 The negatively-acknowledged (rejected) messages can be re-queued by setting the `requeue` to `true`.
 
-## 9. Samples
+## 9. Message Store
 
-### 9.1. Publish-Subscribe
+The RabbitMQ library provides a message store implementation to store and retrieve messages. The message store can be 
+used to persist messages that are not consumed immediately or to implement a dead-letter queue (DLQ) mechanism.
+
+Additionally, a message store listener can be attached to these message stores to consume messages asynchronously. 
+The message store listener polls the message store at a configurable interval and invokes the attached service to 
+process the messages.
+
+A RabbitMQ message store should be initialized with the required queue name and additional store client configurations. 
+The store client configurations are defined as follows:
+
+```ballerina
+# Represents the RabbitMQ store client configuration.
+public type StoreClientConfiguration record {|
+   # The RabbitMQ server host. Defaults to "localhost"
+   string host = DEFAULT_HOST;
+   # The RabbitMQ server port. Defaults to 5672
+   int port = DEFAULT_PORT;
+   # The RabbitMQ connection configuration
+   ConnectionConfiguration connectionData = {};
+   # The RabbitMQ publish configuration
+   StoreClientPublishConfiguration publishConfig = {};
+   # The RabbitMQ queue declaration configuration
+   StoreClientDeclareQueueConfiguration declareQueue = {};
+|};
+
+# Represents the RabbitMQ message queue declaration configuration.
+public type StoreClientDeclareQueueConfiguration record {|
+   # Enable or disable the queue declaration. Defaults to true
+   boolean enabled = true;
+   # Additional queue configuration to match the RabbitMQ queue declaration
+   QueueConfig queueConfig?;
+|};
+
+# Represents a RabbitMQ store client configuration for publishing messages.
+public type StoreClientPublishConfiguration record {|
+   # The RabbitMQ exchange to publish messages to. Defaults to an empty string
+   string exchange = "";
+   # The RabbitMQ delivery tag for the message. Optional
+   int deliveryTag?;
+   # The RabbitMQ message properties. Optional
+   BasicProperties properties?;
+|};
+```
+
+- Usage
+  ```ballerina
+  import ballerina/messaging;
+  import ballerinax/rabbitmq;
+
+  messaging:Store messageStore = new rabbitmq:MessageStore("message-queue");
+  messaging:Store deadLetterStore = new rabbitmq:MessageStore("dead-letter-queue");
+  
+  listener messaging:StoreListener storeListener = new(messageStore, {
+      pollingInterval: 5,
+      maxRetries: 3,
+      retryInterval: 1,
+      deadLetterStore: deadLetterStore
+  });
+  
+  service on storeListener {
+      isolated remote function onMessage(anydata payload) returns error? {
+          // Process the message
+      }
+  }
+  ```
+
+## 10. Samples
+
+### 10.1. Publish-Subscribe
 * Publisher
 ```ballerina
    import ballerinax/rabbitmq;
@@ -677,7 +746,7 @@ The negatively-acknowledged (rejected) messages can be re-queued by setting the 
    }
 ```
 
-### 9.2. Request-Reply
+### 10.2. Request-Reply
 * Publisher
 ```ballerina
    import ballerinax/rabbitmq;
