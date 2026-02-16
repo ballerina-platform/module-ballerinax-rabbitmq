@@ -124,6 +124,8 @@ public class ChannelUtils {
             return v;
         } else if (v instanceof Long) {
             return ((Long) v).intValue();
+        } else if (v instanceof Boolean) {
+            return v;
         } else {
             throw RabbitMQUtils.returnErrorValue(
                     "Unsupported type in arguments map passed while declaring a queue.");
