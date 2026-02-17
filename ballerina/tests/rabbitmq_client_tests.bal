@@ -436,6 +436,21 @@ public isolated function testDeclareQueueWithArgs() returns error? {
     dependsOn: [testClient],
     groups: ["rabbitmq"]
 }
+public isolated function testDeclareQueueWithBooleanArgs() returns error? {
+    string queue = "declareArgsBoolean";
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
+    map<anydata> args = {
+        "x-single-active-consumer": true
+    };
+    check newClient->queueDeclare(queue, {durable: true, autoDelete: false, arguments: args});
+    check newClient->close();
+    return;
+}
+
+@test:Config {
+    dependsOn: [testClient],
+    groups: ["rabbitmq"]
+}
 public isolated function testDeclareQueueWithArgsNegative() returns error? {
     string queue = "declareArgs2";
     Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
