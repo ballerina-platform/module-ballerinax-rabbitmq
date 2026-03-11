@@ -1,8 +1,8 @@
-# Overview
+## Overview
 
 RabbitMQ is a widely used open-source message broker that implements the Advanced Message Queuing Protocol (AMQP). It provides a reliable and scalable platform for asynchronous messaging, enabling decoupled communication between different components of a distributed system. The Ballerina `ballerinax/rabbitmq` connector provides a comprehensive API to interact with RabbitMQ, allowing you to manage exchanges, queues, and bindings, and to produce and consume messages efficiently.
 
-## Key Features
+### Key Features
 
 - Comprehensive support for AMQP 0-9-1
 - Manage exchanges, queues, and bindings programmatically

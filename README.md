@@ -1,4 +1,5 @@
-# Overview
+Ballerina RabbitMQ Library
+===================
 
 [![Build](https://github.com/ballerina-platform/module-ballerinax-rabbitmq/actions/workflows/build-timestamped-master.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerinax-rabbitmq/actions/workflows/build-timestamped-master.yml)
 [![codecov](https://codecov.io/gh/ballerina-platform/module-ballerinax-rabbitmq/branch/master/graph/badge.svg)](https://codecov.io/gh/ballerina-platform/module-ballerinax-rabbitmq)
@@ -6,16 +7,9 @@
 [![GraalVM Check](https://github.com/ballerina-platform/module-ballerinax-rabbitmq/actions/workflows/build-with-bal-test-graalvm.yml/badge.svg)](https://github.com/ballerina-platform/module-ballerinax-rabbitmq/actions/workflows/build-with-bal-test-graalvm.yml)
 [![GitHub Last Commit](https://img.shields.io/github/last-commit/ballerina-platform/module-ballerinax-rabbitmq.svg)](https://github.com/ballerina-platform/module-ballerinax-rabbitmq/commits/master)
 
-RabbitMQ is a widely used open-source message broker that implements the Advanced Message Queuing Protocol (AMQP). It provides a reliable and scalable platform for asynchronous messaging, enabling decoupled communication between different components of a distributed system. The Ballerina `ballerinax/rabbitmq` connector provides a comprehensive API to interact with RabbitMQ, allowing you to manage exchanges, queues, and bindings, and to produce and consume messages efficiently.
+This library provides the capability to send and receive messages by connecting to the RabbitMQ server.
 
-## Key Features
-
-- Comprehensive support for AMQP 0-9-1
-- Manage exchanges, queues, and bindings programmatically
-- Reliable message delivery with acknowledgments and persistent storage
-- Flexible routing with different exchange types (Direct, Fanout, Topic, Headers)
-- Support for message properties and headers
-- GraalVM compatible for native image builds
+RabbitMQ gives your applications a common platform to send and receive messages and a safe place for your messages to live until received. RabbitMQ is one of the most popular open-source message brokers. It is lightweight and easy to deploy on-premise and in the cloud.
 
 ### Basic usage
 
