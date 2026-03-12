@@ -1,9 +1,9 @@
 [package]
 org = "ballerinax"
 name = "rabbitmq"
-version = "3.3.2"
+version = "3.3.3"
 authors = ["Ballerina"]
-keywords = ["service", "client", "messaging", "network", "pubsub", "Vendor/RabbitMQ", "Area/Communication", "Type/Connector"]
+keywords = ["service", "client", "messaging", "network", "pubsub", "Vendor/RabbitMQ", "Area/Messaging", "Type/Connector", "Type/Trigger"]
 repository = "https://github.com/ballerina-platform/module-ballerinax-rabbitmq"
 icon = "icon.png"
 license = ["Apache-2.0"]
@@ -18,8 +18,8 @@ path = "./lib/amqp-client-5.18.0.jar"
 [[platform.java21.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "rabbitmq-native"
-version = "3.3.2"
-path = "../native/build/libs/rabbitmq-native-3.3.2.jar"
+version = "3.3.3"
+path = "../native/build/libs/rabbitmq-native-3.3.3-SNAPSHOT.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.ballerina.stdlib"
