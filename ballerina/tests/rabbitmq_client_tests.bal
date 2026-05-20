@@ -543,19 +543,21 @@ public isolated function testListenerWithQos() {
 @test:Config {
     groups: ["rabbitmq"]
 }
-public isolated function testListenerWithFailoverAddresses() {
+public isolated function testListenerWithFailoverAddresses() returns error? {
     Listener|Error lis = new (DEFAULT_HOST, DEFAULT_PORT,
         failoverAddresses = [{host: DEFAULT_HOST, port: DEFAULT_PORT}]
     );
     if lis is Error {
         test:assertFail("RabbitMQ Listener creation with failover addresses failed.");
     }
+    check lis.start();
+    check lis.gracefulStop();
 }
 
 @test:Config {
     groups: ["rabbitmq"]
 }
-public isolated function testListenerFailover() {
+public isolated function testListenerFailover() returns error? {
     // Primary port is closed; SDK falls back to the valid additional address.
     Listener|Error lis = new (DEFAULT_HOST, 9999,
         failoverAddresses = [{host: DEFAULT_HOST, port: DEFAULT_PORT}],
@@ -564,6 +566,8 @@ public isolated function testListenerFailover() {
     if lis is Error {
         test:assertFail("RabbitMQ Listener failover connection failed.");
     }
+    check lis.start();
+    check lis.gracefulStop();
 }
 
 @test:Config {
@@ -1365,8 +1369,15 @@ function produceMessage(string message, string queueName, string? replyToQueue =
 @test:Config {
     groups: ["rabbitmq"]
 }
-public function testClientWithAdditionalAddresses() returns error? {
-    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT, failoverAddresses = [{host: DEFAULT_HOST, port: DEFAULT_PORT}]);
+public function testClientWithFailoverAddresses() returns error? {
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT,
+        failoverAddresses = [{host: DEFAULT_HOST, port: DEFAULT_PORT}]);
+    string queue = "testClientWithFailoverAddresses";
+    check newClient->queueDeclare(queue);
+    string message = "Test message with failover addresses";
+    check newClient->publishMessage({content: message.toBytes(), routingKey: queue});
+    BytesMessage result = check newClient->consumeMessage(queue);
+    test:assertEquals(check 'string:fromBytes(result.content), message);
     check newClient->close();
 }
 
@@ -1375,12 +1386,15 @@ public function testClientWithAdditionalAddresses() returns error? {
 }
 public function testClientFailover() returns error? {
     // Primary port is closed; SDK falls back to the valid additional address.
-    Client|Error result = new (DEFAULT_HOST, 9999,
+    Client newClient = check new (DEFAULT_HOST, 9999,
         failoverAddresses = [{host: DEFAULT_HOST, port: DEFAULT_PORT}],
         connectionTimeout = 5
     );
-    if result is Error {
-        test:assertFail("RabbitMQ Client failover connection failed.");
-    }
-    check (<Client>result)->close();
+    string queue = "testClientFailover";
+    check newClient->queueDeclare(queue);
+    string message = "Test message via failover";
+    check newClient->publishMessage({content: message.toBytes(), routingKey: queue});
+    BytesMessage result = check newClient->consumeMessage(queue);
+    test:assertEquals(check 'string:fromBytes(result.content), message);
+    check newClient->close();
 }
