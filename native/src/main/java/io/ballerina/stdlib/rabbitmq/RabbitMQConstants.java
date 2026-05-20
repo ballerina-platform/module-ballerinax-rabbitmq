@@ -65,6 +65,11 @@ public class RabbitMQConstants {
     // Channel errors
     public static final String CLOSE_CHANNEL_ERROR = "An error occurred while closing the channel: ";
 
+    // Address configuration constant fields
+    public static final BString ADDRESSES = StringUtils.fromString("addresses");
+    public static final BString ADDRESS_HOST = StringUtils.fromString("host");
+    public static final BString ADDRESS_PORT = StringUtils.fromString("port");
+
     // Connection configuration constant fields
     public static final BString RABBITMQ_CONNECTION_USER = StringUtils.fromString("username");
     public static final BString RABBITMQ_CONNECTION_PASS = StringUtils.fromString("password");

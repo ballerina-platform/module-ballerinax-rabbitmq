@@ -25,8 +25,7 @@ description = 'Ballerina - RabbitMQ Examples'
 def ballerinaModulePath = "${project.rootDir}/ballerina/"
 def ballerinaDistPath = "${ballerinaModulePath}/build/target/extracted-distributions/jballerina-tools-zip/jballerina-tools-${ballerinaLangVersion}"
 def ballerinaDist = "${buildDir}/target/ballerina-distribution"
-//todo
-def examples = ["rabbitmq-hub/hub"]
+def examples = ["rabbitmq-hub/hub", "rabbitmq-cluster/publisher", "rabbitmq-cluster/subscriber"]
 
 dependencies {
     implementation group: 'org.ballerinalang', name: 'ballerina-lang', version: "${ballerinaLangVersion}"

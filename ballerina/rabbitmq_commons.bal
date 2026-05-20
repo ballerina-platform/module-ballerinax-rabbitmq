@@ -76,6 +76,15 @@ public type ExchangeConfig record {|
     map<anydata> arguments?;
 |};
 
+# Represents a RabbitMQ broker address, used for cluster and failover configurations.
+#
+# + host - The hostname of the RabbitMQ broker
+# + port - The port of the RabbitMQ broker
+public type Address record {|
+    string host;
+    int port;
+|};
+
 # Configurations related to initializing the RabbitMQ client and listener.
 #
 # + username - The username used for establishing the connection
@@ -89,6 +98,9 @@ public type ExchangeConfig record {|
 # + secureSocket - Configurations for facilitating secure connections
 # + auth - Configurations related to authentication
 # + validation - Configuration related to constraint validation check
+# + addresses - Additional RabbitMQ broker addresses for cluster and failover support. The primary `host` and `port`
+#               provided in `init()` are always tried first. If the primary connection fails, the addresses listed
+#               here are tried in order.
 public type ConnectionConfiguration record {|
     string username?;
     string password?;
@@ -100,6 +112,7 @@ public type ConnectionConfiguration record {|
     boolean validation = true;
     SecureSocket secureSocket?;
     Credentials auth?;
+    Address[]? addresses = ();
 |};
 
 # QoS settings to limit the number of unacknowledged
