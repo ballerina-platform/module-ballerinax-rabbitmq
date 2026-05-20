@@ -14,9 +14,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/test;
-import ballerina/log;
 import ballerina/lang.runtime;
+import ballerina/log;
+import ballerina/test;
 
 public type StringMessage record {|
     *AnydataMessage;
@@ -1115,7 +1115,7 @@ public function testListenerMapPayloadBinding() returns error? {
     }
     service object {
         remote function onMessage(map<Person> payload) {
-            receivedMapPayload= payload;
+            receivedMapPayload = payload;
             log:printInfo("The message received: " + payload.toString());
         }
     };

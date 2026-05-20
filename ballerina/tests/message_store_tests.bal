@@ -14,33 +14,33 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/messaging;
-import ballerina/test;
 import ballerina/lang.runtime;
 import ballerina/log;
+import ballerina/messaging;
+import ballerina/test;
 
 const MESSAGE_STORE_QUEUE_NAME_1 = "MessageStoreQueue1";
-final MessageStore messageStore1 = check new(MESSAGE_STORE_QUEUE_NAME_1);
+final MessageStore messageStore1 = check new (MESSAGE_STORE_QUEUE_NAME_1);
 
 const MESSAGE_STORE_QUEUE_NAME_2 = "MessageStoreQueue2";
-final MessageStore messageStore2 = check new(MESSAGE_STORE_QUEUE_NAME_2);
+final MessageStore messageStore2 = check new (MESSAGE_STORE_QUEUE_NAME_2);
 
 const MESSAGE_STORE_QUEUE_NAME_3 = "MessageStoreQueue3";
-final MessageStore messageStore3 = check new(MESSAGE_STORE_QUEUE_NAME_3);
+final MessageStore messageStore3 = check new (MESSAGE_STORE_QUEUE_NAME_3);
 
 const MESSAGE_STORE_RECEIVER_QUEUE_NAME_1 = "MessageStoreReceiverQueue1";
-final MessageStore messageStoreReceiver1 = check new(MESSAGE_STORE_RECEIVER_QUEUE_NAME_1);
+final MessageStore messageStoreReceiver1 = check new (MESSAGE_STORE_RECEIVER_QUEUE_NAME_1);
 
 const MESSAGE_STORE_RECEIVER_QUEUE_NAME_2 = "MessageStoreReceiverQueue2";
-final MessageStore messageStoreReceiver2 = check new(MESSAGE_STORE_RECEIVER_QUEUE_NAME_2);
+final MessageStore messageStoreReceiver2 = check new (MESSAGE_STORE_RECEIVER_QUEUE_NAME_2);
 
 const MESSAGE_STORE_DEAD_LETTER_QUEUE_NAME = "MessageStoreDeadLetterQueue";
-final MessageStore messageStoreDeadLetter = check new(MESSAGE_STORE_DEAD_LETTER_QUEUE_NAME);
+final MessageStore messageStoreDeadLetter = check new (MESSAGE_STORE_DEAD_LETTER_QUEUE_NAME);
 
 listener messaging:StoreListener messageStoreListenerWithDLS = new (messageStore1,
     pollingInterval = 3,
     maxRetries = 2,
-    retryInterval = 1, 
+    retryInterval = 1,
     deadLetterStore = messageStoreDeadLetter
 );
 
@@ -97,12 +97,12 @@ service on messageStoreListenerWithDrop {
     groups: ["message_store_listener"]
 }
 function testMessageStoreListenerWithDLSSuccess() returns error? {
-    Client messageStoreClient = check new(DEFAULT_HOST, DEFAULT_PORT);
-    anydata payload = { id: "test-message", content: "This is a test message" };
+    Client messageStoreClient = check new (DEFAULT_HOST, DEFAULT_PORT);
+    anydata payload = {id: "test-message", content: "This is a test message"};
     check messageStoreClient->publishMessage({
-        content:  payload,
+        content: payload,
         routingKey: MESSAGE_STORE_QUEUE_NAME_1
-        });
+    });
     runtime:sleep(5);
 
     AnydataMessage|error consumedMessage = messageStoreClient->consumeMessage(MESSAGE_STORE_QUEUE_NAME_1);
@@ -110,7 +110,7 @@ function testMessageStoreListenerWithDLSSuccess() returns error? {
         test:assertFail("Message should be consumed by the listener, so it should not be available in the store");
     }
 
-    Client messageStoreReceiverClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client messageStoreReceiverClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     map<json> receivedMessage = check messageStoreReceiverClient->consumePayload(MESSAGE_STORE_RECEIVER_QUEUE_NAME_1);
     test:assertEquals(receivedMessage, payload);
 }
@@ -119,7 +119,7 @@ function testMessageStoreListenerWithDLSSuccess() returns error? {
     groups: ["message_store_listener"]
 }
 function testMessageStoreListenerWithDLSFailure() returns error? {
-    Client messageStoreClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client messageStoreClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     anydata payload = "fail"; // This will trigger a failure in the service
     check messageStoreClient->publishMessage({
         content: payload,
@@ -132,7 +132,7 @@ function testMessageStoreListenerWithDLSFailure() returns error? {
         test:assertFail("Message should be consumed by the listener, so it should not be available in the store");
     }
 
-    Client messageStoreDeadLetterClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client messageStoreDeadLetterClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     string deadLetterMessage = check messageStoreDeadLetterClient->consumePayload(MESSAGE_STORE_DEAD_LETTER_QUEUE_NAME);
     test:assertEquals(deadLetterMessage, payload);
 }
@@ -141,7 +141,7 @@ function testMessageStoreListenerWithDLSFailure() returns error? {
     groups: ["message_store_listener"]
 }
 function testMessageStoreListenerWithoutDrop() returns error? {
-    Client messageStoreClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client messageStoreClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     check messageStoreClient->publishMessage({
         content: "This message will not be dropped",
         routingKey: MESSAGE_STORE_QUEUE_NAME_2
@@ -153,7 +153,7 @@ function testMessageStoreListenerWithoutDrop() returns error? {
         test:assertFail("Message should be consumed by the listener second time, so it should not be available in the store");
     }
 
-    Client messageStoreReceiverClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client messageStoreReceiverClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     string receivedMessage = check messageStoreReceiverClient->consumePayload(MESSAGE_STORE_RECEIVER_QUEUE_NAME_2);
     test:assertEquals(receivedMessage, "This message will not be dropped");
 }
@@ -162,7 +162,7 @@ function testMessageStoreListenerWithoutDrop() returns error? {
     groups: ["message_store_listener"]
 }
 function testMessageStoreListenerWithDrop() returns error? {
-    Client messageStoreClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client messageStoreClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     check messageStoreClient->publishMessage({
         content: "This message will be dropped",
         routingKey: MESSAGE_STORE_QUEUE_NAME_3
@@ -179,7 +179,7 @@ function testMessageStoreListenerWithDrop() returns error? {
     groups: ["message_store"]
 }
 function testMessageStoreBasicFunctions() returns error? {
-    MessageStore store = check new("TestMessageStore");
+    MessageStore store = check new ("TestMessageStore");
 
     messaging:Message? retrievedMessage = check store->retrieve();
     if retrievedMessage is messaging:Message {

@@ -35,7 +35,7 @@ public isolated function testSslConnection() returns error? {
         },
         verifyHostName: true
     };
-    Client|Error newClient = new(DEFAULT_HOST, 5671, secureSocket = secured);
+    Client|Error newClient = new (DEFAULT_HOST, 5671, secureSocket = secured);
     if newClient is Error {
         test:assertFail("Error when trying to create a client with secure connection.");
     } else {
@@ -57,7 +57,7 @@ public isolated function testSslConnection2() returns error? {
         },
         verifyHostName: true
     };
-    Client|Error newClient = new(DEFAULT_HOST, 5671, secureSocket = secured);
+    Client|Error newClient = new (DEFAULT_HOST, 5671, secureSocket = secured);
     if newClient is Error {
         test:assertFail("Error when trying to create a client with secure connection.");
     } else {
@@ -79,7 +79,7 @@ public isolated function testSslConnection3() returns error? {
         },
         verifyHostName: true
     };
-    Client|Error newClient = new(DEFAULT_HOST, 5671, secureSocket = secured);
+    Client|Error newClient = new (DEFAULT_HOST, 5671, secureSocket = secured);
     if !(newClient is Error) {
         test:assertFail("Error expected when trying to create a client with secure connection.");
     }
@@ -99,7 +99,7 @@ public isolated function testSslConnection4() returns error? {
         },
         verifyHostName: true
     };
-    Client|Error newClient = new(DEFAULT_HOST, 5671, secureSocket = secured);
+    Client|Error newClient = new (DEFAULT_HOST, 5671, secureSocket = secured);
     if !(newClient is Error) {
         test:assertFail("Error expected when trying to create a client with secure connection.");
     }
@@ -122,7 +122,7 @@ public isolated function testSslConnection5() returns error? {
         },
         verifyHostName: true
     };
-    Client|Error newClient = new(DEFAULT_HOST, 5671, secureSocket = secured);
+    Client|Error newClient = new (DEFAULT_HOST, 5671, secureSocket = secured);
     if newClient is Error {
         test:assertFail("Error when trying to create a client with secure connection.");
     } else {

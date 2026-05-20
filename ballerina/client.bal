@@ -42,7 +42,7 @@ public isolated client class Client {
     # + name - The name of the queue
     # + config - The configurations required to declare a queue
     # + return - `()` if the queue was successfully generated or else a `rabbitmq:Error`
-    #               if an I/O error occurred
+    # if an I/O error occurred
     isolated remote function queueDeclare(string name, QueueConfig? config = ()) returns Error? =
     @java:Method {
         'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
@@ -54,7 +54,7 @@ public isolated client class Client {
     # ```
     #
     # + return - The name of the queue or else a `rabbitmq:Error`
-    #             if an I/O error occurred
+    # if an I/O error occurred
     isolated remote function queueAutoGenerate() returns string|Error =
     @java:Method {
         'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
@@ -113,11 +113,11 @@ public isolated client class Client {
         int? tag = message.deliveryTag;
         BasicProperties? props = message.properties;
         if tag !is int && props !is BasicProperties {
-            return publishNative(self, { content: messageContent, routingKey: message.routingKey, exchange: message.exchange});
+            return publishNative(self, {content: messageContent, routingKey: message.routingKey, exchange: message.exchange});
         } else if tag !is int && props is BasicProperties {
-            return publishNative(self, { content: messageContent, routingKey: message.routingKey, exchange: message.exchange, properties: props});
+            return publishNative(self, {content: messageContent, routingKey: message.routingKey, exchange: message.exchange, properties: props});
         } else if tag is int && props !is BasicProperties {
-            return publishNative(self, { content: messageContent, routingKey: message.routingKey, exchange: message.exchange, deliveryTag: tag});
+            return publishNative(self, {content: messageContent, routingKey: message.routingKey, exchange: message.exchange, deliveryTag: tag});
         }
         return;
     }
@@ -131,7 +131,7 @@ public isolated client class Client {
     # + autoAck - If false, should manually acknowledge
     # + T - Optional type description of the required data type
     # + return - A `rabbitmq:AnydataMessage` object containing the retrieved message data or else a`rabbitmq:Error` if an
-    #            I/O error occurred
+    # I/O error occurred
     isolated remote function consumeMessage(string queueName, boolean autoAck = true, typedesc<AnydataMessage> T = <>)
         returns T|Error =
     @java:Method {
@@ -160,7 +160,7 @@ public isolated client class Client {
     #
     # + ackTarget - The message to be acknowledged or the delivery tag of the message
     # + multiple - Set to `true` to acknowledge all messages up to and including the called on message and
-    #              `false` to acknowledge just the called on message
+    # `false` to acknowledge just the called on message
     # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
     isolated remote function basicAck(AnydataMessage|int ackTarget, boolean multiple = false) returns Error? =
     @java:Method {
@@ -174,7 +174,7 @@ public isolated client class Client {
     #
     # + ackTarget - The message to be rejected or the delivery tag of the message
     # + multiple - Set to `true` to reject all messages up to and including the called on message and
-    #              `false` to reject just the called on message
+    # `false` to reject just the called on message
     # + requeue - `true` if the rejected message(s) should be re-queued rather than discarded/dead-lettered
     # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
     isolated remote function basicNack(AnydataMessage|int ackTarget, boolean multiple = false, boolean requeue = true)
@@ -229,7 +229,7 @@ public isolated client class Client {
     # ```
     #
     # + closeCode - The close code (for information, go to the [Reply Codes]
-    #               (#https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf))
+    # (#https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf))
     # + closeMessage - A message indicating the reason for closing the channel
     # + return - A `rabbitmq:Error` if an I/O error occurred or else `()`
     isolated remote function close(int? closeCode = (), string? closeMessage = ()) returns Error? =
@@ -244,7 +244,7 @@ public isolated client class Client {
     # ```
     #
     # + closeCode - The close code (for information, go to the [Reply Codes]
-    #               (#https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf))
+    # (#https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf))
     # + closeMessage - A message indicating the reason for closing the channel
     # + return - A `rabbitmq:Error` if an I/O error is encountered or else `()`
     isolated remote function 'abort(int? closeCode = (), string? closeMessage = ()) returns Error? =

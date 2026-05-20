@@ -91,16 +91,16 @@ public type Address record {|
 # + password - The password used for establishing the connection
 # + virtualHost - The virtual host to use when connecting to the broker
 # + connectionTimeout - Connection TCP establishment timeout in seconds and zero for infinite
-# + handshakeTimeout -  The AMQP 0-9-1 protocol handshake timeout in seconds
+# + handshakeTimeout - The AMQP 0-9-1 protocol handshake timeout in seconds
 # + shutdownTimeout - Shutdown timeout in seconds, zero for infinite, and the default value is 10. If the consumers exceed
-#                     this timeout, then any remaining queued deliveries (and other Consumer callbacks) will be lost
+# this timeout, then any remaining queued deliveries (and other Consumer callbacks) will be lost
 # + heartbeat - The initially-requested heartbeat timeout in seconds and zero for none
 # + secureSocket - Configurations for facilitating secure connections
 # + auth - Configurations related to authentication
 # + validation - Configuration related to constraint validation check
-# + addresses - Additional RabbitMQ broker addresses for cluster and failover support. The primary `host` and `port`
-#               provided in `init()` are always tried first. If the primary connection fails, the addresses listed
-#               here are tried in order.
+# + failoverAddresses - Additional RabbitMQ broker addresses for cluster and failover support. The primary `host` and
+# `port` provided in `init()` are always tried first. If the primary connection fails, the addresses listed here are
+# tried in order.
 public type ConnectionConfiguration record {|
     string username?;
     string password?;
@@ -112,21 +112,21 @@ public type ConnectionConfiguration record {|
     boolean validation = true;
     SecureSocket secureSocket?;
     Credentials auth?;
-    Address[]? addresses = ();
+    Address[]? failoverAddresses = ();
 |};
 
 # QoS settings to limit the number of unacknowledged
 # messages on a channel.
 #
 # + prefetchCount - The maximum number of messages that the server will deliver.
-#                   Give the value as 0 if unlimited
+# Give the value as 0 if unlimited
 # + prefetchSize - The maximum amount of content (measured in octets)
-#                   that the server will deliver and 0 if unlimited
+# that the server will deliver and 0 if unlimited
 # + global - `true` if the settings should be shared among all the consumers
 public type QosSettings record {|
-   int prefetchCount;
-   int prefetchSize?;
-   boolean global = false;
+    int prefetchCount;
+    int prefetchSize?;
+    boolean global = false;
 |};
 
 # Configurations for facilitating secure connections.
@@ -157,9 +157,9 @@ public type CertKey record {|
 
 # Represents protocol options.
 public enum Protocol {
-   SSL,
-   TLS,
-   DTLS
+    SSL,
+    TLS,
+    DTLS
 }
 
 # Configurations related to authentication.
@@ -172,7 +172,8 @@ public type Credentials record {|
 |};
 
 # Defines the Payload remote function parameter.
-public type RabbitmqPayload record {||};
+public type RabbitmqPayload record {|
+|};
 
 # The annotation which is used to define the payload parameter in the `onMessage` service method.
 public annotation RabbitmqPayload Payload on parameter;

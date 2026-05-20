@@ -19,11 +19,11 @@ import ballerinax/rabbitmq;
 
 // Demonstrates connecting a rabbitmq:Listener to a cluster or with failover support.
 // The primary host and port are tried first. If the primary is unreachable, the
-// addresses listed in `addresses` are tried in order.
+// addresses listed in `failoverAddresses` are tried in order.
 listener rabbitmq:Listener rabbitmqListener = check new (
     rabbitmq:DEFAULT_HOST,
     rabbitmq:DEFAULT_PORT,
-    addresses = [
+    failoverAddresses = [
         {host: "rabbitmq-node-2", port: 5672},
         {host: "rabbitmq-node-3", port: 5672}
     ]

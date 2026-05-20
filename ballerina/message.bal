@@ -14,7 +14,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-
 # Represents the anydata message, which a RabbitMQ server sends to its subscribed services.
 #
 # + content - The content of the message

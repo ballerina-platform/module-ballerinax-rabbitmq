@@ -14,10 +14,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/test;
 import ballerina/constraint;
-import ballerina/log;
 import ballerina/lang.runtime;
+import ballerina/log;
+import ballerina/test;
 
 public type StringConstraintMessage record {|
     *AnydataMessage;
