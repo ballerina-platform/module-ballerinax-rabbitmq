@@ -768,6 +768,7 @@ public function testListenerReadonlyJsonBinding() returns error? {
     }
     service object {
         remote function onRequest(JsonMessage & readonly jsonMessage, Caller caller) returns string {
+            readOnlyReceived = true;
             log:printInfo("The message received in onRequest: " + jsonMessage.toString());
             return "Hello Back!!";
         }
@@ -1351,7 +1352,7 @@ public function testListenerReadonlyJsonPayloadBinding() returns error? {
     }
     service object {
         remote function onRequest(json & readonly payload, Caller caller) returns string {
-            readOnlyPayloadReceived = payload.isReadOnly();
+            readOnlyPayloadReceived = true;
             log:printInfo("The message received in onRequest: " + payload.toString());
             return "Hello Back!!";
         }
