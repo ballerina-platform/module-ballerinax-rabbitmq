@@ -16,20 +16,10 @@
  */
 
 import org.apache.tools.ant.taskdefs.condition.Os
+import java.net.HttpURLConnection
 
-buildscript {
-    repositories {
-        maven {
-            url = 'https://maven.pkg.github.com/ballerina-platform/plugin-gradle'
-            credentials {
-                username System.getenv("packageUser")
-                password System.getenv("packagePAT")
-            }
-        }
-    }
-    dependencies {
-        classpath "io.ballerina:plugin-gradle:${project.ballerinaGradlePluginVersion}"
-    }
+plugins {
+    id 'io.ballerina.plugin'
 }
 
 description = 'Ballerina - rabbitmq Ballerina Generator'
@@ -55,9 +45,6 @@ def stripBallerinaExtensionVersion(String extVersion) {
         return extVersion.replace("${project.ext.snapshotVersion}", "")
     }
 }
-
-
-apply plugin: 'io.ballerina.plugin'
 
 ballerina{
     packageOrganization = packageOrg
@@ -110,17 +97,43 @@ task startRabbitmqServer() {
         if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
             def stdOut = new ByteArrayOutputStream()
             exec {
-                commandLine 'sh', '-c', "docker ps --filter name=server_rabbitmq-1_1"
+                commandLine 'sh', '-c', "docker ps --filter name=server-rabbitmq-1-1"
                 standardOutput = stdOut
             }
-            if (!stdOut.toString().contains("server_rabbitmq-1_1")) {
+            if (!stdOut.toString().contains("server-rabbitmq-1-1")) {
                 println "Starting RabbitMQ server."
                 exec {
-                    commandLine 'sh', '-c', "docker compose -f tests/server/compose.yaml up -d"
+                    commandLine 'sh', '-c', "docker compose -f tests/server/compose.yaml up -d --force-recreate --renew-anon-volumes"
                     standardOutput = stdOut
                 }
                 println stdOut.toString()
-                sleep(10 * 1000)
+                def maxRetries = 30
+                def retries = 0
+                def serverReady = false
+                println "Waiting for RabbitMQ to be ready..."
+                while (retries < maxRetries && !serverReady) {
+                    try {
+                        def url = new URL("http://localhost:15672/api/aliveness-test/%2F")
+                        def connection = (HttpURLConnection) url.openConnection()
+                        connection.setRequestProperty("Authorization", "Basic " +
+                            Base64.encoder.encodeToString("guest:guest".getBytes()))
+                        connection.connectTimeout = 2000
+                        connection.readTimeout = 2000
+                        if (connection.responseCode == 200) {
+                            serverReady = true
+                            println "RabbitMQ is ready."
+                        } else {
+                            retries++
+                            sleep(2000)
+                        }
+                    } catch (Exception ignored) {
+                        retries++
+                        sleep(2000)
+                    }
+                }
+                if (!serverReady) {
+                    throw new GradleException("RabbitMQ did not become ready within 60 seconds.")
+                }
             } else {
                 println "RabbitMQ server is already started."
             }
@@ -133,10 +146,10 @@ task stopRabbitmqServer() {
         if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
             def stdOut = new ByteArrayOutputStream()
             exec {
-                commandLine 'sh', '-c', "docker ps --filter name=server_rabbitmq-1_1"
+                commandLine 'sh', '-c', "docker ps --filter name=server-rabbitmq-1-1"
                 standardOutput = stdOut
             }
-            if (stdOut.toString().contains("server_rabbitmq-1_1")) {
+            if (stdOut.toString().contains("server-rabbitmq-1-1")) {
                 println "Stopping RabbitMQ server."
                 exec {
                     commandLine 'sh', '-c', "docker compose -f tests/server/compose.yaml rm -svf"
@@ -179,6 +192,7 @@ build.dependsOn ":${packageName}-compiler-plugin:build"
 test.dependsOn ":${packageName}-native:build"
 test.dependsOn ":${packageName}-compiler-plugin:build"
 test.dependsOn startRabbitmqServer
+test.finalizedBy stopRabbitmqServer
 build.finalizedBy stopRabbitmqServer
 
 publishToMavenLocal.dependsOn build

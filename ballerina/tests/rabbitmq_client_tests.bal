@@ -541,6 +541,36 @@ public isolated function testListenerWithQos() {
 }
 
 @test:Config {
+    groups: ["rabbitmq"]
+}
+public isolated function testListenerWithFailoverAddresses() returns error? {
+    Listener|Error lis = new (DEFAULT_HOST, DEFAULT_PORT,
+        failoverAddresses = [{host: DEFAULT_HOST, port: DEFAULT_PORT}]
+    );
+    if lis is Error {
+        test:assertFail("RabbitMQ Listener creation with failover addresses failed.");
+    }
+    check lis.start();
+    check lis.gracefulStop();
+}
+
+@test:Config {
+    groups: ["rabbitmq"]
+}
+public isolated function testListenerFailover() returns error? {
+    // Primary port is closed; SDK falls back to the valid additional address.
+    Listener|Error lis = new (DEFAULT_HOST, 9999,
+        failoverAddresses = [{host: DEFAULT_HOST, port: DEFAULT_PORT}],
+        connectionTimeout = 5
+    );
+    if lis is Error {
+        test:assertFail("RabbitMQ Listener failover connection failed.");
+    }
+    check lis.start();
+    check lis.gracefulStop();
+}
+
+@test:Config {
     dependsOn: [testProducer],
     groups: ["rabbitmq"]
 }
@@ -651,10 +681,8 @@ public function testListenerQueueDeclareDuplicate() returns error? {
 }
 public function testListenerQueueDeclareDuplicateError() returns error? {
     Listener channelListener = check new (DEFAULT_HOST, DEFAULT_PORT);
-    if channelListener is Listener {
-        error? result = channelListener.attach(queueConfigDuplicateError);
-        test:assertTrue(result is error, msg = "Error expected when declaring same queue with different properties.");
-    }
+    error? result = channelListener.attach(queueConfigDuplicateError);
+    test:assertTrue(result is error, msg = "Error expected when declaring same queue with different properties.");
     return;
 }
 
@@ -1336,4 +1364,37 @@ function produceMessage(string message, string queueName, string? replyToQueue =
         }
     }
     return;
+}
+
+@test:Config {
+    groups: ["rabbitmq"]
+}
+public function testClientWithFailoverAddresses() returns error? {
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT,
+        failoverAddresses = [{host: DEFAULT_HOST, port: DEFAULT_PORT}]);
+    string queue = "testClientWithFailoverAddresses";
+    check newClient->queueDeclare(queue);
+    string message = "Test message with failover addresses";
+    check newClient->publishMessage({content: message.toBytes(), routingKey: queue});
+    BytesMessage result = check newClient->consumeMessage(queue);
+    test:assertEquals(check 'string:fromBytes(result.content), message);
+    check newClient->close();
+}
+
+@test:Config {
+    groups: ["rabbitmq"]
+}
+public function testClientFailover() returns error? {
+    // Primary port is closed; SDK falls back to the valid additional address.
+    Client newClient = check new (DEFAULT_HOST, 9999,
+        failoverAddresses = [{host: DEFAULT_HOST, port: DEFAULT_PORT}],
+        connectionTimeout = 5
+    );
+    string queue = "testClientFailover";
+    check newClient->queueDeclare(queue);
+    string message = "Test message via failover";
+    check newClient->publishMessage({content: message.toBytes(), routingKey: queue});
+    BytesMessage result = check newClient->consumeMessage(queue);
+    test:assertEquals(check 'string:fromBytes(result.content), message);
+    check newClient->close();
 }

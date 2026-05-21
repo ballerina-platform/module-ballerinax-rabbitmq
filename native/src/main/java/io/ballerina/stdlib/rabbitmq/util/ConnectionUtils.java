@@ -18,9 +18,11 @@
 
 package io.ballerina.stdlib.rabbitmq.util;
 
+import com.rabbitmq.client.Address;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.impl.DefaultCredentialsProvider;
+import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BDecimal;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
@@ -39,6 +41,8 @@ import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -122,7 +126,22 @@ public class ConnectionUtils {
                         authConfig.getStringValue(RabbitMQConstants.AUTH_USERNAME).getValue(),
                         authConfig.getStringValue(RabbitMQConstants.AUTH_PASSWORD).getValue()));
             }
-            Connection connection = connectionFactory.newConnection();
+            BArray addressesArray = (BArray) connectionConfig.get(RabbitMQConstants.ADDRESSES);
+            Connection connection;
+            if (addressesArray != null && addressesArray.size() > 0) {
+                List<Address> addressList = new ArrayList<>();
+                addressList.add(new Address(host.getValue(), portInt));
+                for (int i = 0; i < addressesArray.size(); i++) {
+                    @SuppressWarnings(RabbitMQConstants.UNCHECKED)
+                    BMap<BString, Object> addr = (BMap<BString, Object>) addressesArray.getRefValue(i);
+                    String addrHost = ((BString) addr.get(RabbitMQConstants.ADDRESS_HOST)).getValue();
+                    int addrPort = Math.toIntExact((Long) addr.get(RabbitMQConstants.ADDRESS_PORT));
+                    addressList.add(new Address(addrHost, addrPort));
+                }
+                connection = connectionFactory.newConnection(addressList.toArray(new Address[0]));
+            } else {
+                connection = connectionFactory.newConnection();
+            }
             RabbitMQMetricsUtil.reportNewConnection(connection);
             return connection;
         } catch (Exception exception) {

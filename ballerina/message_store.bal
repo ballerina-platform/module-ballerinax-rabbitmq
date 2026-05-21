@@ -14,9 +14,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/log;
 import ballerina/messaging;
 import ballerina/uuid;
-import ballerina/log;
 
 # Represents the RabbitMQ store client configuration.
 public type StoreClientConfiguration record {|
@@ -144,7 +144,7 @@ public isolated client class MessageStore {
             if deliverTag is () {
                 // This is cannot happen since we are consuming with auto-acknowledge set to false
                 log:printWarn("message with the given ID does not have a delivery tag, cannot acknowledge",
-                    msgId = id);
+                        msgId = id);
                 return;
             }
             error? result;

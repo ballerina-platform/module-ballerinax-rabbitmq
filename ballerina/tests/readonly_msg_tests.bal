@@ -15,8 +15,8 @@
 // under the License.
 
 import ballerina/lang.'string;
-import ballerina/log;
 import ballerina/lang.runtime as runtime;
+import ballerina/log;
 import ballerina/test;
 
 string readOnlyConsumerMessage = "";

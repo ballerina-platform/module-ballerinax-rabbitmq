@@ -21,7 +21,7 @@ import ballerina/test;
     groups: ["rabbitmq"]
 }
 public isolated function testConnectionNegative() returns error? {
-    Client|error newClient = new(DEFAULT_HOST, 5000);
+    Client|error newClient = new (DEFAULT_HOST, 5000);
     if !(newClient is error) {
         test:assertFail("Error expected for connection with incorrect port.");
     }
@@ -32,7 +32,7 @@ public isolated function testConnectionNegative() returns error? {
     groups: ["rabbitmq"]
 }
 public isolated function testConnectionNegative2() returns error? {
-    Listener|error newLis = new(DEFAULT_HOST, 5000);
+    Listener|error newLis = new (DEFAULT_HOST, 5000);
     if !(newLis is error) {
         test:assertFail("Error expected for connection with incorrect port.");
     }
@@ -45,7 +45,7 @@ public isolated function testConnectionNegative2() returns error? {
 }
 public isolated function testQueueDeleteNegative() returns error? {
     string queue = "testQueueDeleteNegative";
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     check newClient->close(200, "Client closed");
     error? deleteResult = newClient->queueDelete(queue);
     if !(deleteResult is error) {
@@ -60,12 +60,12 @@ public isolated function testQueueDeleteNegative() returns error? {
 }
 public isolated function testQueueConfigNegative() returns error? {
     string queueName = "testQueueConfigNegative";
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
-    QueueConfig queueConfig = { durable: true, exclusive: true, autoDelete: false };
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
+    QueueConfig queueConfig = {durable: true, exclusive: true, autoDelete: false};
     check newClient->close();
     Error? result = newClient->queueDeclare(queueName, config = queueConfig);
     if !(result is error) {
-       test:assertFail("Error expected when when trying to create a queue.");
+        test:assertFail("Error expected when when trying to create a queue.");
     }
     return;
 }
@@ -76,11 +76,11 @@ public isolated function testQueueConfigNegative() returns error? {
 }
 public isolated function testExchangeDeclareNegative() returns error? {
     string name = "testExchangeDeclareNegative";
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     check newClient->close();
     Error? result = newClient->exchangeDeclare(name, DIRECT_EXCHANGE);
     if !(result is error) {
-       test:assertFail("Error expected when trying to create a direct exchange.");
+        test:assertFail("Error expected when trying to create a direct exchange.");
     }
     return;
 }
@@ -90,7 +90,7 @@ public isolated function testExchangeDeclareNegative() returns error? {
     groups: ["rabbitmq"]
 }
 public isolated function testQueueAutoGenerateNegative() returns error? {
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     check newClient->close();
     Error|string queueResult = newClient->queueAutoGenerate();
     if !(queueResult is error) {
@@ -106,9 +106,9 @@ public isolated function testQueueAutoGenerateNegative() returns error? {
 public isolated function testClientConsumeNegative() returns error? {
     string queue = "testClientConsumeNegative";
     string message = "Test client consume negative";
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     check newClient->queueDeclare(queue);
-    check newClient->publishMessage({ content: message.toBytes(), routingKey: queue });
+    check newClient->publishMessage({content: message.toBytes(), routingKey: queue});
     check newClient->close();
     BytesMessage|Error consumeResult = newClient->consumeMessage(queue, false);
     if consumeResult is BytesMessage {
@@ -124,9 +124,9 @@ public isolated function testClientConsumeNegative() returns error? {
 public isolated function testClientBasicAckNegative() returns error? {
     string queue = "testClientBasicAckNegative";
     string message = "Test client basic ack negative";
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     check newClient->queueDeclare(queue);
-    check newClient->publishMessage({ content: message.toBytes(), routingKey: queue });
+    check newClient->publishMessage({content: message.toBytes(), routingKey: queue});
     BytesMessage|Error consumeResult = newClient->consumeMessage(queue, false);
     if consumeResult is BytesMessage {
         string messageContent = check 'string:fromBytes(consumeResult.content);
@@ -150,9 +150,9 @@ public isolated function testClientBasicAckNegative() returns error? {
 public isolated function testClientBasicNackNegative() returns error? {
     string queue = "testClientBasicNackNegative";
     string message = "Test client basic nack negative";
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     check newClient->queueDeclare(queue);
-    check newClient->publishMessage({ content: message.toBytes(), routingKey: queue });
+    check newClient->publishMessage({content: message.toBytes(), routingKey: queue});
     BytesMessage|Error consumeResult = newClient->consumeMessage(queue, false);
     if consumeResult is BytesMessage {
         string messageContent = check 'string:fromBytes(consumeResult.content);
@@ -176,7 +176,7 @@ public isolated function testClientBasicNackNegative() returns error? {
 public isolated function testQueueBindNegative() returns error? {
     string exchange = "testQueueBindNegativeExchange";
     string queue = "testQueueBindNegativeQueue";
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     check newClient->exchangeDeclare(exchange, DIRECT_EXCHANGE);
     check newClient->queueDeclare(queue);
     check newClient->close();
@@ -194,10 +194,10 @@ public isolated function testQueueBindNegative() returns error? {
 public isolated function testPublishNegative() returns error? {
     string queue = "testPublishNegative";
     string message = "Test client publish negative";
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     check newClient->queueDeclare(queue);
     check newClient->close();
-    error? pubResult = newClient->publishMessage({ content: message.toBytes(), routingKey: queue });
+    error? pubResult = newClient->publishMessage({content: message.toBytes(), routingKey: queue});
     if !(pubResult is error) {
         test:assertFail("Error expected when trying to publish messages using client.");
     }
@@ -209,13 +209,12 @@ public isolated function testPublishNegative() returns error? {
     groups: ["rabbitmq"]
 }
 public isolated function testCloseNegative() returns error? {
-    Client newClient = check new(DEFAULT_HOST, DEFAULT_PORT);
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
     check newClient->close();
     error? closeResult = newClient->close();
     if !(closeResult is error) {
-       test:assertFail("Error expected when trying to close the client twice.");
+        test:assertFail("Error expected when trying to close the client twice.");
     }
     return;
 }
-
 

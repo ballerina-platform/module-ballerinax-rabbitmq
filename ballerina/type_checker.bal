@@ -19,10 +19,11 @@ isolated class TypeChecker {
 
     # Gets invoked during object initialization.
     #
-    isolated function init() {}
+    isolated function init() {
+    }
 
     # Checks whether a given type is a subtype of `rabbitmq:AnydataMessage`.
-    # 
+    #
     # + typeDesc - The type needed to be checked as a subtype of `rabbitmq:AnydataMessage`
     # + return - True if the type is a subtype of `rabbitmq:AnydataMessage`, else false
     isolated function isAnydataMessage(typedesc<anydata> typeDesc) returns boolean {

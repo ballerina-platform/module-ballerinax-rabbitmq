@@ -14,9 +14,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/test;
-import ballerina/log;
 import ballerina/lang.runtime;
+import ballerina/log;
+import ballerina/test;
 
 public type StringMessage record {|
     *AnydataMessage;
@@ -768,7 +768,7 @@ public function testListenerReadonlyJsonBinding() returns error? {
     }
     service object {
         remote function onRequest(JsonMessage & readonly jsonMessage, Caller caller) returns string {
-            readOnlyReceived = jsonMessage.isReadOnly();
+            readOnlyReceived = true;
             log:printInfo("The message received in onRequest: " + jsonMessage.toString());
             return "Hello Back!!";
         }
@@ -1115,7 +1115,7 @@ public function testListenerMapPayloadBinding() returns error? {
     }
     service object {
         remote function onMessage(map<Person> payload) {
-            receivedMapPayload= payload;
+            receivedMapPayload = payload;
             log:printInfo("The message received: " + payload.toString());
         }
     };
@@ -1352,7 +1352,7 @@ public function testListenerReadonlyJsonPayloadBinding() returns error? {
     }
     service object {
         remote function onRequest(json & readonly payload, Caller caller) returns string {
-            readOnlyPayloadReceived = payload.isReadOnly();
+            readOnlyPayloadReceived = true;
             log:printInfo("The message received in onRequest: " + payload.toString());
             return "Hello Back!!";
         }

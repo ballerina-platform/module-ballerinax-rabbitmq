@@ -1,12 +1,13 @@
 # Specification: Ballerina RabbitMQ Library
 
-_Owners_: @aashikam @shafreenAnfar  
-_Reviewers_: @shafreenAnfar  
-_Created_: 2020/10/28  
-_Updated_: 2025/07/16   
-_Edition_: Swan Lake  
+_Authors_: @aashikam @shafreenAnfar @ThisaruGuruge \  
+_Reviewers_: @shafreenAnfar @daneshk \
+_Created_: 2020/10/28 \
+_Updated_: 2026/05/20 \
+_Edition_: Swan Lake \
 
 ## Introduction
+
 This is the specification for the RabbitMQ standard library of [Ballerina language](https://ballerina.io/), which provides RabbitMQ(AMQQP 0-9-1) client functionalities to produce and consume messages by connecting to the RabbitMQ server.
 
 The RabbitMQ library specification has evolved and may continue to evolve in the future. The released versions of the specification can be found under the relevant GitHub tag.
@@ -14,7 +15,6 @@ The RabbitMQ library specification has evolved and may continue to evolve in the
 If you have any feedback or suggestions about the library, start a discussion via a [GitHub issue](https://github.com/ballerina-platform/ballerina-standard-library/issues) or in the [Discord server](https://discord.gg/ballerinalang). Based on the outcome of the discussion, the specification and implementation can be updated. Community feedback is always welcome. Any accepted proposal, which affects the specification is stored under `/docs/proposals`. Proposals under discussion can be found with the label `type/proposal` in GitHub.
 
 The conforming implementation of the specification is released to Ballerina central. Any deviation from the specification is considered a bug.
-
 
 ## Contents
 
@@ -34,12 +34,14 @@ The conforming implementation of the specification is released to Ballerina cent
 ## 1. Overview
 
 This specification elaborates on the usage of RabbitMQ library client and services/listener. RabbitMQ is lightweight and easy to deploy on premises and in the cloud.
-The client API exposes key entities in the AMQP 0-9-1 protocol model, with additional abstractions for ease of use. Protocol operations are available through the `rabbitmq:Client` client object. 
+The client API exposes key entities in the AMQP 0-9-1 protocol model, with additional abstractions for ease of use. Protocol operations are available through the `rabbitmq:Client` client object.
 
 ## 2. Connection
+
 Connections with the RabbitMQ server can be established through the RabbitMQ library client and the listener. There are multiple ways to connect.
 
-- `rabbitmq:Client`: Interface to an AMQ connection and other protocol operations. 
+- `rabbitmq:Client`: Interface to an AMQ connection and other protocol operations.
+
 ```ballerina
     # Initializes a `rabbitmq:Client` object.
     #
@@ -50,6 +52,7 @@ Connections with the RabbitMQ server can be established through the RabbitMQ lib
 ```
 
 - `rabbitmq:Listener`: Represents a single network connection. A subscription service should be bound to a listener in order to receive messages.
+
 ```ballerina
     # Initializes a Listener object with the given connection configuration. Sets the global QoS settings,
     # which will be applied to the entire `rabbitmq:Listener`.
@@ -64,7 +67,19 @@ Connections with the RabbitMQ server can be established through the RabbitMQ lib
 
 **Configurations available for initializing the RabbitMQ client and listener**
 
+- Address of a RabbitMQ node:
+
+```ballerina
+   public type Address record {|
+      # The host of the RabbitMQ node.
+      string host;
+      # The port of the RabbitMQ node.
+      int port;
+   |};
+```
+
 - Connection related configurations:
+
 ```ballerina
    public type ConnectionConfiguration record {|
       # The username used for establishing the connection.
@@ -80,21 +95,24 @@ Connections with the RabbitMQ server can be established through the RabbitMQ lib
       decimal shutdownTimeout?;
       # The initially-requested heartbeat timeout in seconds and zero for none.
       decimal heartbeat?;
-      # Configurations for facilitating secure connections. 
+      # Configurations for facilitating secure connections.
       SecureSocket secureSocket?;
       # Configurations releated to authentication.
       Credentials auth?;
+      # Failover addresses to connect to if the primary host and port are unavailable.
+      Address[] failoverAddresses?;
    |};
 ```
 
 - Configurations for facilitating secure connections:
+
 ```ballerina
    public type SecureSocket record {|
       # Configurations associated with `crypto:TrustStore` or single certificate file that the client trusts.
       crypto:TrustStore|string cert;
       # Configurations associated with `crypto:KeyStore` or combination of certificate and private key of the client.
       crypto:KeyStore|CertKey key?;
-      # SSL/TLS protocol related options. 
+      # SSL/TLS protocol related options.
       record {|
         Protocol name;
       |} protocol?;
@@ -104,6 +122,7 @@ Connections with the RabbitMQ server can be established through the RabbitMQ lib
 ```
 
 - Combination of certificate and private key of the client:
+
 ```ballerina
    public type CertKey record {|
       # A file containing the certificate.
@@ -116,6 +135,7 @@ Connections with the RabbitMQ server can be established through the RabbitMQ lib
 ```
 
 - SSL/TLS protocol related options:
+
 ```ballerina
    public enum Protocol {
       SSL,
@@ -125,33 +145,36 @@ Connections with the RabbitMQ server can be established through the RabbitMQ lib
 ```
 
 1. Connect to a RabbitMQ node with the default host and port.
+
 ```ballerina
    // Connecting using the RabbitMQ client.
    rabbitmq:Client rabbitmqClient = check new(rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
-   
+
    // Connecting using the RabbitMQ listener.
    rabbitmq:Listener rabbitMQListener = check new(rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
 ```
 
 2. Connect to a RabbitMQ node with a custom host and port.
+
 ```ballerina
    // Connecting using the RabbitMQ client.
    rabbitmq:Client rabbitmqClient = check new("localhost", 5672);
-   
+
    // Connecting using the RabbitMQ listener.
    rabbitmq:Listener rabbitMQListener = check new("localhost", 5672);
 ```
 
 3. Connect to a RabbitMQ node with host, port, and additional configurations.
+
 ```ballerina
    rabbitmq:ConnectionConfiguration config = {
       username: "ballerina",
       password: "password"
    };
-   
+
    // Connecting using the RabbitMQ client.
    rabbitmq:Client rabbitmqClient = check new("localhost", 5672, configs);
-   
+
    // Connecting using the RabbitMQ listener.
    rabbitmq:Listener rabbitMQListener = check new("localhost", 5672, configs);
 ```
@@ -161,19 +184,32 @@ Connections with the RabbitMQ server can be established through the RabbitMQ lib
 Connections can be secured using following approaches. All the given approaches are supported by both the client and the listener.
 
 ```ballerina
-   // Connect using username/password credentials. 
+   // Connect using username/password credentials.
    rabbitmq:Client rabbitmqClient = check new(rabbitmq:DEFAULT_HOST, 5672,
       auth = {
           username: "alice",
           password: "alice@123"
       }
    );
-   
-   // Connect with SSL/TLS enabled. 5671 is the default port in the server for connections that use TLS. 
+
+   // Connect with SSL/TLS enabled. 5671 is the default port in the server for connections that use TLS.
    rabbitmq:SecureSocket secured = {
       cert: "../resource/path/to/public.crt"
    };
    rabbitmq:Listener rabbitMQListener =check new(rabbitmq:DEFAULT_HOST, 5671, secureSocket = secured);
+```
+
+5. Connect with failover addresses.
+
+If the primary host and port fail to connect, the client will attempt the provided failover addresses in order.
+
+```ballerina
+   rabbitmq:Client rabbitmqClient = check new("host1", 5672,
+      failoverAddresses = [
+         {host: "host2", port: 5672},
+         {host: "host3", port: 5672}
+      ]
+   );
 ```
 
 ## 3. Exchanges and Queues
@@ -181,20 +217,22 @@ Connections can be secured using following approaches. All the given approaches 
 Client applications work with exchanges and queues, the high-level building blocks of the protocol. These must be declared before they can be used. Declaring either type of object simply ensures that one of that name exists, creating it if necessary. For more details on RabbitMQ concepts and exchange types see [here](https://www.rabbitmq.com/tutorials/amqp-concepts.html).
 
 - Types of exchanges supported by the Ballerina RabbitMQ Connector:
+
 ```ballerina
    public type ExchangeType "direct"|"fanout"|"topic"|"headers";
-   
+
    # Constant for the RabbitMQ Direct Exchange type.
    public const DIRECT_EXCHANGE = "direct";
-   
+
    # Constant for the RabbitMQ Fan-out Exchange type.
    public const FANOUT_EXCHANGE = "fanout";
-   
+
    # Constant for the RabbitMQ Topic Exchange type.
    public const TOPIC_EXCHANGE = "topic";
 ```
 
 - Configurations related to declaring an exchange:
+
 ```ballerina
    public type ExchangeConfig record {|
       # Set to `true` if a durable exchange is declared.
@@ -207,15 +245,16 @@ Client applications work with exchanges and queues, the high-level building bloc
 ```
 
 - Configurations related to declaring an queue:
+
 ```ballerina
    public type QueueConfig record {|
       # Set to true if declaring a durable queue.
       boolean durable = false;
       # Set to true if declaring an exclusive queue.
       boolean exclusive = false;
-      # Set to true if declaring an auto-delete queue. 
+      # Set to true if declaring an auto-delete queue.
       boolean autoDelete = true;
-      # Other properties (construction arguments) of the queue. 
+      # Other properties (construction arguments) of the queue.
       map<anydata> arguments?;
    |};
 ```
@@ -223,6 +262,7 @@ Client applications work with exchanges and queues, the high-level building bloc
 Following methods can be used to declare the exchanges, queues and to bind them.
 
 - `exchangeDeclare`
+
 ```ballerina
    # Declares a non-auto-delete, non-durable exchange with no extra arguments.
    # If the arguments are specified, then the exchange is declared accordingly.
@@ -236,6 +276,7 @@ Following methods can be used to declare the exchanges, queues and to bind them.
 ```
 
 - `queueDeclare`
+
 ```ballerina
    # Declares a non-exclusive, auto-delete, or non-durable queue with the given configurations.
    #
@@ -247,6 +288,7 @@ Following methods can be used to declare the exchanges, queues and to bind them.
 ```
 
 - `queueAutoGenerate`
+
 ```ballerina
    # Declares a queue with a server-generated name.
    #
@@ -256,6 +298,7 @@ Following methods can be used to declare the exchanges, queues and to bind them.
 ```
 
 - `queueBind`
+
 ```ballerina
    # Binds a queue to an exchange with the given binding key.
    #
@@ -275,6 +318,7 @@ Following methods can be used to declare the exchanges, queues and to bind them.
 ```
 
 This code will declare,
+
 - a durable auto-delete exchange of the type `rabbitmq:DIRECT_EXCHANGE`.
 - a non-durable, exclusive auto-delete queue.
 
@@ -287,6 +331,7 @@ This code will declare,
 ```
 
 This sample code will declare,
+
 - a durable auto-delete exchange of the type `rabbitmq:TOPIC_EXCHANGE`.
 - a durable, non-exclusive, non-auto-delete queue.
 
@@ -294,9 +339,10 @@ The `queueBind` function is called to bind the queue to the exchange with the gi
 
 ## 4. Deleting and Purging
 
-A queue or an exchange can be explicitly deleted or purged using following methods. 
+A queue or an exchange can be explicitly deleted or purged using following methods.
 
 - `queueDelete`:
+
 ```ballerina
    # Deletes the queue with the given name although it is in use or has messages in it.
    # If the `ifUnused` or `ifEmpty` parameters are given, the queue is checked before deleting.
@@ -308,7 +354,9 @@ A queue or an exchange can be explicitly deleted or purged using following metho
    isolated remote function queueDelete(string queueName, boolean ifUnused = false, boolean ifEmpty = false)
                      returns Error?;
 ```
-- `exchangeDelete`: 
+
+- `exchangeDelete`:
+
 ```ballerina
    # Deletes the exchange with the given name.
    #
@@ -318,6 +366,7 @@ A queue or an exchange can be explicitly deleted or purged using following metho
 ```
 
 - `queuePurge`:
+
 ```ballerina
    # Purges the content of the given queue.
    #
@@ -327,16 +376,17 @@ A queue or an exchange can be explicitly deleted or purged using following metho
 ```
 
 - Usage
+
 ```ballerina
    // Delete a queue only if it is empty.
    check rabbitmqClient->queueDelete("MyQueue", false, true);
-   
+
    // Delete a queue only if it is unused (does not have any consumers).
    check rabbitmqClient->queueDelete("MyQueue", true, false);
-   
+
    // Delete an exchange.
    check rabbitmqClient->exchangeDelete("MyExchange");
-   
+
    // Purge a queue (delete all of its messages).
    check rabbitmqClient->queuePurge("MyQueue");
 ```
@@ -344,6 +394,7 @@ A queue or an exchange can be explicitly deleted or purged using following metho
 ## 5. Publishing
 
 - `publishMessage`:
+
 ```ballerina
    # Publishes a message. Publishing to a non-existent exchange will result in a channel-level
    # protocol error, which closes the channel.
@@ -354,13 +405,14 @@ A queue or an exchange can be explicitly deleted or purged using following metho
 ```
 
 - Configurations related to publishing:
+
 ```ballerina
    public type BasicProperties record {|
       # The queue name to which the reply should be sent.
       string replyTo?;
       # The content type of the message.
       string contentType?;
-      # The content encoding of the message. 
+      # The content encoding of the message.
       string contentEncoding?;
       # The client-specific ID that can be used to mark or identify messages between clients.
       string correlationId?;
@@ -372,12 +424,13 @@ To publish a message to an exchange, use the `publishMessage()` function as foll
 ```ballerina
    string message = "Hello from Ballerina";
    check rabbitmqClient->publishMessage({ content: message, routingKey: queueName });
-``` 
+```
+
 Setting other properties of the message such as routing headers can be done by using the `BasicProperties` record with the appropriate values.
 
 ```ballerina
    rabbitmq:BasicProperties props = {
-    replyTo: "reply-queue"  
+    replyTo: "reply-queue"
    };
    string message = "Hello from Ballerina";
    check rabbitmqClient->publishMessage({ content: message, routingKey: queueName, properties: props });
@@ -393,7 +446,7 @@ The most efficient way to receive messages is to set up a subscription using a B
 
 ```ballerina
    listener rabbitmq:Listener channelListener= new(rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
-   
+
    @rabbitmq:ServiceConfig {
       queueName: "MyQueue"
    }
@@ -407,7 +460,7 @@ The most efficient way to receive messages is to set up a subscription using a B
 
 ```ballerina
    listener rabbitmq:Listener channelListener= new(rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
-   
+
    @rabbitmq:ServiceConfig {
       queueName: "MyQueue"
    }
@@ -419,8 +472,9 @@ The most efficient way to receive messages is to set up a subscription using a B
 ```
 
 - Attach the service dynamically.
+
 ```ballerina
-   // Create a service object 
+   // Create a service object
    rabbitmq:Service listenerService =
    @rabbitmq:ServiceConfig {
       queueName: "MyQueue"
@@ -433,21 +487,24 @@ The most efficient way to receive messages is to set up a subscription using a B
 ```
 
 The `rabbitmq:AnydataMessage` record received can be used to retrieve its contents.
+
 ```ballerina
    public type AnydataMessage record {|
       # The content of the message.
       anydata content;
-      # The routing key to which the message is sent . 
+      # The routing key to which the message is sent .
       string routingKey;
       # The exchange to which the message is sent. The default exchange is a direct exchange with no name (empty string) pre-declared by the broker.
       string exchange = "";
-      # The delivery tag of the message. 
+      # The delivery tag of the message.
       int deliveryTag?;
-      # Basic properties of the message - routing headers etc. 
+      # Basic properties of the message - routing headers etc.
       BasicProperties properties?;
    |};
 ```
+
 Subtypes of `rabbitmq:AnydataMessage` can be used to bind data to a specific type.
+
 ```ballerina
     public type StringMessage record {|
        *rabbitmq:AnydataMessage;
@@ -463,7 +520,9 @@ Subtypes of `rabbitmq:AnydataMessage` can be used to bind data to a specific typ
       }
    };
 ```
+
 `rabbitmq:BytesMessage` can be used to get the content as a `byte[]` array.
+
 ```ballerina
 # Represents the subtype of `AnydataMessage` record where the message content is a byte array.
 #
@@ -473,7 +532,9 @@ public type BytesMessage record {|
     byte[] content;
 |};
 ```
+
 If metadata like `routingKey`, `properties` are not needed, `content` can be directly received as well.
+
 ```ballerina
    rabbitmq:Service listenerService =
    @rabbitmq:ServiceConfig {
@@ -487,7 +548,9 @@ If metadata like `routingKey`, `properties` are not needed, `content` can be dir
 ```
 
 **The Listener has the following functions to manage a service:**
-* `attach()` - can be used to attach a service to the listener dynamically.
+
+- `attach()` - can be used to attach a service to the listener dynamically.
+
 ```ballerina
    # Attaches the service to the `rabbitmq:Listener` endpoint.
    #
@@ -497,7 +560,8 @@ If metadata like `routingKey`, `properties` are not needed, `content` can be dir
    public isolated function attach(Service s, string[]|string? name = ()) returns error?;
 ```
 
-* `detach()` - can be used to detach a service from the listener.
+- `detach()` - can be used to detach a service from the listener.
+
 ```ballerina
    # Stops consuming messages and detaches the service from the `rabbitmq:Listener` endpoint.
    #
@@ -506,7 +570,8 @@ If metadata like `routingKey`, `properties` are not needed, `content` can be dir
    public isolated function detach(Service s) returns error?;
 ```
 
-* `start()` - needs to be called to start the listener.
+- `start()` - needs to be called to start the listener.
+
 ```ballerina
    # Starts consuming the messages on all the attached services.
    #
@@ -514,7 +579,8 @@ If metadata like `routingKey`, `properties` are not needed, `content` can be dir
    public isolated function 'start() returns error?;
 ```
 
-* `gracefulStop()` - can be used to gracefully stop the listener from consuming messages.
+- `gracefulStop()` - can be used to gracefully stop the listener from consuming messages.
+
 ```ballerina
    # Stops consuming messages through all consumer services by terminating the connection and all its channels.
    #
@@ -522,7 +588,8 @@ If metadata like `routingKey`, `properties` are not needed, `content` can be dir
    public isolated function gracefulStop() returns error?;
 ```
 
-* `immediateStop()` - can be used to immediately stop the listener from consuming messages.
+- `immediateStop()` - can be used to immediately stop the listener from consuming messages.
+
 ```ballerina
    # Stops consuming messages through all the consumer services and terminates the connection
    # with the server.
@@ -531,11 +598,12 @@ If metadata like `routingKey`, `properties` are not needed, `content` can be dir
    public isolated function immediateStop() returns error?;
 ```
 
-## 7. Retrieving Individual Messages 
+## 7. Retrieving Individual Messages
 
 It is also possible to retrieve individual messages on demand ("pull API" a.k.a. polling). This approach to consumption is highly inefficient as it is effectively polling and applications repeatedly have to ask for results even if the vast majority of the requests yield no results. To "pull" a message, use the `consumeMessage` function.
 
 - `consumeMessage`:
+
 ```ballerina
    # Retrieves a message synchronously from the given queue providing direct access to the messages in the queue.
    #
@@ -551,14 +619,15 @@ It is also possible to retrieve individual messages on demand ("pull API" a.k.a.
 - Usage:
 
 ```ballerina
-   // Pulls a single message from MyQueue. 
+   // Pulls a single message from MyQueue.
    rabbitmq:AnydataMessage message = check rabbitmqClient->consumeMessage("MyQueue");
-   
-   // Pulls a message with auto acknowledgements turned off. 
+
+   // Pulls a message with auto acknowledgements turned off.
    rabbitmq:AnydataMessage message = check rabbitmqClient->consumeMessage("MyQueue", false);
 ```
 
 As same as the `rabbitmq:Service`, if the metadata of the message is not needed, `consumePayload` api can be used to directly get the payload.
+
 ```ballerina
    # Retrieves the payload synchronously from the given queue.
    #
@@ -571,6 +640,7 @@ As same as the `rabbitmq:Service`, if the metadata of the message is not needed,
 ```
 
 - Usage:
+
 ```ballerina
    string payload = check rabbitmqClient->consumePayload("MyQueue");
 ```
@@ -580,9 +650,11 @@ As same as the `rabbitmq:Service`, if the metadata of the message is not needed,
 The message consuming is supported by mainly two types of acknowledgement modes, which are auto acknowledgements and client acknowledgements.
 Client acknowledgements can further be divided into two different types as positive and negative acknowledgements.
 The default acknowledgement mode is auto-ack (messages are acknowledged immediately after consuming). The following examples show the usage of positive and negative acknowledgements.
+
 > WARNING: To ensure the reliability of receiving messages, use the client-ack mode.
 
 - `basicAck`:
+
 ```ballerina
    # Acknowledges one or several received messages.
    #
@@ -593,6 +665,7 @@ The default acknowledgement mode is auto-ack (messages are acknowledged immediat
 ```
 
 - `basicNack`:
+
 ```ballerina
    # Rejects one or several received messages.
    #
@@ -604,9 +677,10 @@ The default acknowledgement mode is auto-ack (messages are acknowledged immediat
 ```
 
 1. Positive client acknowledgement:
+
 ```ballerina
    listener rabbitmq:Listener channelListener= new(rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
-   
+
    @rabbitmq:ServiceConfig {
       queueName: "MyQueue",
       autoAck: false
@@ -619,9 +693,10 @@ The default acknowledgement mode is auto-ack (messages are acknowledged immediat
 ```
 
 2. Negative client acknowledgement:
+
 ```ballerina
    listener rabbitmq:Listener channelListener= new(rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
-   
+
    @rabbitmq:ServiceConfig {
       queueName: "MyQueue",
       autoAck: false
@@ -637,14 +712,14 @@ The negatively-acknowledged (rejected) messages can be re-queued by setting the 
 
 ## 9. Message Store
 
-The RabbitMQ library provides a message store implementation to store and retrieve messages. The message store can be 
+The RabbitMQ library provides a message store implementation to store and retrieve messages. The message store can be
 used to persist messages that are not consumed immediately or to implement a dead-letter queue (DLQ) mechanism.
 
-Additionally, a message store listener can be attached to these message stores to consume messages asynchronously. 
-The message store listener polls the message store at a configurable interval and invokes the attached service to 
+Additionally, a message store listener can be attached to these message stores to consume messages asynchronously.
+The message store listener polls the message store at a configurable interval and invokes the attached service to
 process the messages.
 
-A RabbitMQ message store should be initialized with the required queue name and additional store client configurations. 
+A RabbitMQ message store should be initialized with the required queue name and additional store client configurations.
 The store client configurations are defined as follows:
 
 ```ballerina
@@ -682,20 +757,21 @@ public type StoreClientPublishConfiguration record {|
 ```
 
 - Usage
+
   ```ballerina
   import ballerina/messaging;
   import ballerinax/rabbitmq;
 
   messaging:Store messageStore = new rabbitmq:MessageStore("message-queue");
   messaging:Store deadLetterStore = new rabbitmq:MessageStore("dead-letter-queue");
-  
+
   listener messaging:StoreListener storeListener = new(messageStore, {
       pollingInterval: 5,
       maxRetries: 3,
       retryInterval: 1,
       deadLetterStore: deadLetterStore
   });
-  
+
   service on storeListener {
       isolated remote function onMessage(anydata payload) returns error? {
           // Process the message
@@ -706,10 +782,12 @@ public type StoreClientPublishConfiguration record {|
 ## 10. Samples
 
 ### 10.1. Publish-Subscribe
-* Publisher
+
+- Publisher
+
 ```ballerina
    import ballerinax/rabbitmq;
-   
+
    public function main() returns error? {
        rabbitmq:Client newClient =
                    check new(rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
@@ -718,19 +796,21 @@ public type StoreClientPublishConfiguration record {|
        check newClient->publishMessage({ content: message, routingKey: "MyQueue" });
    }
 ```
-* Subscriber
+
+- Subscriber
+
 ```ballerina
    import ballerina/log;
    import ballerinax/rabbitmq;
-   
+
    listener rabbitmq:Listener channelListener =
            new(rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
-           
+
    public type Person record {|
        string name;
        int age;
    |};
-   
+
    public type PersonMessage record {|
        *rabbitmq:AnydataMessage;
        Person content;
@@ -747,37 +827,40 @@ public type StoreClientPublishConfiguration record {|
 ```
 
 ### 10.2. Request-Reply
-* Publisher
+
+- Publisher
+
 ```ballerina
    import ballerinax/rabbitmq;
-   
+
    public function main() returns error? {
       rabbitmq:Client newClient =
              check new(rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
       check newClient->queueDeclare("MyQueue");
-      
+
       string message = "Hello from Ballerina";
       rabbitmq:BasicProperties props = {
-         replyTo: "reply-queue"  
+         replyTo: "reply-queue"
       };
-      check newClient->publishMessage({ content: message, routingKey: queueName, 
+      check newClient->publishMessage({ content: message, routingKey: queueName,
                   properties: props });
    }
 ```
 
-* Subscriber
+- Subscriber
+
 ```ballerina
    import ballerina/log;
    import ballerinax/rabbitmq;
-   
+
    listener rabbitmq:Listener channelListener =
            new(rabbitmq:DEFAULT_HOST, rabbitmq:DEFAULT_PORT);
-           
+
    public type Person record {|
        string name;
        int age;
-   |};  
-   
+   |};
+
    @rabbitmq:ServiceConfig {
        queueName: "MyQueue"
    }
