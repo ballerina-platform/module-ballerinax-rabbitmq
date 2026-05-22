@@ -24,7 +24,9 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.GetResponse;
 import com.rabbitmq.client.ShutdownSignalException;
 import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.api.types.ObjectType;
 import io.ballerina.runtime.api.utils.StringUtils;
+import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BError;
 import io.ballerina.runtime.api.values.BMap;
@@ -43,8 +45,11 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
+import static io.ballerina.runtime.api.constants.RuntimeConstants.ORG_NAME_SEPARATOR;
+import static io.ballerina.runtime.api.constants.RuntimeConstants.VERSION_SEPARATOR;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQConstants.CONSTRAINT_VALIDATION;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.createAndPopulateMessageRecord;
 import static io.ballerina.stdlib.rabbitmq.RabbitMQUtils.createPayload;
@@ -422,6 +427,28 @@ public class ChannelUtils {
             return RabbitMQUtils.
                     returnErrorValue("Error occurred while aborting the channel: " + exception.getMessage());
         }
+    }
+
+    public static String getConsumerTag(BObject service) {
+        String consumerTag = (String) service.getNativeData(RabbitMQConstants.CONSUMER_TAG.getValue());
+        if (consumerTag != null) {
+            return consumerTag;
+        }
+        ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(TypeUtils.getType(service));
+        @SuppressWarnings("unchecked")
+        BMap<BString, Object> serviceConfig = (BMap<BString, Object>) serviceType
+                .getAnnotation(StringUtils.fromString(ModuleUtils.getModule().getOrg() + ORG_NAME_SEPARATOR
+                        + ModuleUtils.getModule().getName() + VERSION_SEPARATOR +
+                        ModuleUtils.getModule().getMajorVersion() + ":" + RabbitMQConstants.SERVICE_CONFIG));
+        if (serviceConfig != null && serviceConfig.containsKey(RabbitMQConstants.CONSUMER_TAG)) {
+            consumerTag = serviceConfig.getStringValue(RabbitMQConstants.CONSUMER_TAG).getValue();
+            service.addNativeData(RabbitMQConstants.CONSUMER_TAG.getValue(), consumerTag);
+            return consumerTag;
+        }
+        String serviceName = TypeUtils.getType(service).getName();
+        consumerTag = serviceName + UUID.randomUUID();
+        service.addNativeData(RabbitMQConstants.CONSUMER_TAG.getValue(), consumerTag);
+        return consumerTag;
     }
 
     private ChannelUtils() {

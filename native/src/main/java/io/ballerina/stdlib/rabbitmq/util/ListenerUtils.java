@@ -149,10 +149,10 @@ public class ListenerUtils {
         @SuppressWarnings(RabbitMQConstants.UNCHECKED)
         ArrayList<BObject> services =
                 (ArrayList<BObject>) listenerBObject.getNativeData(RabbitMQConstants.CONSUMER_SERVICES);
-        String serviceName = TypeUtils.getType(service).getName();
         String queueName = (String) service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue());
         try {
-            channel.basicCancel(serviceName);
+            String consumerTag = ChannelUtils.getConsumerTag(service);
+            channel.basicCancel(consumerTag);
         } catch (IOException e) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_DETACH);
             return RabbitMQUtils.returnErrorValue("Error occurred while detaching the service");
