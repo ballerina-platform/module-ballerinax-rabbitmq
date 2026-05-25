@@ -152,6 +152,8 @@ public class RabbitMQConstants {
     public static final BString ALIAS_CORRELATION_ID = StringUtils.fromString("correlationId");
     public static final BString ALIAS_HEADERS = StringUtils.fromString("headers");
 
+    public static final String EMPTY = "";
+
     private RabbitMQConstants() {
     }
 }

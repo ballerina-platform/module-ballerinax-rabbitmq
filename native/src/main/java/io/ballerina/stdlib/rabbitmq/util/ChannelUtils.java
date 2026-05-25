@@ -442,11 +442,13 @@ public class ChannelUtils {
                         ModuleUtils.getModule().getMajorVersion() + ":" + RabbitMQConstants.SERVICE_CONFIG));
         if (serviceConfig != null && serviceConfig.containsKey(RabbitMQConstants.CONSUMER_TAG)) {
             consumerTag = serviceConfig.getStringValue(RabbitMQConstants.CONSUMER_TAG).getValue();
+            if (RabbitMQConstants.EMPTY.equals(consumerTag)) {
+                consumerTag = UUID.randomUUID().toString();
+            }
             service.addNativeData(RabbitMQConstants.CONSUMER_TAG.getValue(), consumerTag);
             return consumerTag;
         }
-        String serviceName = TypeUtils.getType(service).getName();
-        consumerTag = serviceName + UUID.randomUUID();
+        consumerTag = UUID.randomUUID().toString();
         service.addNativeData(RabbitMQConstants.CONSUMER_TAG.getValue(), consumerTag);
         return consumerTag;
     }
