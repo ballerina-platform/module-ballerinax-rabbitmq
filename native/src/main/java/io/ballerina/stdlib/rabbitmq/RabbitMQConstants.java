@@ -124,6 +124,7 @@ public class RabbitMQConstants {
     public static final String CALLER_OBJECT = "Caller";
     public static final String ACK_STATUS = "ackStatus";
     public static final String ACK_MODE = "ackMode";
+    public static final BString CONSUMER_TAG = StringUtils.fromString("consumerTag");
     public static final BString MESSAGE_CONTENT = StringUtils.fromString("content");
     public static final BString DELIVERY_TAG = StringUtils.fromString("deliveryTag");
     public static final BString MESSAGE_EXCHANGE = StringUtils.fromString("exchange");
@@ -150,6 +151,8 @@ public class RabbitMQConstants {
     public static final BString ALIAS_CONTENT_ENCODING = StringUtils.fromString("contentEncoding");
     public static final BString ALIAS_CORRELATION_ID = StringUtils.fromString("correlationId");
     public static final BString ALIAS_HEADERS = StringUtils.fromString("headers");
+
+    public static final String EMPTY = "";
 
     private RabbitMQConstants() {
     }

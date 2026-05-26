@@ -41,6 +41,7 @@ import io.ballerina.runtime.observability.ObserveUtils;
 import io.ballerina.stdlib.rabbitmq.observability.RabbitMQMetricsUtil;
 import io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityConstants;
 import io.ballerina.stdlib.rabbitmq.observability.RabbitMQObserverContext;
+import io.ballerina.stdlib.rabbitmq.util.ChannelUtils;
 import io.ballerina.stdlib.rabbitmq.util.ModuleUtils;
 
 import java.io.IOException;
@@ -91,7 +92,7 @@ public class MessageDispatcher {
         this.autoAck = autoAck;
         this.service = service;
         this.queueName = getQueueNameFromConfig(service);
-        this.consumerTag = TypeUtils.getType(service).getName();
+        this.consumerTag = ChannelUtils.getConsumerTag(service);
         this.runtime = runtime;
         this.listenerObj = listener;
     }

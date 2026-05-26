@@ -111,10 +111,13 @@ public isolated class Listener {
 #
 # + queueName - The name of the queue to be subscribed
 # + config - The configurations required to declare a queue
+# + consumerTag - The tag used to identify the consumer. If not specified or empty,
+# an internally generated UUID will be assigned.
 # + autoAck - If false, should manually acknowledge
 public type RabbitMQServiceConfig record {|
     string queueName;
     QueueConfig config?;
+    string consumerTag?;
     boolean autoAck = true;
 |};
 
