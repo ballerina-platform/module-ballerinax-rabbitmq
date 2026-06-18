@@ -174,9 +174,9 @@ public class ListenerUtils {
                         + RabbitMQConstants.SERVICE_CONFIG));
         String queueName = "";
         Map<String, Object> argumentsMap = new HashMap<>();
-        boolean durable = false;
+        boolean durable = true;
         boolean exclusive = false;
-        boolean autoDelete = true;
+        boolean autoDelete = false;
 
 
         if (service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue()) != null) {

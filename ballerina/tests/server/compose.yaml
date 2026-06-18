@@ -1,6 +1,6 @@
 services:
     rabbitmq-tls:
-        image: rabbitmq:3.12-management
+        image: rabbitmq:4.3-management
         hostname: rabbitmq-tls
         ports:
             - 15671:15671
@@ -9,13 +9,13 @@ services:
             - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
             - ./certs:/certs
     rabbitmq-1:
-        image: rabbitmq:3.12-management
+        image: rabbitmq:4.3-management
         hostname: rabbitmq-1
         ports:
             - 15672:15672
             - 5672:5672
     rabbitmq-auth:
-        image: rabbitmq:3.12-management
+        image: rabbitmq:4.3-management
         hostname: rabbitmq-auth
         ports:
             - 5673:5672
@@ -23,7 +23,7 @@ services:
         volumes:
             - ./rabbitmq-auth.conf:/etc/rabbitmq/rabbitmq.conf
     rabbitmq-vhost:
-        image: rabbitmq:3.12-management
+        image: rabbitmq:4.3-management
         hostname: rabbitmq-vhost
         ports:
             - 5674:5672

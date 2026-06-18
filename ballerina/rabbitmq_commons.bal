@@ -54,24 +54,24 @@ public type BasicProperties record {|
 
 # Additional configurations used to declare a queue.
 #
-# + durable - Set to true if declaring a durable queue
+# + durable - Set to true if declaring a durable queue (defaults to `true`)
 # + exclusive - Set to true if declaring an exclusive queue
-# + autoDelete - Set to true if declaring an auto-delete queue
+# + autoDelete - Set to true if declaring an auto-delete queue (defaults to `false`)
 # + arguments - Other properties (construction arguments) of the queue
 public type QueueConfig record {|
-    boolean durable = false;
+    boolean durable = true;
     boolean exclusive = false;
-    boolean autoDelete = true;
+    boolean autoDelete = false;
     map<anydata> arguments?;
 |};
 
 # Additional configurations used to declare an exchange.
 #
-# + durable - Set to `true` if a durable exchange is declared
+# + durable - Set to `true` if a durable exchange is declared (defaults to `true`)
 # + autoDelete - Set to `true` if an auto-delete exchange is declared
 # + arguments - Other properties (construction arguments) for the queue
 public type ExchangeConfig record {|
-    boolean durable = false;
+    boolean durable = true;
     boolean autoDelete = false;
     map<anydata> arguments?;
 |};

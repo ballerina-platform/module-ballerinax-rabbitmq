@@ -236,7 +236,7 @@ Client applications work with exchanges and queues, the high-level building bloc
 ```ballerina
    public type ExchangeConfig record {|
       # Set to `true` if a durable exchange is declared.
-      boolean durable = false;
+      boolean durable = true;
       # Set to `true` if an autodelete exchange is declared.
       boolean autoDelete = false;
       # Other properties (construction arguments) for the queue.
@@ -249,11 +249,11 @@ Client applications work with exchanges and queues, the high-level building bloc
 ```ballerina
    public type QueueConfig record {|
       # Set to true if declaring a durable queue.
-      boolean durable = false;
+      boolean durable = true;
       # Set to true if declaring an exclusive queue.
       boolean exclusive = false;
       # Set to true if declaring an auto-delete queue.
-      boolean autoDelete = true;
+      boolean autoDelete = false;
       # Other properties (construction arguments) of the queue.
       map<anydata> arguments?;
    |};
@@ -264,7 +264,7 @@ Following methods can be used to declare the exchanges, queues and to bind them.
 - `exchangeDeclare`
 
 ```ballerina
-   # Declares a non-auto-delete, non-durable exchange with no extra arguments.
+   # Declares a non-auto-delete, durable exchange with no extra arguments.
    # If the arguments are specified, then the exchange is declared accordingly.
    #
    # + name - The name of the exchange
@@ -278,7 +278,7 @@ Following methods can be used to declare the exchanges, queues and to bind them.
 - `queueDeclare`
 
 ```ballerina
-   # Declares a non-exclusive, auto-delete, or non-durable queue with the given configurations.
+   # Declares a non-exclusive, non-auto-delete, durable queue with the given configurations.
    #
    # + name - The name of the queue
    # + config - The configurations required to declare a queue
@@ -319,21 +319,21 @@ Following methods can be used to declare the exchanges, queues and to bind them.
 
 This code will declare,
 
-- a durable auto-delete exchange of the type `rabbitmq:DIRECT_EXCHANGE`.
-- a non-durable, exclusive auto-delete queue.
+- a durable, non-auto-delete exchange of the type `rabbitmq:DIRECT_EXCHANGE`.
+- a durable, non-exclusive, non-auto-delete queue.
 
 ```ballerina
    check rabbitmqClient->exchangeDeclare("MyExchange", rabbitmq:TOPIC_EXCHANGE);
-   check rabbitmqClient->queueDeclare("MyQueue", { durable: true,
-                                                exclusive: false,
-                                                autoDelete: false });
+   check rabbitmqClient->queueDeclare("MyQueue", { durable: false,
+                                                exclusive: true,
+                                                autoDelete: true });
    check rabbitmqClient->queueBind("MyQueue", "MyExchange", "routing-key");
 ```
 
 This sample code will declare,
 
-- a durable auto-delete exchange of the type `rabbitmq:TOPIC_EXCHANGE`.
-- a durable, non-exclusive, non-auto-delete queue.
+- a durable, non-auto-delete exchange of the type `rabbitmq:TOPIC_EXCHANGE`.
+- a transient, exclusive, auto-delete queue.
 
 The `queueBind` function is called to bind the queue to the exchange with the given routing key. See the API docs for the complete list of supported configurations.
 
