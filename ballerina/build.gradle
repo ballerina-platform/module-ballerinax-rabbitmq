@@ -113,7 +113,7 @@ task startRabbitmqServer() {
                 println "Waiting for RabbitMQ to be ready..."
                 while (retries < maxRetries && !serverReady) {
                     try {
-                        def url = new URL("http://localhost:15672/api/aliveness-test/%2F")
+                        def url = new URL("http://localhost:15672/api/health/checks/local-alarms")
                         def connection = (HttpURLConnection) url.openConnection()
                         connection.setRequestProperty("Authorization", "Basic " +
                             Base64.encoder.encodeToString("guest:guest".getBytes()))

@@ -59,9 +59,9 @@ public type BasicProperties record {|
 # + autoDelete - Set to true if declaring an auto-delete queue
 # + arguments - Other properties (construction arguments) of the queue
 public type QueueConfig record {|
-    boolean durable = false;
+    boolean durable = true;
     boolean exclusive = false;
-    boolean autoDelete = true;
+    boolean autoDelete = false;
     map<anydata> arguments?;
 |};
 
@@ -71,7 +71,7 @@ public type QueueConfig record {|
 # + autoDelete - Set to `true` if an auto-delete exchange is declared
 # + arguments - Other properties (construction arguments) for the queue
 public type ExchangeConfig record {|
-    boolean durable = false;
+    boolean durable = true;
     boolean autoDelete = false;
     map<anydata> arguments?;
 |};

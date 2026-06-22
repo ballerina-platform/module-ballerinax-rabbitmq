@@ -50,22 +50,22 @@ Client applications work with exchanges and queues, which are the high-level bui
 ```
 
 This sample code will declare,
-- a durable auto-delete exchange of the type `rabbitmq:DIRECT_EXCHANGE`
-- a non-durable, exclusive auto-delete queue with an auto-generated name
+- a durable, non-auto-delete exchange of the type `rabbitmq:DIRECT_EXCHANGE`
+- a durable, non-exclusive, non-auto-delete queue with the given name
 
 Next, the `queueBind` function is called to bind the queue to the exchange with the given routing key.
 
 ```ballerina
     check rabbitmqClient->exchangeDeclare("MyExchange", rabbitmq:DIRECT_EXCHANGE);
-    check rabbitmqClient->queueDeclare("MyQueue", { durable: true,
-                                                   exclusive: false,
-                                                   autoDelete: false });
+    check rabbitmqClient->queueDeclare("MyQueue", { durable: false,
+                                                   exclusive: true,
+                                                   autoDelete: true });
     check rabbitmqClient->queueBind("MyQueue", "MyExchange", "routing-key");
 ```
 
 This sample code will declare,
-- a durable auto-delete exchange of the type `rabbitmq:DIRECT_EXCHANGE`
-- a durable, non-exclusive, non-auto-delete queue with a well-known name
+- a durable, non-auto-delete exchange of the type `rabbitmq:DIRECT_EXCHANGE`
+- a transient, exclusive, auto-delete queue with a well-known name
 
 #### Delete entities and purge queues
 

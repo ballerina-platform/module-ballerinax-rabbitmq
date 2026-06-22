@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+### Changed
+
+- [Declare queues and exchanges as durable and non-auto-delete by default](https://github.com/ballerina-platform/ballerina-library/issues/8828). RabbitMQ 4.3+ [denies transient non-exclusive queues by default](https://www.rabbitmq.com/release-information/deprecated-features-list), and [all transient entities will be removed with Mnesia later in the 4.x series](https://github.com/rabbitmq/rabbitmq-server/discussions/13161).
+
 ### Added
 
 - [Add support for configurable consumer tag with fallback to auto-generated value](https://github.com/ballerina-platform/ballerina-library/issues/8799)

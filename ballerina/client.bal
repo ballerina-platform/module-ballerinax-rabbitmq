@@ -34,7 +34,7 @@ public isolated client class Client {
         return createChannel(host, port, self, connectionData);
     }
 
-    # Declares a non-exclusive, auto-delete, and non-durable queue with the given configurations.
+    # Declares a non-exclusive, non-auto-delete, and durable queue with the given configurations.
     # ```ballerina
     # check rabbitmqClient->queueDeclare("MyQueue");
     # ```
@@ -60,7 +60,7 @@ public isolated client class Client {
         'class: "io.ballerina.stdlib.rabbitmq.util.ChannelUtils"
     } external;
 
-    # Declares a non-auto-delete, non-durable exchange with no extra arguments.
+    # Declares a non-auto-delete, durable exchange with no extra arguments.
     # If the arguments are specified, then the exchange is declared accordingly.
     # ```ballerina
     # check rabbitmqClient->exchangeDeclare("MyExchange", rabbitmq:DIRECT_EXCHANGE);

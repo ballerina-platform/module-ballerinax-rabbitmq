@@ -89,9 +89,9 @@ public class ChannelUtils {
 
     public static Object queueDeclare(Environment environment, BObject clientObj,
                                       BString queueName, Object queueConfig) {
-        boolean durable = false;
+        boolean durable = true;
         boolean exclusive = false;
-        boolean autoDelete = true;
+        boolean autoDelete = false;
         Map<String, Object> argumentsMap = new HashMap<>();
         Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         try {
@@ -231,8 +231,8 @@ public class ChannelUtils {
     public static Object exchangeDeclare(Environment environment, BObject clientObj, BString exchangeName,
                                          BString exchangeType, Object exchangeConfig) {
         Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
-        boolean durable = false;
-        boolean autoDelete = true;
+        boolean durable = true;
+        boolean autoDelete = false;
         Map<String, Object> argumentsMap = null;
         RabbitMQTracingUtil.traceResourceInvocation(channel, environment);
         try {

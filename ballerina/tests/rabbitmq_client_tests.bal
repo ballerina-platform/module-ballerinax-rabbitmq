@@ -821,6 +821,93 @@ public isolated function testExchangeConfig() returns error? {
 }
 
 @test:Config {
+    dependsOn: [testClient, testQueueDelete],
+    groups: ["rabbitmq"]
+}
+public isolated function testDefaultQueueIsDurable() returns error? {
+    // RabbitMQ 4.3+ denies transient (non-durable) non-exclusive queues by default.
+    // The default is durable and non-exclusive
+    string queueName = "testDefaultQueueIsDurable";
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
+    Error? result = newClient->queueDeclare(queueName);
+    if result is error {
+        test:assertFail("Default queue declaration should succeed (durable by default) on RabbitMQ 4.x.");
+    }
+    check newClient->queueDelete(queueName);
+    check newClient->close();
+    return;
+}
+
+@test:Config {
+    dependsOn: [testClient, testExchangeDelete],
+    groups: ["rabbitmq"]
+}
+public isolated function testDefaultExchangeIsDurable() returns error? {
+    string exchangeName = "testDefaultExchangeIsDurable";
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
+    // Declaring with no config uses the default, which is durable.
+    Error? result = newClient->exchangeDeclare(exchangeName, DIRECT_EXCHANGE);
+    if result is error {
+        test:assertFail("Default exchange declaration should succeed.");
+    }
+    // A separate channel re-declares the same exchange differing ONLY in durability (the
+    // default-declared exchange is non-auto-delete). The declaration must fail with a property
+    // mismatch, which confirms the default-declared exchange is durable.
+    Client verifyClient = check new (DEFAULT_HOST, DEFAULT_PORT);
+    Error? mismatch = verifyClient->exchangeDeclare(exchangeName, DIRECT_EXCHANGE,
+            config = {durable: false, autoDelete: false});
+    test:assertTrue(mismatch is error, msg = "Re-declaring a durable exchange as non-durable should fail.");
+    check newClient->exchangeDelete(exchangeName);
+    check newClient->close();
+    return;
+}
+
+@test:Config {
+    dependsOn: [testClient, testQueueDelete],
+    groups: ["rabbitmq"]
+}
+public isolated function testDefaultQueueIsNotAutoDelete() returns error? {
+    string queueName = "testDefaultQueueIsNotAutoDelete";
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
+    // Declaring with no config uses the default, which is now non-auto-delete.
+    Error? result = newClient->queueDeclare(queueName);
+    if result is error {
+        test:assertFail("Default queue declaration should succeed.");
+    }
+    // A separate channel re-declares the same queue differing ONLY in autoDelete.
+    // The declaration must fail with a property mismatch.
+    Client verifyClient = check new (DEFAULT_HOST, DEFAULT_PORT);
+    Error? mismatch = verifyClient->queueDeclare(queueName,
+            config = {durable: true, exclusive: false, autoDelete: true});
+    test:assertTrue(mismatch is error, msg = "Re-declaring a non-auto-delete queue as auto-delete should fail.");
+    check newClient->queueDelete(queueName);
+    check newClient->close();
+    return;
+}
+
+@test:Config {
+    dependsOn: [testClient, testExchangeDelete],
+    groups: ["rabbitmq"]
+}
+public isolated function testDefaultExchangeIsNotAutoDelete() returns error? {
+    string exchangeName = "testDefaultExchangeIsNotAutoDelete";
+    Client newClient = check new (DEFAULT_HOST, DEFAULT_PORT);
+    // Declaring with no config uses the default, which is now non-auto-delete.
+    Error? result = newClient->exchangeDeclare(exchangeName, DIRECT_EXCHANGE);
+    if result is error {
+        test:assertFail("Default exchange declaration should succeed.");
+    }
+    // A separate channel re-declares the same exchange differing ONLY in autoDelete.
+    Client verifyClient = check new (DEFAULT_HOST, DEFAULT_PORT);
+    Error? mismatch = verifyClient->exchangeDeclare(exchangeName, DIRECT_EXCHANGE,
+            config = {durable: true, autoDelete: true});
+    test:assertTrue(mismatch is error, msg = "Re-declaring a non-auto-delete exchange as auto-delete should fail.");
+    check newClient->exchangeDelete(exchangeName);
+    check newClient->close();
+    return;
+}
+
+@test:Config {
     dependsOn: [testClient],
     groups: ["rabbitmq"]
 }
@@ -1336,11 +1423,15 @@ service object {
     }
 };
 
+// Re-declares QUEUE_CONFIG_DUPLICATE (already declared with autoDelete: true) using a
+// mismatching but still-valid (durable, non-exclusive) configuration to trigger a
+// PRECONDITION_FAILED. Note: a transient (durable: false) non-exclusive queue cannot be used
+// here, as RabbitMQ 4.3+ denies that combination outright regardless of the existing queue.
 Service queueConfigDuplicateError =
 @ServiceConfig {
     queueName: QUEUE_CONFIG_DUPLICATE,
     config: {
-        durable: false,
+        durable: true,
         exclusive: false,
         autoDelete: false
     }
