@@ -77,9 +77,13 @@ public class ConnectionUtils {
                     RabbitMQConstants.RABBITMQ_CONNECTION_SECURE_SOCKET);
             if (secureSocket != null) {
                 SSLContext sslContext = getSslContext(secureSocket);
-                connectionFactory.useSslProtocol(sslContext);
                 if (secureSocket.getBooleanValue(RabbitMQConstants.VERIFY_HOST)) {
+                    connectionFactory.useSslProtocol(sslContext);
                     connectionFactory.enableHostnameVerification();
+                } else {
+                    // useSslProtocol(SSLContext) forces hostname verification since amqp-client
+                    // 5.33.0 with no way to opt out, so set the socket factory directly instead.
+                    connectionFactory.setSocketFactory(sslContext.getSocketFactory());
                 }
                 LOGGER.info("TLS enabled for the connection.");
             }
