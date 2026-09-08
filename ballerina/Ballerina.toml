@@ -1,7 +1,7 @@
 [package]
 org = "ballerinax"
 name = "rabbitmq"
-version = "3.6.0"
+version = "3.6.1"
 authors = ["Ballerina"]
 keywords = ["service", "client", "messaging", "network", "pubsub", "Vendor/RabbitMQ", "Area/Messaging", "Type/Connector", "Type/Trigger"]
 repository = "https://github.com/ballerina-platform/module-ballerinax-rabbitmq"
@@ -14,13 +14,13 @@ include = ["metadata/**"]
 graalvmCompatible = true
 
 [[platform.java21.dependency]]
-path = "./lib/amqp-client-5.18.0.jar"
+path = "./lib/amqp-client-5.33.1.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "rabbitmq-native"
-version = "3.6.0"
-path = "../native/build/libs/rabbitmq-native-3.6.0.jar"
+version = "3.6.1"
+path = "../native/build/libs/rabbitmq-native-3.6.1-SNAPSHOT.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.ballerina.stdlib"
