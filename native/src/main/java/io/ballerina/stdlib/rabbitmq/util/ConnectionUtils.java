@@ -77,9 +77,16 @@ public class ConnectionUtils {
                     RabbitMQConstants.RABBITMQ_CONNECTION_SECURE_SOCKET);
             if (secureSocket != null) {
                 SSLContext sslContext = getSslContext(secureSocket);
-                connectionFactory.useSslProtocol(sslContext);
                 if (secureSocket.getBooleanValue(RabbitMQConstants.VERIFY_HOST)) {
+                    connectionFactory.useSslProtocol(sslContext);
                     connectionFactory.enableHostnameVerification();
+                } else {
+                    // Since amqp-client 5.33.0, ConnectionFactory#useSslProtocol(SSLContext) always
+                    // enables hostname verification as a side effect, with no way to turn it back off.
+                    // Setting the socket factory directly keeps TLS enabled for the default
+                    // (blocking IO) frame handler used by this connector without forcing hostname
+                    // verification, preserving the verifyHostName=false behavior.
+                    connectionFactory.setSocketFactory(sslContext.getSocketFactory());
                 }
                 LOGGER.info("TLS enabled for the connection.");
             }
