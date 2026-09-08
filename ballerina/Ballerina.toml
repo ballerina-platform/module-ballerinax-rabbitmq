@@ -14,7 +14,7 @@ include = ["metadata/**"]
 graalvmCompatible = true
 
 [[platform.java21.dependency]]
-path = "./lib/amqp-client-5.33.1.jar"
+path = "./lib/amqp-client-5.35.0.jar"
 
 [[platform.java21.dependency]]
 groupId = "io.ballerina.stdlib"
