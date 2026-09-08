@@ -81,11 +81,8 @@ public class ConnectionUtils {
                     connectionFactory.useSslProtocol(sslContext);
                     connectionFactory.enableHostnameVerification();
                 } else {
-                    // Since amqp-client 5.33.0, ConnectionFactory#useSslProtocol(SSLContext) always
-                    // enables hostname verification as a side effect, with no way to turn it back off.
-                    // Setting the socket factory directly keeps TLS enabled for the default
-                    // (blocking IO) frame handler used by this connector without forcing hostname
-                    // verification, preserving the verifyHostName=false behavior.
+                    // useSslProtocol(SSLContext) forces hostname verification since amqp-client
+                    // 5.33.0 with no way to opt out, so set the socket factory directly instead.
                     connectionFactory.setSocketFactory(sslContext.getSocketFactory());
                 }
                 LOGGER.info("TLS enabled for the connection.");
