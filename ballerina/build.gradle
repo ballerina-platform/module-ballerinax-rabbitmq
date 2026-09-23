@@ -17,6 +17,13 @@
 
 import org.apache.tools.ant.taskdefs.condition.Os
 import java.net.HttpURLConnection
+import org.gradle.process.ExecOperations
+
+import javax.inject.Inject
+
+abstract class BallerinaExecHelper {
+    @Inject abstract ExecOperations getExecOperations()
+}
 
 plugins {
     id 'io.ballerina.plugin'
@@ -80,8 +87,9 @@ task updateTomlFiles {
 }
 
 task commitTomlFiles {
+    def execHelper = project.objects.newInstance(BallerinaExecHelper)
     doLast {
-        project.exec {
+        execHelper.execOperations.exec {
             ignoreExitValue true
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                 commandLine 'cmd', '/c', "git commit -m '[Automated] Update the native jar versions' Ballerina.toml CompilerPlugin.toml Dependencies.toml"
@@ -93,16 +101,17 @@ task commitTomlFiles {
 }
 
 task startRabbitmqServer() {
+    def execHelper = project.objects.newInstance(BallerinaExecHelper)
     doLast {
         if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
             def stdOut = new ByteArrayOutputStream()
-            exec {
+            execHelper.execOperations.exec {
                 commandLine 'sh', '-c', "docker ps --filter name=server-rabbitmq-1-1"
                 standardOutput = stdOut
             }
             if (!stdOut.toString().contains("server-rabbitmq-1-1")) {
                 println "Starting RabbitMQ server."
-                exec {
+                execHelper.execOperations.exec {
                     commandLine 'sh', '-c', "docker compose -f tests/server/compose.yaml up -d --force-recreate --renew-anon-volumes"
                     standardOutput = stdOut
                 }
@@ -142,16 +151,17 @@ task startRabbitmqServer() {
 }
 
 task stopRabbitmqServer() {
+    def execHelper = project.objects.newInstance(BallerinaExecHelper)
     doLast {
         if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
             def stdOut = new ByteArrayOutputStream()
-            exec {
+            execHelper.execOperations.exec {
                 commandLine 'sh', '-c', "docker ps --filter name=server-rabbitmq-1-1"
                 standardOutput = stdOut
             }
             if (stdOut.toString().contains("server-rabbitmq-1-1")) {
                 println "Stopping RabbitMQ server."
-                exec {
+                execHelper.execOperations.exec {
                     commandLine 'sh', '-c', "docker compose -f tests/server/compose.yaml rm -svf"
                     standardOutput = stdOut
                 }
