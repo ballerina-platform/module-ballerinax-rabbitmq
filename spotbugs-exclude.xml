@@ -80,7 +80,13 @@
         <Class name="io.ballerina.stdlib.rabbitmq.RabbitMQTransactionContext"/>
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
+    <!-- ConnectionUtils's SSL/TLS helper methods (getTrustManagerFactory, getKeyManagerFactory,
+         getKeyStore, buildSslContext) declare a blanket "throws Exception" covering the various
+         checked exceptions thrown by the KeyStore/KeyManagerFactory/TrustManagerFactory/SSLContext
+         APIs they call. This is pre-existing behavior, not an interface-override constraint, and
+         narrowing it is out of scope for this build-tooling-only Gradle/SpotBugs upgrade. -->
     <Match>
+        <Class name="io.ballerina.stdlib.rabbitmq.util.ConnectionUtils"/>
         <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION"/>
     </Match>
 </FindBugsFilter>
