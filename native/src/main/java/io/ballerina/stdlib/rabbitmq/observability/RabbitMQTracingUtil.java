@@ -32,61 +32,54 @@ import io.ballerina.runtime.observability.ObserverContext;
 public class RabbitMQTracingUtil {
 
     public static void traceResourceInvocation(Channel channel, Environment environment) {
-        if (!ObserveUtils.isTracingEnabled()) {
-            return;
+        ObserverContext observerContext = observedContext(environment);
+        if (observerContext != null) {
+            setTags(observerContext, channel);
         }
-        setTags(getObserverContext(environment), channel);
     }
 
     public static void traceQueueResourceInvocation(Channel channel, String queueName, Environment environment) {
-        if (!ObserveUtils.isTracingEnabled()) {
-            return;
+        ObserverContext observerContext = observedContext(environment);
+        if (observerContext != null) {
+            observerContext.addTag(RabbitMQObservabilityConstants.TAG_QUEUE, queueName);
+            setTags(observerContext, channel);
         }
-        ObserverContext observerContext = getObserverContext(environment);
-        observerContext.addTag(RabbitMQObservabilityConstants.TAG_QUEUE, queueName);
-        setTags(observerContext, channel);
     }
 
     public static void traceExchangeResourceInvocation(Channel channel, String exchangeName,
                                                        Environment environment) {
-        if (!ObserveUtils.isTracingEnabled()) {
-            return;
+        ObserverContext observerContext = observedContext(environment);
+        if (observerContext != null) {
+            observerContext.addTag(RabbitMQObservabilityConstants.TAG_EXCHANGE, exchangeName);
+            setTags(observerContext, channel);
         }
-        ObserverContext observerContext = getObserverContext(environment);
-        observerContext.addTag(RabbitMQObservabilityConstants.TAG_EXCHANGE, exchangeName);
-        setTags(observerContext, channel);
     }
 
     public static void traceQueueBindResourceInvocation(Channel channel, String queueName, String exchangeName,
                                                         String routingKey, Environment environment) {
-        if (!ObserveUtils.isTracingEnabled()) {
-            return;
+        ObserverContext observerContext = observedContext(environment);
+        if (observerContext != null) {
+            observerContext.addTag(RabbitMQObservabilityConstants.TAG_QUEUE, queueName);
+            observerContext.addTag(RabbitMQObservabilityConstants.TAG_EXCHANGE, exchangeName);
+            observerContext.addTag(RabbitMQObservabilityConstants.TAG_ROUTING_KEY, routingKey);
+            setTags(observerContext, channel);
         }
-        ObserverContext observerContext = getObserverContext(environment);
-        observerContext.addTag(RabbitMQObservabilityConstants.TAG_QUEUE, queueName);
-        observerContext.addTag(RabbitMQObservabilityConstants.TAG_EXCHANGE, exchangeName);
-        observerContext.addTag(RabbitMQObservabilityConstants.TAG_ROUTING_KEY, routingKey);
-        setTags(observerContext, channel);
     }
 
     public static void tracePublishResourceInvocation(Channel channel, String exchangeName, String routingKey,
                                                       Environment environment) {
-        if (!ObserveUtils.isTracingEnabled()) {
-            return;
+        ObserverContext observerContext = observedContext(environment);
+        if (observerContext != null) {
+            observerContext.addTag(RabbitMQObservabilityConstants.TAG_EXCHANGE, exchangeName);
+            observerContext.addTag(RabbitMQObservabilityConstants.TAG_ROUTING_KEY, routingKey);
+            setTags(observerContext, channel);
         }
-        ObserverContext observerContext = getObserverContext(environment);
-        observerContext.addTag(RabbitMQObservabilityConstants.TAG_EXCHANGE, exchangeName);
-        observerContext.addTag(RabbitMQObservabilityConstants.TAG_ROUTING_KEY, routingKey);
-        setTags(observerContext, channel);
     }
 
-    private static ObserverContext getObserverContext(Environment environment) {
-        ObserverContext observerContext = ObserveUtils.getObserverContextOfCurrentFrame(environment);
-        if (observerContext == null) {
-            observerContext = new ObserverContext();
-            ObserveUtils.setObserverContextToCurrentFrame(environment, observerContext);
-        }
-        return observerContext;
+    // Null when tracing is off or the call is not observed, such as a Listener method. A new context is not created:
+    // one without a span becomes the parent of the next observed call on the strand, which then fails to start.
+    private static ObserverContext observedContext(Environment environment) {
+        return ObserveUtils.isTracingEnabled() ? ObserveUtils.getObserverContextOfCurrentFrame(environment) : null;
     }
 
     private static void setTags(ObserverContext observerContext, Connection connection) {
