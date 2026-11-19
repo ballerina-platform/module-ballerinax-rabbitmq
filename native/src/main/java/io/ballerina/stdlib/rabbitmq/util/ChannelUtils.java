@@ -339,9 +339,7 @@ public class ChannelUtils {
             if (!headers.isEmpty()) {
                 builder.headers(headers);
             }
-            String exchange = defaultExchangeName;
-            RabbitMQUtils.handleTransaction(channelObj, environment,
-                    () -> RabbitMQTracingUtil.publishLinks(environment, exchange, routingKey.getValue()));
+            RabbitMQUtils.handleTransaction(channelObj);
             AMQP.BasicProperties basicProps = builder.build();
             byte[] messageContentBytes = messageContent.getBytes();
             channel.basicPublish(defaultExchangeName, routingKey.getValue(), basicProps, messageContentBytes);
@@ -350,6 +348,9 @@ public class ChannelUtils {
             RabbitMQTracingUtil.tracePublishResourceInvocation(channel, defaultExchangeName, routingKey.getValue(),
                                                                correlationId, messageContentBytes.length,
                                                                environment);
+            String exchange = defaultExchangeName;
+            RabbitMQUtils.linkToTransaction(channelObj, environment,
+                    () -> RabbitMQTracingUtil.publishLinks(environment, exchange, routingKey.getValue()));
         } catch (IOException | BError | ShutdownSignalException exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_PUBLISH);
             return RabbitMQUtils.returnErrorValue("Error occurred while publishing the message: "

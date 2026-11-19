@@ -30,8 +30,8 @@ import io.ballerina.stdlib.rabbitmq.util.ModuleUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 /**
  * Util class for Observability-related tasks for RabbitMQ.
@@ -40,15 +40,20 @@ import java.util.regex.Pattern;
  */
 public class RabbitMQObservabilityUtil {
 
-    private static final Pattern USER_INFO = Pattern.compile("://[^@/]*@");
+    private static final String TRACEPARENT = "traceparent";
+    private static final List<String> TRACE_HEADERS = List.of(TRACEPARENT, "tracestate", "baggage");
 
-    // The client library puts the user name in these: amqp://user@host:port/vhost.
+    // The client library puts the raw user name in these: amqp://user@host:port/vhost. It can hold any character, so
+    // the URL is rebuilt from the host and port that follow it.
     public static String getServerUrl(Connection connection) {
-        return withoutUserInfo(connection.toString());
+        String url = connection.toString();
+        int hostPort = url.indexOf("@" + connection.getAddress().getHostAddress() + ":" + connection.getPort());
+        return hostPort < 0 ? url : "amqp://" + url.substring(hostPort + 1);
     }
 
     public static String getChannelName(Channel channel) {
-        return withoutUserInfo(channel.toString());
+        Connection connection = channel.getConnection();
+        return channel.toString().replace(connection.toString(), getServerUrl(connection));
     }
 
     public static String getQueueName(BObject service) {
@@ -135,17 +140,20 @@ public class RabbitMQObservabilityUtil {
         return tags;
     }
 
-    static Map<String, String> headersOf(AMQP.BasicProperties properties) {
-        Map<String, String> headers = new HashMap<>();
-        if (properties == null || properties.getHeaders() == null) {
-            return headers;
+    // The trace context headers of a received message; empty when it carries no traceparent.
+    static Map<String, String> traceHeadersOf(AMQP.BasicProperties properties) {
+        Map<String, String> traceHeaders = new HashMap<>();
+        Map<String, Object> headers = properties == null ? null : properties.getHeaders();
+        if (headers == null || headers.get(TRACEPARENT) == null) {
+            return traceHeaders;
         }
-        properties.getHeaders().forEach((key, value) -> {
+        for (String key : TRACE_HEADERS) {
+            Object value = headers.get(key);
             if (value != null) {
-                headers.put(key, headerValue(value));
+                traceHeaders.put(key, headerValue(value));
             }
-        });
-        return headers;
+        }
+        return traceHeaders;
     }
 
     static String queueTemplate(String queueName) {
@@ -156,10 +164,6 @@ public class RabbitMQObservabilityUtil {
     static String exchangeTemplate(String exchangeName) {
         return exchangeName == null || exchangeName.isEmpty()
                 ? RabbitMQObservabilityConstants.DEFAULT_EXCHANGE : exchangeName;
-    }
-
-    private static String withoutUserInfo(String url) {
-        return USER_INFO.matcher(url).replaceFirst("://");
     }
 
     // AMQP delivers string headers as LongString, whose toString is the text.

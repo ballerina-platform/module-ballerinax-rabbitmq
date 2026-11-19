@@ -36,18 +36,17 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import static io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityUtil.deliveryTags;
 import static io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityUtil.exchangeTemplate;
-import static io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityUtil.headersOf;
 import static io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityUtil.messageTags;
 import static io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityUtil.setQueueTags;
 import static io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityUtil.setStandardTags;
 import static io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityUtil.standardTags;
+import static io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityUtil.traceHeadersOf;
 
 /**
  * Providing tracing functionality to RabbitMQ. Trace context travels in the AMQP message headers.
@@ -171,7 +170,7 @@ public class RabbitMQTracingUtil {
                 trackHandler(channel, queueName, envelope.getDeliveryTag(), span);
             }
             span.addTags(deliveryTags(queueName, envelope, response.getProps(), response.getBody().length));
-            Map<String, String> traceContext = headersOf(response.getProps());
+            Map<String, String> traceContext = traceHeadersOf(response.getProps());
             if (!traceContext.isEmpty()) {
                 new RabbitMQSpanLink(traceContext, linkAttributes(queueName, envelope.getDeliveryTag())).addTo(span);
             }
@@ -198,8 +197,11 @@ public class RabbitMQTracingUtil {
                     RabbitMQObservabilityConstants.STAGE_SETTLED);
             observerContext.addTag(RabbitMQObservabilityConstants.TAG_EVENT_OUTCOME, outcome);
             BSpan span = observerContext.getSpan();
-            if (span != null && multiple) {
-                span.addTag(RabbitMQObservabilityConstants.TAG_EVENT_BATCH_SIZE, String.valueOf(settled.size()));
+            if (span != null) {
+                if (multiple) {
+                    // The traced messages it settles; messages without a trace context are not tracked.
+                    span.addTag(RabbitMQObservabilityConstants.TAG_EVENT_BATCH_SIZE, String.valueOf(settled.size()));
+                }
                 // No link to the handler of the settlement's own delivery: it is already the parent.
                 Map<String, String> parentContext = traceContextOfParent(observerContext);
                 settled.stream().filter(link -> !link.pointsTo(parentContext))
@@ -218,7 +220,7 @@ public class RabbitMQTracingUtil {
             return;
         }
         try {
-            Map<String, String> traceContext = headersOf(properties);
+            Map<String, String> traceContext = traceHeadersOf(properties);
             if (!traceContext.isEmpty()) {
                 trackDelivery(channel, envelope.getDeliveryTag(), new RabbitMQSpanLink(traceContext,
                         linkAttributes(queueName, envelope.getDeliveryTag())));
@@ -231,6 +233,16 @@ public class RabbitMQTracingUtil {
     static void trackHandler(Channel channel, String queueName, long deliveryTag, BSpan handlerSpan) {
         trackDelivery(channel, deliveryTag, new RabbitMQSpanLink(handlerSpan.extractContextAsHttpHeaders(),
                 linkAttributes(queueName, deliveryTag)));
+    }
+
+    // A rolled back transaction's settlements did not happen, so their deliveries are unsettled again.
+    static void restoreDeliveries(Channel channel, List<RabbitMQSpanLink> links) {
+        for (RabbitMQSpanLink link : links) {
+            long deliveryTag = link.deliveryTag();
+            if (deliveryTag >= 0) {
+                trackDelivery(channel, deliveryTag, link);
+            }
+        }
     }
 
     public static List<RabbitMQSpanLink> publishLinks(Environment environment, String exchangeName,
@@ -328,8 +340,11 @@ public class RabbitMQTracingUtil {
         ConcurrentSkipListMap<Long, RabbitMQSpanLink> deliveries =
                 DELIVERIES.computeIfAbsent(channel, c -> new ConcurrentSkipListMap<>());
         deliveries.put(deliveryTag, link);
-        while (deliveries.size() > RabbitMQObservabilityConstants.MAX_TRACKED_DELIVERIES) {
-            deliveries.pollFirstEntry();
+        // Delivery tags grow by one per delivery, so this keeps at most MAX_TRACKED_DELIVERIES entries.
+        long oldest = deliveryTag - RabbitMQObservabilityConstants.MAX_TRACKED_DELIVERIES;
+        Map.Entry<Long, RabbitMQSpanLink> first;
+        while ((first = deliveries.firstEntry()) != null && first.getKey() <= oldest) {
+            deliveries.remove(first.getKey(), first.getValue());
         }
     }
 
@@ -343,10 +358,21 @@ public class RabbitMQTracingUtil {
             RabbitMQSpanLink link = deliveries.remove(deliveryTag);
             return link == null ? List.of() : List.of(link);
         }
-        NavigableMap<Long, RabbitMQSpanLink> settled = deliveryTag == 0 ? deliveries
-                : deliveries.headMap(deliveryTag, true);
-        List<RabbitMQSpanLink> links = new ArrayList<>(settled.values());
-        settled.clear();
+        long upTo = deliveryTag;
+        if (deliveryTag == 0) {
+            Map.Entry<Long, RabbitMQSpanLink> last = deliveries.lastEntry();
+            if (last == null) {
+                return List.of();
+            }
+            upTo = last.getKey();
+        }
+        List<RabbitMQSpanLink> links = new ArrayList<>();
+        Map.Entry<Long, RabbitMQSpanLink> first;
+        while ((first = deliveries.firstEntry()) != null && first.getKey() <= upTo) {
+            if (deliveries.remove(first.getKey(), first.getValue())) {
+                links.add(first.getValue());
+            }
+        }
         return links;
     }
 

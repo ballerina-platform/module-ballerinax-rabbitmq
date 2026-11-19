@@ -32,7 +32,8 @@ import java.util.Map;
 
 /**
  * Traces the transaction of a channel: the commit or rollback is a span that links to the transaction's publishes
- * and settlements.
+ * and settlements. As in AMQP, a channel has one transaction at a time; strands that share a channel inside
+ * transactions share this state.
  *
  * @since 3.7.0
  */
@@ -89,13 +90,18 @@ public final class RabbitMQTransactionTrace {
                     : BSpan.start(service, operation, true);
             Map<String, String> tags = RabbitMQObservabilityUtil.standardTags(channel.getConnection(), type);
             tags.put(RabbitMQObservabilityConstants.TAG_EVENT_STAGE, RabbitMQObservabilityConstants.STAGE_SETTLED);
-            tags.put(RabbitMQObservabilityConstants.TAG_EVENT_OUTCOME, committed
-                    ? RabbitMQObservabilityConstants.OUTCOME_COMMITTED
-                    : RabbitMQObservabilityConstants.OUTCOME_ROLLED_BACK);
+            if (!failed) {
+                tags.put(RabbitMQObservabilityConstants.TAG_EVENT_OUTCOME, committed
+                        ? RabbitMQObservabilityConstants.OUTCOME_COMMITTED
+                        : RabbitMQObservabilityConstants.OUTCOME_ROLLED_BACK);
+            }
             tags.put(RabbitMQObservabilityConstants.TAG_EVENT_BATCH_SIZE, String.valueOf(operations));
             span.addTags(tags);
             links.forEach(link -> link.addTo(span));
             RabbitMQTracingUtil.finishSpan(span, failed);
+            if (!committed && !failed) {
+                RabbitMQTracingUtil.restoreDeliveries(channel, links);
+            }
         } catch (Throwable t) {
             log.debug("Failed to trace the end of a RabbitMQ transaction", t);
         } finally {

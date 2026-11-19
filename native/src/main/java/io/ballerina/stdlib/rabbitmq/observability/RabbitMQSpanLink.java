@@ -53,6 +53,12 @@ public final class RabbitMQSpanLink {
         }
     }
 
+    // The delivery tag of a link to a received message, or -1 for a link to a publish.
+    long deliveryTag() {
+        String position = attributes.get(RabbitMQObservabilityConstants.TAG_EVENT_POSITION);
+        return position == null ? -1 : Long.parseLong(position);
+    }
+
     boolean pointsTo(Map<String, String> otherContext) {
         String traceParent = traceContext.get(TRACEPARENT);
         String otherTraceParent = otherContext.get(TRACEPARENT);

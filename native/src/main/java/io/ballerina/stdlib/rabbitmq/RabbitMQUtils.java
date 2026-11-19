@@ -113,20 +113,36 @@ public class RabbitMQUtils {
         return arrayList;
     }
 
-    public static void handleTransaction(BObject objectValue, Environment environment,
-                                         Supplier<List<RabbitMQSpanLink>> links) {
-        if (!TransactionResourceManager.getInstance().isInTransaction()) {
-            return;
-        }
-        RabbitMQTransactionContext transactionContext =
-                (RabbitMQTransactionContext) objectValue.getNativeData(RabbitMQConstants.RABBITMQ_TRANSACTION_CONTEXT);
+    public static void handleTransaction(BObject objectValue) {
+        RabbitMQTransactionContext transactionContext = transactionContextOf(objectValue);
         if (transactionContext != null) {
             transactionContext.handleTransactionBlock();
+        }
+    }
+
+    public static void handleTransaction(BObject objectValue, Environment environment,
+                                         Supplier<List<RabbitMQSpanLink>> links) {
+        handleTransaction(objectValue);
+        linkToTransaction(objectValue, environment, links);
+    }
+
+    // Links a completed operation, a publish or a settlement, to the transaction's commit or rollback span.
+    public static void linkToTransaction(BObject objectValue, Environment environment,
+                                         Supplier<List<RabbitMQSpanLink>> links) {
+        RabbitMQTransactionContext transactionContext = transactionContextOf(objectValue);
+        if (transactionContext != null) {
             List<RabbitMQSpanLink> operationLinks = links.get();
             if (!operationLinks.isEmpty()) {
                 transactionContext.addSpanLinks(environment, operationLinks);
             }
         }
+    }
+
+    private static RabbitMQTransactionContext transactionContextOf(BObject objectValue) {
+        if (!TransactionResourceManager.getInstance().isInTransaction()) {
+            return null;
+        }
+        return (RabbitMQTransactionContext) objectValue.getNativeData(RabbitMQConstants.RABBITMQ_TRANSACTION_CONTEXT);
     }
 
     public static BMap<BString, Object> createAndPopulateMessageRecord(byte[] message, Envelope envelope,

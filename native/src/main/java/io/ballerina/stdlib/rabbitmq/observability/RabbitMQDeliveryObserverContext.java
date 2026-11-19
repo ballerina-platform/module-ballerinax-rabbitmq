@@ -55,7 +55,7 @@ public class RabbitMQDeliveryObserverContext extends RabbitMQObserverContext {
         this.channel = new WeakReference<>(channel);
         this.queueName = queueName;
         this.deliveryTag = envelope.getDeliveryTag();
-        Map<String, String> traceContext = RabbitMQObservabilityUtil.headersOf(properties);
+        Map<String, String> traceContext = RabbitMQObservabilityUtil.traceHeadersOf(properties);
         if (!traceContext.isEmpty()) {
             addProperty(ObservabilityConstants.PROPERTY_TRACE_PROPERTIES, traceContext);
         }
