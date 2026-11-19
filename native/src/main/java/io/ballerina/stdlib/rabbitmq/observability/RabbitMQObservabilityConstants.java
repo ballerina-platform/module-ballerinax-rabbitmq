@@ -67,6 +67,8 @@ public class RabbitMQObservabilityConstants {
     static final String TAG_EVENT_POSITION = "event.position";
     static final String TAG_EVENT_CREATED = "event.created";
     static final String TAG_EVENT_REDELIVERY_COUNT = "event.redelivery_count";
+    static final String TAG_EVENT_STAGE = "event.stage";
+    static final String TAG_EVENT_OUTCOME = "event.outcome";
     static final String TAG_EVENT_OUTCOME_REASON = "event.outcome_reason";
 
     static final String MODULE_RABBITMQ = "rabbitmq";
@@ -78,6 +80,10 @@ public class RabbitMQObservabilityConstants {
     static final String DEFAULT_EXCHANGE = "amq.default";
     static final String SERVER_NAMED_QUEUE_PREFIX = "amq.gen-";
     static final String EVENT_TYPE_MESSAGE = "message";
+    static final String STAGE_SETTLED = "settled";
+    public static final String OUTCOME_ACCEPTED = "accepted";
+    public static final String OUTCOME_RELEASED = "released";
+    public static final String OUTCOME_REJECTED = "rejected";
 
     public static final String ERROR_TYPE_CONNECTION = "connection";
     public static final String ERROR_TYPE_CONNECTION_CLOSE = "connection_close";

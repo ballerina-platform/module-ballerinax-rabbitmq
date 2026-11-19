@@ -145,6 +145,23 @@ public class RabbitMQTracingUtil {
         }
     }
 
+    public static void traceSettlement(Channel channel, String type, String outcome, Environment environment) {
+        ObserverContext observerContext = observedContext(environment);
+        if (observerContext == null) {
+            return;
+        }
+        setTags(observerContext, channel);
+        observerContext.addTag(RabbitMQObservabilityConstants.TAG_TYPE, type);
+        observerContext.addTag(RabbitMQObservabilityConstants.TAG_EVENT_STAGE,
+                RabbitMQObservabilityConstants.STAGE_SETTLED);
+        observerContext.addTag(RabbitMQObservabilityConstants.TAG_EVENT_OUTCOME, outcome);
+    }
+
+    public static String nackOutcome(boolean requeue) {
+        return requeue ? RabbitMQObservabilityConstants.OUTCOME_RELEASED
+                : RabbitMQObservabilityConstants.OUTCOME_REJECTED;
+    }
+
     // Null when tracing is off or the call is not observed, such as a Listener method. A new context is not created:
     // one without a span becomes the parent of the next observed call on the strand, which then fails to start.
     private static ObserverContext observedContext(Environment environment) {

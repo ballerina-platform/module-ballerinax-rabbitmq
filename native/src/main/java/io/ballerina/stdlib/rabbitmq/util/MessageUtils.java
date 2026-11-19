@@ -58,7 +58,8 @@ public class MessageUtils {
                 channel.basicAck(deliveryTag, multiple);
                 callerObj.addNativeData(RabbitMQConstants.ACK_STATUS, true);
                 RabbitMQMetricsUtil.reportAcknowledgement(channel, RabbitMQObservabilityConstants.ACK);
-                RabbitMQTracingUtil.traceResourceInvocation(channel, environment);
+                RabbitMQTracingUtil.traceSettlement(channel, RabbitMQObservabilityConstants.TYPE_LISTENER,
+                        RabbitMQObservabilityConstants.OUTCOME_ACCEPTED, environment);
                 if (TransactionResourceManager.getInstance().isInTransaction()) {
                     RabbitMQUtils.handleTransaction(callerObj);
                 }
@@ -87,7 +88,8 @@ public class MessageUtils {
                 channel.basicNack(deliveryTag, multiple, requeue);
                 callerObj.addNativeData(RabbitMQConstants.ACK_STATUS, true);
                 RabbitMQMetricsUtil.reportAcknowledgement(channel, RabbitMQObservabilityConstants.NACK);
-                RabbitMQTracingUtil.traceResourceInvocation(channel, environment);
+                RabbitMQTracingUtil.traceSettlement(channel, RabbitMQObservabilityConstants.TYPE_LISTENER,
+                        RabbitMQTracingUtil.nackOutcome(requeue), environment);
                 if (TransactionResourceManager.getInstance().isInTransaction()) {
                     RabbitMQUtils.handleTransaction(callerObj);
                 }

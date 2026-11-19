@@ -206,7 +206,8 @@ public class ChannelUtils {
         try {
             channel.basicAck(deliveryTag, multiple);
             RabbitMQMetricsUtil.reportAcknowledgement(channel, RabbitMQObservabilityConstants.ACK);
-            RabbitMQTracingUtil.traceResourceInvocation(channel, environment);
+            RabbitMQTracingUtil.traceSettlement(channel, RabbitMQObservabilityConstants.TYPE_CLIENT,
+                    RabbitMQObservabilityConstants.OUTCOME_ACCEPTED, environment);
         } catch (IOException | ShutdownSignalException exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_ACK);
             return RabbitMQUtils.returnErrorValue(RabbitMQConstants.ACK_ERROR + exception.getMessage());
@@ -223,7 +224,8 @@ public class ChannelUtils {
         try {
             channel.basicNack(deliveryTag, multiple, requeue);
             RabbitMQMetricsUtil.reportAcknowledgement(channel, RabbitMQObservabilityConstants.NACK);
-            RabbitMQTracingUtil.traceResourceInvocation(channel, environment);
+            RabbitMQTracingUtil.traceSettlement(channel, RabbitMQObservabilityConstants.TYPE_CLIENT,
+                    RabbitMQTracingUtil.nackOutcome(requeue), environment);
         } catch (IOException | ShutdownSignalException exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_NACK);
             return RabbitMQUtils.returnErrorValue(RabbitMQConstants.NACK_ERROR
