@@ -36,7 +36,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
@@ -45,6 +47,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.TimeoutException;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -148,7 +151,7 @@ public class ConnectionUtils {
             }
             RabbitMQMetricsUtil.reportNewConnection(connection);
             return connection;
-        } catch (Exception exception) {
+        } catch (IOException | GeneralSecurityException | TimeoutException | RuntimeException exception) {
             RabbitMQMetricsUtil.reportError(RabbitMQObservabilityConstants.ERROR_TYPE_CONNECTION);
             return RabbitMQUtils.returnErrorValue(RabbitMQConstants.CREATE_CONNECTION_ERROR
                     + exception.getMessage());
@@ -160,7 +163,8 @@ public class ConnectionUtils {
         return (valueInSeconds.multiply(MILLISECOND_MULTIPLIER)).intValue();
     }
 
-    private static SSLContext getSslContext(BMap<BString, ?> secureSocket) throws Exception {
+    private static SSLContext getSslContext(BMap<BString, ?> secureSocket)
+            throws IOException, GeneralSecurityException {
         // protocol
         String protocol = null;
         if (secureSocket.containsKey(RabbitMQConstants.PROTOCOL)) {
@@ -215,7 +219,8 @@ public class ConnectionUtils {
         return null;
     }
 
-    private static TrustManagerFactory getTrustManagerFactory(BString cert) throws Exception {
+    private static TrustManagerFactory getTrustManagerFactory(BString cert)
+            throws IOException, GeneralSecurityException {
         Object publicKeyMap = Decode.decodeRsaPublicKeyFromCertFile(cert);
         if (publicKeyMap instanceof BMap) {
             X509Certificate x509Certificate = (X509Certificate) ((BMap<BString, Object>) publicKeyMap).getNativeData(
@@ -227,12 +232,13 @@ public class ConnectionUtils {
             tmf.init(ts);
             return tmf;
         } else {
-            throw new Exception("Failed to get the public key from Crypto API. " +
+            throw new GeneralSecurityException("Failed to get the public key from Crypto API. " +
                     ((BError) publicKeyMap).getErrorMessage().getValue());
         }
     }
 
-    private static TrustManagerFactory getTrustManagerFactory(BMap<BString, BString> trustStore) throws Exception {
+    private static TrustManagerFactory getTrustManagerFactory(BMap<BString, BString> trustStore)
+            throws IOException, GeneralSecurityException {
         BString trustStorePath = trustStore.getStringValue(RabbitMQConstants.KEY_STORE_PATH);
         BString trustStorePassword = trustStore.getStringValue(RabbitMQConstants.KEY_STORE_PASS);
         KeyStore ts = getKeyStore(trustStorePath, trustStorePassword);
@@ -241,7 +247,8 @@ public class ConnectionUtils {
         return tmf;
     }
 
-    private static KeyManagerFactory getKeyManagerFactory(BMap<BString, BString> keyStore) throws Exception {
+    private static KeyManagerFactory getKeyManagerFactory(BMap<BString, BString> keyStore)
+            throws IOException, GeneralSecurityException {
         BString keyStorePath = keyStore.getStringValue(RabbitMQConstants.KEY_STORE_PATH);
         BString keyStorePassword = keyStore.getStringValue(RabbitMQConstants.KEY_STORE_PASS);
         KeyStore ks = getKeyStore(keyStorePath, keyStorePassword);
@@ -251,7 +258,7 @@ public class ConnectionUtils {
     }
 
     private static KeyManagerFactory getKeyManagerFactory(BString certFile, BString keyFile, BString keyPassword)
-            throws Exception {
+            throws IOException, GeneralSecurityException {
         Object publicKey = Decode.decodeRsaPublicKeyFromCertFile(certFile);
         if (publicKey instanceof BMap) {
             X509Certificate publicCert = (X509Certificate) ((BMap<BString, Object>) publicKey).getNativeData(
@@ -268,16 +275,17 @@ public class ConnectionUtils {
                 kmf.init(ks, "".toCharArray());
                 return kmf;
             } else {
-                throw new Exception("Failed to get the private key from Crypto API. " +
+                throw new GeneralSecurityException("Failed to get the private key from Crypto API. " +
                         ((BError) privateKeyMap).getErrorMessage().getValue());
             }
         } else {
-            throw new Exception("Failed to get the public key from Crypto API. " +
+            throw new GeneralSecurityException("Failed to get the public key from Crypto API. " +
                     ((BError) publicKey).getErrorMessage().getValue());
         }
     }
 
-    private static KeyStore getKeyStore(BString path, BString password) throws Exception {
+    private static KeyStore getKeyStore(BString path, BString password)
+            throws IOException, GeneralSecurityException {
         try (FileInputStream is = new FileInputStream(path.getValue())) {
             char[] passphrase = password.getValue().toCharArray();
             KeyStore ks = KeyStore.getInstance(RabbitMQConstants.PKCS12);
@@ -287,7 +295,7 @@ public class ConnectionUtils {
     }
 
     private static SSLContext buildSslContext(KeyManager[] keyManagers, TrustManager[] trustManagers,
-                                              String protocol) throws Exception {
+                                              String protocol) throws GeneralSecurityException {
         SSLContext sslContext =
                 SSLContext.getInstance(Objects.requireNonNullElse(protocol, RabbitMQConstants.DEFAULT_SSL_PROTOCOL));
         sslContext.init(keyManagers, trustManagers, new SecureRandom());
