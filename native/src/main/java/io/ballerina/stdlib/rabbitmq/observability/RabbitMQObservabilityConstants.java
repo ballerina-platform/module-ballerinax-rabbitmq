@@ -81,7 +81,10 @@ public class RabbitMQObservabilityConstants {
     static final String DEFAULT_EXCHANGE = "amq.default";
     static final String SERVER_NAMED_QUEUE_PREFIX = "amq.gen-";
     static final String OBJECT_LISTENER = "Listener";
+    static final String OBJECT_TRANSACTION = "Transaction";
     static final String ACTION_REPLY = "reply";
+    static final String ACTION_COMMIT = "commit";
+    static final String ACTION_ROLLBACK = "rollback";
     static final int MAX_SPAN_LINKS = 128;
     static final int MAX_TRACKED_DELIVERIES = 10000;
     static final String EVENT_TYPE_MESSAGE = "message";
@@ -89,6 +92,8 @@ public class RabbitMQObservabilityConstants {
     public static final String OUTCOME_ACCEPTED = "accepted";
     public static final String OUTCOME_RELEASED = "released";
     public static final String OUTCOME_REJECTED = "rejected";
+    static final String OUTCOME_COMMITTED = "committed";
+    static final String OUTCOME_ROLLED_BACK = "rolled_back";
 
     public static final String ERROR_TYPE_CONNECTION = "connection";
     public static final String ERROR_TYPE_CONNECTION_CLOSE = "connection_close";

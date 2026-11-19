@@ -33,7 +33,6 @@ import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BTypedesc;
-import io.ballerina.runtime.transactions.TransactionResourceManager;
 import io.ballerina.stdlib.rabbitmq.RabbitMQConstants;
 import io.ballerina.stdlib.rabbitmq.RabbitMQTransactionContext;
 import io.ballerina.stdlib.rabbitmq.RabbitMQUtils;
@@ -76,7 +75,8 @@ public class ChannelUtils {
                 channelObj.addNativeData(CONSTRAINT_VALIDATION,
                         connectionConfig.getBooleanValue(StringUtils.fromString(CONSTRAINT_VALIDATION)));
                 channelObj.addNativeData(RabbitMQConstants.RABBITMQ_TRANSACTION_CONTEXT,
-                        new RabbitMQTransactionContext(channel, connectorId));
+                        new RabbitMQTransactionContext(channel, connectorId,
+                                RabbitMQObservabilityConstants.TYPE_CLIENT));
                 return null;
             } catch (IOException exception) {
                 RabbitMQMetricsUtil.reportError(connection, RabbitMQObservabilityConstants.ERROR_TYPE_CHANNEL_CREATE);
@@ -339,9 +339,9 @@ public class ChannelUtils {
             if (!headers.isEmpty()) {
                 builder.headers(headers);
             }
-            if (TransactionResourceManager.getInstance().isInTransaction()) {
-                RabbitMQUtils.handleTransaction(channelObj);
-            }
+            String exchange = defaultExchangeName;
+            RabbitMQUtils.handleTransaction(channelObj, environment,
+                    () -> RabbitMQTracingUtil.publishLinks(environment, exchange, routingKey.getValue()));
             AMQP.BasicProperties basicProps = builder.build();
             byte[] messageContentBytes = messageContent.getBytes();
             channel.basicPublish(defaultExchangeName, routingKey.getValue(), basicProps, messageContentBytes);

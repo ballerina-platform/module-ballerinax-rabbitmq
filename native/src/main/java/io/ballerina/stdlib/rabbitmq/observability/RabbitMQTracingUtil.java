@@ -233,6 +233,23 @@ public class RabbitMQTracingUtil {
                 linkAttributes(queueName, deliveryTag)));
     }
 
+    public static List<RabbitMQSpanLink> publishLinks(Environment environment, String exchangeName,
+                                                      String routingKey) {
+        try {
+            BSpan span = spanOf(observedContext(environment));
+            if (span == null) {
+                return List.of();
+            }
+            Map<String, String> attributes = new HashMap<>();
+            attributes.put(RabbitMQObservabilityConstants.TAG_DESTINATION_NAME, exchangeTemplate(exchangeName));
+            attributes.put(RabbitMQObservabilityConstants.TAG_EVENT_KEY, routingKey);
+            return List.of(new RabbitMQSpanLink(span.extractContextAsHttpHeaders(), attributes));
+        } catch (Throwable t) {
+            log.debug("Failed to link a RabbitMQ publish to its transaction", t);
+            return List.of();
+        }
+    }
+
     // The reply is published after onRequest returns, so this span starts after its parent ends.
     public static BSpan startReplySpan(ObserverContext handlerContext, Channel channel, String exchangeName,
                                        String replyTo, String correlationId, int size) {

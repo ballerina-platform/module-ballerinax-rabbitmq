@@ -77,7 +77,8 @@ public class ListenerUtils {
             }
             String connectorId = listenerBObject.getStringValue(RabbitMQConstants.CONNECTOR_ID).getValue();
             listenerBObject.addNativeData(RabbitMQConstants.RABBITMQ_TRANSACTION_CONTEXT,
-                    new RabbitMQTransactionContext(channel, connectorId));
+                    new RabbitMQTransactionContext(channel, connectorId,
+                            RabbitMQObservabilityConstants.TYPE_LISTENER));
             listenerBObject.addNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT, channel);
             listenerBObject.addNativeData(RabbitMQConstants.CONSUMER_SERVICES, services);
             listenerBObject.addNativeData(RabbitMQConstants.STARTED_SERVICES, startedServices);
