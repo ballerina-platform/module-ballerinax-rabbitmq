@@ -34,6 +34,11 @@ dependencies {
     implementation group: 'io.ballerina.stdlib', name: 'crypto-native', version: "${stdlibCryptoVersion}"
     implementation group: 'io.ballerina.stdlib', name: 'constraint-native', version: "${stdlibConstraintVersion}"
     compileOnly group: 'io.opentelemetry', name: 'opentelemetry-api', version: "${openTelemetryVersion}"
+    testImplementation group: 'org.testng', name: 'testng', version: "${testngVersion}"
+}
+
+test {
+    useTestNG()
 }
 
 checkstyle {
@@ -48,6 +53,7 @@ tasks.withType(Checkstyle) {
 }
 
 checkstyleMain.dependsOn(":checkstyle:downloadCheckstyleRuleFiles")
+checkstyleTest.dependsOn(":checkstyle:downloadCheckstyleRuleFiles")
 
 spotbugsMain {
     def classLoader = plugins["com.github.spotbugs"].class.classLoader

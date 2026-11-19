@@ -29,9 +29,11 @@ import io.ballerina.stdlib.rabbitmq.RabbitMQConstants;
 import io.ballerina.stdlib.rabbitmq.util.ModuleUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
  * Util class for Observability-related tasks for RabbitMQ.
@@ -42,18 +44,23 @@ public class RabbitMQObservabilityUtil {
 
     private static final String TRACEPARENT = "traceparent";
     private static final List<String> TRACE_HEADERS = List.of(TRACEPARENT, "tracestate", "baggage");
+    // The client library does not expose a connection's virtual host, so the connector records it.
+    private static final Map<Connection, String> VIRTUAL_HOSTS = Collections.synchronizedMap(new WeakHashMap<>());
 
-    // The client library puts the raw user name in these: amqp://user@host:port/vhost. It can hold any character, so
-    // the URL is rebuilt from the host and port that follow it.
+    public static void registerVirtualHost(Connection connection, String virtualHost) {
+        VIRTUAL_HOSTS.put(connection, virtualHost);
+    }
+
+    // Built from the connection's fields, as the client library formats them: its string form also holds the raw
+    // user name (amqp://user@host:port/vhost).
     public static String getServerUrl(Connection connection) {
-        String url = connection.toString();
-        int hostPort = url.indexOf("@" + connection.getAddress().getHostAddress() + ":" + connection.getPort());
-        return hostPort < 0 ? url : "amqp://" + url.substring(hostPort + 1);
+        String virtualHost = VIRTUAL_HOSTS.getOrDefault(connection, "/");
+        return "amqp://" + connection.getAddress().getHostAddress() + ":" + connection.getPort()
+                + ("/".equals(virtualHost) ? virtualHost : "/" + virtualHost);
     }
 
     public static String getChannelName(Channel channel) {
-        Connection connection = channel.getConnection();
-        return channel.toString().replace(connection.toString(), getServerUrl(connection));
+        return "AMQChannel(" + getServerUrl(channel.getConnection()) + "," + channel.getChannelNumber() + ")";
     }
 
     public static String getQueueName(BObject service) {

@@ -32,6 +32,7 @@ import io.ballerina.stdlib.rabbitmq.RabbitMQConstants;
 import io.ballerina.stdlib.rabbitmq.RabbitMQUtils;
 import io.ballerina.stdlib.rabbitmq.observability.RabbitMQMetricsUtil;
 import io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityConstants;
+import io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -149,6 +150,7 @@ public class ConnectionUtils {
             } else {
                 connection = connectionFactory.newConnection();
             }
+            RabbitMQObservabilityUtil.registerVirtualHost(connection, connectionFactory.getVirtualHost());
             RabbitMQMetricsUtil.reportNewConnection(connection);
             return connection;
         } catch (IOException | GeneralSecurityException | TimeoutException | RuntimeException exception) {

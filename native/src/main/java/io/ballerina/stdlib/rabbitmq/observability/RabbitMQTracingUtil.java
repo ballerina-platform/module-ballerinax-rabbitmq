@@ -39,6 +39,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityUtil.deliveryTags;
 import static io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityUtil.exchangeTemplate;
@@ -57,9 +59,8 @@ public class RabbitMQTracingUtil {
 
     private static final Logger log = LoggerFactory.getLogger(RabbitMQTracingUtil.class);
 
-    // Unsettled deliveries per channel, by delivery tag, for the links of a multiple ack or nack.
-    private static final Map<Channel, ConcurrentSkipListMap<Long, RabbitMQSpanLink>> DELIVERIES =
-            Collections.synchronizedMap(new WeakHashMap<>());
+    // Unsettled deliveries per channel, for the links of a settlement.
+    private static final Map<Channel, Deliveries> DELIVERIES = Collections.synchronizedMap(new WeakHashMap<>());
     private static final Set<Channel> SHUTDOWN_LISTENED = Collections.newSetFromMap(
             Collections.synchronizedMap(new WeakHashMap<>()));
 
@@ -185,6 +186,7 @@ public class RabbitMQTracingUtil {
         if (!ObserveUtils.isTracingEnabled()) {
             return List.of();
         }
+        Deliveries deliveries = DELIVERIES.get(channel);
         List<RabbitMQSpanLink> settled = settleDeliveries(channel, deliveryTag, multiple);
         try {
             ObserverContext observerContext = observedContext(environment);
@@ -198,8 +200,9 @@ public class RabbitMQTracingUtil {
             observerContext.addTag(RabbitMQObservabilityConstants.TAG_EVENT_OUTCOME, outcome);
             BSpan span = observerContext.getSpan();
             if (span != null) {
-                if (multiple) {
-                    // The traced messages it settles; messages without a trace context are not tracked.
+                // The traced messages it settles; messages without a trace context are not tracked, and the count is
+                // left out when the settlement covers a delivery dropped at the tracking limit.
+                if (multiple && (deliveries == null || deliveries.isComplete(deliveryTag))) {
                     span.addTag(RabbitMQObservabilityConstants.TAG_EVENT_BATCH_SIZE, String.valueOf(settled.size()));
                 }
                 // No link to the handler of the settlement's own delivery: it is already the parent.
@@ -237,11 +240,15 @@ public class RabbitMQTracingUtil {
 
     // A rolled back transaction's settlements did not happen, so their deliveries are unsettled again.
     static void restoreDeliveries(Channel channel, List<RabbitMQSpanLink> links) {
-        for (RabbitMQSpanLink link : links) {
-            long deliveryTag = link.deliveryTag();
-            if (deliveryTag >= 0) {
-                trackDelivery(channel, deliveryTag, link);
+        try {
+            for (RabbitMQSpanLink link : links) {
+                long deliveryTag = link.deliveryTag();
+                if (deliveryTag >= 0) {
+                    trackDelivery(channel, deliveryTag, link);
+                }
             }
+        } catch (Throwable t) {
+            log.debug("Failed to restore the deliveries of a rolled back RabbitMQ transaction", t);
         }
     }
 
@@ -337,43 +344,12 @@ public class RabbitMQTracingUtil {
         if (SHUTDOWN_LISTENED.add(channel)) {
             channel.addShutdownListener(cause -> DELIVERIES.remove(channel));
         }
-        ConcurrentSkipListMap<Long, RabbitMQSpanLink> deliveries =
-                DELIVERIES.computeIfAbsent(channel, c -> new ConcurrentSkipListMap<>());
-        deliveries.put(deliveryTag, link);
-        // Delivery tags grow by one per delivery, so this keeps at most MAX_TRACKED_DELIVERIES entries.
-        long oldest = deliveryTag - RabbitMQObservabilityConstants.MAX_TRACKED_DELIVERIES;
-        Map.Entry<Long, RabbitMQSpanLink> first;
-        while ((first = deliveries.firstEntry()) != null && first.getKey() <= oldest) {
-            deliveries.remove(first.getKey(), first.getValue());
-        }
+        DELIVERIES.computeIfAbsent(channel, c -> new Deliveries()).track(deliveryTag, link);
     }
 
-    // A multiple settlement covers every delivery up to its tag; with tag 0, all of them.
-    private static List<RabbitMQSpanLink> settleDeliveries(Channel channel, long deliveryTag, boolean multiple) {
-        ConcurrentSkipListMap<Long, RabbitMQSpanLink> deliveries = DELIVERIES.get(channel);
-        if (deliveries == null) {
-            return List.of();
-        }
-        if (!multiple) {
-            RabbitMQSpanLink link = deliveries.remove(deliveryTag);
-            return link == null ? List.of() : List.of(link);
-        }
-        long upTo = deliveryTag;
-        if (deliveryTag == 0) {
-            Map.Entry<Long, RabbitMQSpanLink> last = deliveries.lastEntry();
-            if (last == null) {
-                return List.of();
-            }
-            upTo = last.getKey();
-        }
-        List<RabbitMQSpanLink> links = new ArrayList<>();
-        Map.Entry<Long, RabbitMQSpanLink> first;
-        while ((first = deliveries.firstEntry()) != null && first.getKey() <= upTo) {
-            if (deliveries.remove(first.getKey(), first.getValue())) {
-                links.add(first.getValue());
-            }
-        }
-        return links;
+    static List<RabbitMQSpanLink> settleDeliveries(Channel channel, long deliveryTag, boolean multiple) {
+        Deliveries deliveries = DELIVERIES.get(channel);
+        return deliveries == null ? List.of() : deliveries.settle(deliveryTag, multiple);
     }
 
     private static void setTags(ObserverContext observerContext, Channel channel) {
@@ -383,5 +359,69 @@ public class RabbitMQTracingUtil {
     }
 
     private RabbitMQTracingUtil() {
+    }
+
+    /**
+     * The unsettled deliveries of one channel, by delivery tag. The count is kept separately because the size of a
+     * {@link ConcurrentSkipListMap} is computed by walking it.
+     */
+    static final class Deliveries {
+
+        private final ConcurrentSkipListMap<Long, RabbitMQSpanLink> links = new ConcurrentSkipListMap<>();
+        private final AtomicInteger size = new AtomicInteger();
+        private final AtomicLong evictedUpTo = new AtomicLong(-1);
+
+        void track(long deliveryTag, RabbitMQSpanLink link) {
+            if (links.put(deliveryTag, link) == null) {
+                size.incrementAndGet();
+            }
+            while (size.get() > RabbitMQObservabilityConstants.MAX_TRACKED_DELIVERIES) {
+                Map.Entry<Long, RabbitMQSpanLink> oldest = links.pollFirstEntry();
+                if (oldest == null) {
+                    break;
+                }
+                size.decrementAndGet();
+                evictedUpTo.accumulateAndGet(oldest.getKey(), Math::max);
+            }
+        }
+
+        // A multiple settlement covers every delivery up to its tag; with tag 0, all of them.
+        List<RabbitMQSpanLink> settle(long deliveryTag, boolean multiple) {
+            if (!multiple) {
+                RabbitMQSpanLink link = links.remove(deliveryTag);
+                if (link == null) {
+                    return List.of();
+                }
+                size.decrementAndGet();
+                return List.of(link);
+            }
+            long upTo = deliveryTag;
+            if (deliveryTag == 0) {
+                Map.Entry<Long, RabbitMQSpanLink> last = links.lastEntry();
+                if (last == null) {
+                    return List.of();
+                }
+                upTo = last.getKey();
+            }
+            List<RabbitMQSpanLink> settled = new ArrayList<>();
+            Map.Entry<Long, RabbitMQSpanLink> first;
+            while ((first = links.firstEntry()) != null && first.getKey() <= upTo) {
+                if (links.remove(first.getKey(), first.getValue())) {
+                    size.decrementAndGet();
+                    settled.add(first.getValue());
+                }
+            }
+            return settled;
+        }
+
+        // Whether a multiple settlement up to this tag covers no delivery dropped at the tracking limit.
+        boolean isComplete(long deliveryTag) {
+            long evicted = evictedUpTo.get();
+            return evicted < 0 || (deliveryTag != 0 && evicted > deliveryTag);
+        }
+
+        int size() {
+            return size.get();
+        }
     }
 }

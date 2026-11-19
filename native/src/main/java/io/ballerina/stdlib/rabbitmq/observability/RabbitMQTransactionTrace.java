@@ -43,6 +43,8 @@ public final class RabbitMQTransactionTrace {
 
     private final String type;
     private final List<RabbitMQSpanLink> links = new ArrayList<>();
+    // The settlements of the transaction, kept apart from the span links so that a rollback restores all of them.
+    private final List<RabbitMQSpanLink> settled = new ArrayList<>();
     private int operations = 0;
     private boolean started = false;
     private BSpan parentSpan = null;
@@ -65,51 +67,62 @@ public final class RabbitMQTransactionTrace {
                 serviceName = parent != null ? parent.getServiceName()
                         : observerContext != null ? observerContext.getServiceName() : null;
             }
-            for (RabbitMQSpanLink link : operationLinks) {
-                operations++;
-                if (links.size() < RabbitMQObservabilityConstants.MAX_SPAN_LINKS) {
-                    links.add(link);
-                }
-            }
+            recordLinks(operationLinks);
         } catch (Throwable t) {
             log.debug("Failed to trace an operation of a RabbitMQ transaction", t);
         }
     }
 
+    synchronized void recordLinks(List<RabbitMQSpanLink> operationLinks) {
+        for (RabbitMQSpanLink link : operationLinks) {
+            operations++;
+            if (links.size() < RabbitMQObservabilityConstants.MAX_SPAN_LINKS) {
+                links.add(link);
+            }
+            if (link.deliveryTag() >= 0 && settled.size() < RabbitMQObservabilityConstants.MAX_TRACKED_DELIVERIES) {
+                settled.add(link);
+            }
+        }
+    }
+
     public synchronized void finish(Channel channel, boolean committed, boolean failed) {
         try {
-            if (!started) {
-                return;
-            }
-            String action = committed ? RabbitMQObservabilityConstants.ACTION_COMMIT
-                    : RabbitMQObservabilityConstants.ACTION_ROLLBACK;
-            String operation = RabbitMQObservabilityUtil.operationName(
-                    RabbitMQObservabilityConstants.OBJECT_TRANSACTION, action);
-            String service = serviceName != null ? serviceName : RabbitMQObservabilityConstants.MODULE_RABBITMQ;
-            BSpan span = parentSpan != null ? BSpan.start(parentSpan, service, operation, true)
-                    : BSpan.start(service, operation, true);
-            Map<String, String> tags = RabbitMQObservabilityUtil.standardTags(channel.getConnection(), type);
-            tags.put(RabbitMQObservabilityConstants.TAG_EVENT_STAGE, RabbitMQObservabilityConstants.STAGE_SETTLED);
-            if (!failed) {
-                tags.put(RabbitMQObservabilityConstants.TAG_EVENT_OUTCOME, committed
-                        ? RabbitMQObservabilityConstants.OUTCOME_COMMITTED
-                        : RabbitMQObservabilityConstants.OUTCOME_ROLLED_BACK);
-            }
-            tags.put(RabbitMQObservabilityConstants.TAG_EVENT_BATCH_SIZE, String.valueOf(operations));
-            span.addTags(tags);
-            links.forEach(link -> link.addTo(span));
-            RabbitMQTracingUtil.finishSpan(span, failed);
-            if (!committed && !failed) {
-                RabbitMQTracingUtil.restoreDeliveries(channel, links);
+            if (started) {
+                traceEnd(channel, committed, failed);
             }
         } catch (Throwable t) {
             log.debug("Failed to trace the end of a RabbitMQ transaction", t);
         } finally {
+            if (!committed && !failed) {
+                RabbitMQTracingUtil.restoreDeliveries(channel, settled);
+            }
             links.clear();
+            settled.clear();
             operations = 0;
             started = false;
             parentSpan = null;
             serviceName = null;
         }
+    }
+
+    private void traceEnd(Channel channel, boolean committed, boolean failed) {
+        String action = committed ? RabbitMQObservabilityConstants.ACTION_COMMIT
+                : RabbitMQObservabilityConstants.ACTION_ROLLBACK;
+        String operation = RabbitMQObservabilityUtil.operationName(
+                RabbitMQObservabilityConstants.OBJECT_TRANSACTION, action);
+        String service = serviceName != null ? serviceName : RabbitMQObservabilityConstants.MODULE_RABBITMQ;
+        BSpan span = parentSpan != null ? BSpan.start(parentSpan, service, operation, true)
+                : BSpan.start(service, operation, true);
+        Map<String, String> tags = RabbitMQObservabilityUtil.standardTags(channel.getConnection(), type);
+        tags.put(RabbitMQObservabilityConstants.TAG_EVENT_STAGE, RabbitMQObservabilityConstants.STAGE_SETTLED);
+        if (!failed) {
+            tags.put(RabbitMQObservabilityConstants.TAG_EVENT_OUTCOME, committed
+                    ? RabbitMQObservabilityConstants.OUTCOME_COMMITTED
+                    : RabbitMQObservabilityConstants.OUTCOME_ROLLED_BACK);
+        }
+        tags.put(RabbitMQObservabilityConstants.TAG_EVENT_BATCH_SIZE, String.valueOf(operations));
+        span.addTags(tags);
+        links.forEach(link -> link.addTo(span));
+        RabbitMQTracingUtil.finishSpan(span, failed);
     }
 }
