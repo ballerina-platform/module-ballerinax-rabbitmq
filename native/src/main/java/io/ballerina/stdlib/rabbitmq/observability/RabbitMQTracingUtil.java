@@ -96,7 +96,8 @@ public class RabbitMQTracingUtil {
 
     private static void setTags(ObserverContext observerContext, Channel channel) {
         setTags(observerContext, channel.getConnection());
-        observerContext.addTag(RabbitMQObservabilityConstants.TAG_CHANNEL, channel.toString());
+        observerContext.addTag(RabbitMQObservabilityConstants.TAG_CHANNEL,
+                RabbitMQObservabilityUtil.getChannelName(channel));
     }
 
     private RabbitMQTracingUtil() {

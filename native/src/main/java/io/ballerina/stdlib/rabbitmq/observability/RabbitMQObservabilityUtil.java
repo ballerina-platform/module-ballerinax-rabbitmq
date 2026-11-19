@@ -18,9 +18,12 @@
 
 package io.ballerina.stdlib.rabbitmq.observability;
 
+import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.stdlib.rabbitmq.RabbitMQConstants;
+
+import java.util.regex.Pattern;
 
 /**
  * Util class for Observability-related tasks for RabbitMQ.
@@ -29,11 +32,22 @@ import io.ballerina.stdlib.rabbitmq.RabbitMQConstants;
  */
 public class RabbitMQObservabilityUtil {
 
+    private static final Pattern USER_INFO = Pattern.compile("://[^@/]*@");
+
+    // The client library puts the user name in these: amqp://user@host:port/vhost.
     public static String getServerUrl(Connection connection) {
-        return connection.toString();
+        return withoutUserInfo(connection.toString());
+    }
+
+    public static String getChannelName(Channel channel) {
+        return withoutUserInfo(channel.toString());
     }
 
     public static String getQueueName(BObject service) {
         return (String) service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue());
+    }
+
+    private static String withoutUserInfo(String url) {
+        return USER_INFO.matcher(url).replaceFirst("://");
     }
 }
