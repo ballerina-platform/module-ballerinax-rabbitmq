@@ -22,9 +22,11 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Envelope;
+import io.ballerina.runtime.api.Module;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.observability.ObserverContext;
 import io.ballerina.stdlib.rabbitmq.RabbitMQConstants;
+import io.ballerina.stdlib.rabbitmq.util.ModuleUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -51,6 +53,14 @@ public class RabbitMQObservabilityUtil {
 
     public static String getQueueName(BObject service) {
         return (String) service.getNativeData(RabbitMQConstants.QUEUE_NAME.getValue());
+    }
+
+    // Named like the spans the runtime starts for the module's calls: <org>/<module>/<object>:<action>.
+    static String operationName(String objectName, String action) {
+        Module module = ModuleUtils.getModule();
+        String prefix = module == null ? RabbitMQObservabilityConstants.MODULE_RABBITMQ
+                : module.getOrg() + "/" + module.getName();
+        return prefix + "/" + objectName + ":" + action;
     }
 
     static void setStandardTags(ObserverContext observerContext, Connection connection, String type) {

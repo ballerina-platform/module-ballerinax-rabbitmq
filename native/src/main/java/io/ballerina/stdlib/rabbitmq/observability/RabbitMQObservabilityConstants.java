@@ -79,6 +79,8 @@ public class RabbitMQObservabilityConstants {
     static final String DESTINATION_KIND_QUEUE = "queue";
     static final String DEFAULT_EXCHANGE = "amq.default";
     static final String SERVER_NAMED_QUEUE_PREFIX = "amq.gen-";
+    static final String OBJECT_LISTENER = "Listener";
+    static final String ACTION_REPLY = "reply";
     static final String EVENT_TYPE_MESSAGE = "message";
     static final String STAGE_SETTLED = "settled";
     public static final String OUTCOME_ACCEPTED = "accepted";

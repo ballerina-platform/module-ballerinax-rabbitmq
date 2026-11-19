@@ -22,9 +22,11 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Envelope;
 import com.rabbitmq.client.GetResponse;
 import io.ballerina.runtime.api.Environment;
+import io.ballerina.runtime.observability.ObservabilityConstants;
 import io.ballerina.runtime.observability.ObserveUtils;
 import io.ballerina.runtime.observability.ObserverContext;
 import io.ballerina.runtime.observability.tracer.BSpan;
+import io.opentelemetry.api.trace.StatusCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +39,7 @@ import static io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityUt
 import static io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityUtil.messageTags;
 import static io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityUtil.setQueueTags;
 import static io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityUtil.setStandardTags;
+import static io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityUtil.standardTags;
 
 /**
  * Providing tracing functionality to RabbitMQ. Trace context travels in the AMQP message headers.
@@ -121,6 +124,18 @@ public class RabbitMQTracingUtil {
         }
     }
 
+    public static Map<String, Object> traceContextOf(BSpan span) {
+        Map<String, Object> headers = new HashMap<>();
+        try {
+            if (span != null) {
+                headers.putAll(span.extractContextAsHttpHeaders());
+            }
+        } catch (Throwable t) {
+            log.debug("Failed to read the trace context of a RabbitMQ span", t);
+        }
+        return headers;
+    }
+
     public static void traceClientReceive(Environment environment, Channel channel, String queueName,
                                           GetResponse response) {
         try {
@@ -155,6 +170,49 @@ public class RabbitMQTracingUtil {
         observerContext.addTag(RabbitMQObservabilityConstants.TAG_EVENT_STAGE,
                 RabbitMQObservabilityConstants.STAGE_SETTLED);
         observerContext.addTag(RabbitMQObservabilityConstants.TAG_EVENT_OUTCOME, outcome);
+    }
+
+    // The reply is published after onRequest returns, so this span starts after its parent ends.
+    public static BSpan startReplySpan(ObserverContext handlerContext, Channel channel, String exchangeName,
+                                       String replyTo, String correlationId, int size) {
+        try {
+            BSpan parent = ObserveUtils.isTracingEnabled() ? spanOf(handlerContext) : null;
+            if (parent == null) {
+                return null;
+            }
+            BSpan span = BSpan.start(parent, handlerContext.getServiceName(),
+                    RabbitMQObservabilityUtil.operationName(RabbitMQObservabilityConstants.OBJECT_LISTENER,
+                            RabbitMQObservabilityConstants.ACTION_REPLY), true);
+            String exchange = exchangeTemplate(exchangeName);
+            Map<String, String> tags = standardTags(channel.getConnection(),
+                    RabbitMQObservabilityConstants.TYPE_LISTENER);
+            tags.putAll(messageTags(exchange, replyTo, correlationId, size));
+            tags.put(RabbitMQObservabilityConstants.TAG_EXCHANGE, exchangeName);
+            tags.put(RabbitMQObservabilityConstants.TAG_ROUTING_KEY, replyTo);
+            tags.put(RabbitMQObservabilityConstants.TAG_DESTINATION_KIND,
+                    RabbitMQObservabilityConstants.DESTINATION_KIND_EXCHANGE);
+            tags.put(RabbitMQObservabilityConstants.TAG_DESTINATION_TEMPLATE, exchange);
+            span.addTags(tags);
+            return span;
+        } catch (Throwable t) {
+            log.debug("Failed to start the span of a RabbitMQ reply", t);
+            return null;
+        }
+    }
+
+    public static void finishSpan(BSpan span, boolean failed) {
+        if (span == null) {
+            return;
+        }
+        try {
+            if (failed) {
+                span.addTag(ObservabilityConstants.TAG_KEY_ERROR, ObservabilityConstants.TAG_TRUE_VALUE);
+                span.setStatus(StatusCode.ERROR);
+            }
+            span.finishSpan();
+        } catch (Throwable t) {
+            log.debug("Failed to finish a RabbitMQ span", t);
+        }
     }
 
     public static String nackOutcome(boolean requeue) {

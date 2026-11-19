@@ -149,7 +149,8 @@ public class MessageDispatcher {
         RabbitMQDeliveryObserverContext observerContext = createObserverContext(
                 isRequest ? FUNC_ON_REQUEST : FUNC_ON_MESSAGE, message, envelope, properties);
         RabbitMQResourceCallback callback = new RabbitMQResourceCallback(countDownLatch, channel, queueName,
-                message.length, properties.getReplyTo(), envelope.getExchange());
+                message.length, properties.getReplyTo(), envelope.getExchange(), properties.getCorrelationId(),
+                observerContext);
         try {
             if (isRequest) {
                 MethodType onRequestFunction = getAttachedFunctionType(service, FUNC_ON_REQUEST);
