@@ -309,11 +309,12 @@ public class ChannelUtils {
                 }
                 if (basicPropsMap.containsKey(RabbitMQConstants.ALIAS_HEADERS)) {
                     @SuppressWarnings(RabbitMQConstants.UNCHECKED)
-                    BMap<BString, BString> headersMap = (BMap<BString, BString>) basicPropsMap
+                    BMap<BString, Object> headersMap = (BMap<BString, Object>) basicPropsMap
                             .getMapValue(RabbitMQConstants.ALIAS_HEADERS);
-                    headersMap.entrySet()
+                    headersMap.entrySet().stream()
+                            .filter(entry -> entry.getValue() != null)
                             .forEach(entry -> headers.put(entry.getKey().getValue(),
-                                    headersMap.getStringValue(entry.getKey()).getValue()));
+                                    StringUtils.getStringValue(entry.getValue())));
                 }
                 if (replyTo != null) {
                     builder.replyTo(replyTo);
