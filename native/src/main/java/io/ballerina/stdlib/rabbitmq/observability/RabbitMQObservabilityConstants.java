@@ -70,6 +70,7 @@ public class RabbitMQObservabilityConstants {
     static final String TAG_EVENT_STAGE = "event.stage";
     static final String TAG_EVENT_OUTCOME = "event.outcome";
     static final String TAG_EVENT_OUTCOME_REASON = "event.outcome_reason";
+    static final String TAG_EVENT_BATCH_SIZE = "event.batch_size";
 
     static final String MODULE_RABBITMQ = "rabbitmq";
     static final String PROTOCOL_AMQP = "amqp";
@@ -81,6 +82,8 @@ public class RabbitMQObservabilityConstants {
     static final String SERVER_NAMED_QUEUE_PREFIX = "amq.gen-";
     static final String OBJECT_LISTENER = "Listener";
     static final String ACTION_REPLY = "reply";
+    static final int MAX_SPAN_LINKS = 128;
+    static final int MAX_TRACKED_DELIVERIES = 10000;
     static final String EVENT_TYPE_MESSAGE = "message";
     static final String STAGE_SETTLED = "settled";
     public static final String OUTCOME_ACCEPTED = "accepted";

@@ -41,6 +41,7 @@ import io.ballerina.runtime.observability.ObserveUtils;
 import io.ballerina.stdlib.rabbitmq.observability.RabbitMQDeliveryObserverContext;
 import io.ballerina.stdlib.rabbitmq.observability.RabbitMQMetricsUtil;
 import io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityConstants;
+import io.ballerina.stdlib.rabbitmq.observability.RabbitMQTracingUtil;
 import io.ballerina.stdlib.rabbitmq.util.ChannelUtils;
 import io.ballerina.stdlib.rabbitmq.util.ModuleUtils;
 
@@ -148,6 +149,12 @@ public class MessageDispatcher {
                 && getAttachedFunctionType(service, FUNC_ON_REQUEST) != null;
         RabbitMQDeliveryObserverContext observerContext = createObserverContext(
                 isRequest ? FUNC_ON_REQUEST : FUNC_ON_MESSAGE, message, envelope, properties);
+        if (!autoAck) {
+            RabbitMQTracingUtil.trackDelivery(channel, queueName, envelope, properties);
+            if (observerContext != null) {
+                observerContext.trackSettlement();
+            }
+        }
         RabbitMQResourceCallback callback = new RabbitMQResourceCallback(countDownLatch, channel, queueName,
                 message.length, properties.getReplyTo(), envelope.getExchange(), properties.getCorrelationId(),
                 observerContext);

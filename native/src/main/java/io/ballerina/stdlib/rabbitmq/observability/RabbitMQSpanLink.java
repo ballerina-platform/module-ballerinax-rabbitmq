@@ -29,6 +29,8 @@ import java.util.Map;
  */
 public final class RabbitMQSpanLink {
 
+    private static final String TRACEPARENT = "traceparent";
+
     private final Map<String, String> traceContext;
     private final Map<String, String> attributes;
 
@@ -39,5 +41,16 @@ public final class RabbitMQSpanLink {
 
     void addTo(BSpan span) {
         span.addLink(traceContext, attributes);
+    }
+
+    boolean pointsTo(Map<String, String> otherContext) {
+        String traceParent = traceContext.get(TRACEPARENT);
+        String otherTraceParent = otherContext.get(TRACEPARENT);
+        if (traceParent == null || otherTraceParent == null) {
+            return false;
+        }
+        String[] ids = traceParent.split("-");
+        String[] otherIds = otherTraceParent.split("-");
+        return ids.length > 2 && otherIds.length > 2 && ids[1].equals(otherIds[1]) && ids[2].equals(otherIds[2]);
     }
 }

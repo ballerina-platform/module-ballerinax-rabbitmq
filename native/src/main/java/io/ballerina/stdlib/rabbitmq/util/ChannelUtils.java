@@ -154,7 +154,7 @@ public class ChannelUtils {
         Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         try {
             GetResponse response = channel.basicGet(queueName.getValue(), ackMode);
-            RabbitMQTracingUtil.traceClientReceive(environment, channel, queueName.getValue(), response);
+            RabbitMQTracingUtil.traceClientReceive(environment, channel, queueName.getValue(), response, ackMode);
             if (Objects.isNull(response)) {
                 return RabbitMQUtils.returnErrorValue("No messages are found in the queue.");
             }
@@ -178,7 +178,7 @@ public class ChannelUtils {
         Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         try {
             GetResponse response = channel.basicGet(queueName.getValue(), ackMode);
-            RabbitMQTracingUtil.traceClientReceive(environment, channel, queueName.getValue(), response);
+            RabbitMQTracingUtil.traceClientReceive(environment, channel, queueName.getValue(), response, ackMode);
             if (Objects.isNull(response)) {
                 return RabbitMQUtils.returnErrorValue("No messages are found in the queue.");
             }
@@ -207,7 +207,7 @@ public class ChannelUtils {
             channel.basicAck(deliveryTag, multiple);
             RabbitMQMetricsUtil.reportAcknowledgement(channel, RabbitMQObservabilityConstants.ACK);
             RabbitMQTracingUtil.traceSettlement(channel, RabbitMQObservabilityConstants.TYPE_CLIENT,
-                    RabbitMQObservabilityConstants.OUTCOME_ACCEPTED, environment);
+                    RabbitMQObservabilityConstants.OUTCOME_ACCEPTED, deliveryTag, multiple, environment);
         } catch (IOException | ShutdownSignalException exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_ACK);
             return RabbitMQUtils.returnErrorValue(RabbitMQConstants.ACK_ERROR + exception.getMessage());
@@ -225,7 +225,7 @@ public class ChannelUtils {
             channel.basicNack(deliveryTag, multiple, requeue);
             RabbitMQMetricsUtil.reportAcknowledgement(channel, RabbitMQObservabilityConstants.NACK);
             RabbitMQTracingUtil.traceSettlement(channel, RabbitMQObservabilityConstants.TYPE_CLIENT,
-                    RabbitMQTracingUtil.nackOutcome(requeue), environment);
+                    RabbitMQTracingUtil.nackOutcome(requeue), deliveryTag, multiple, environment);
         } catch (IOException | ShutdownSignalException exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_NACK);
             return RabbitMQUtils.returnErrorValue(RabbitMQConstants.NACK_ERROR

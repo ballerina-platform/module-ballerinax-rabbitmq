@@ -26,6 +26,7 @@ import io.ballerina.runtime.observability.tracer.BSpan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.ref.WeakReference;
 import java.util.Map;
 
 /**
@@ -38,6 +39,10 @@ public class RabbitMQDeliveryObserverContext extends RabbitMQObserverContext {
     private static final Logger log = LoggerFactory.getLogger(RabbitMQDeliveryObserverContext.class);
 
     private final Map<String, String> deliveryTags;
+    private final WeakReference<Channel> channel;
+    private final String queueName;
+    private final long deliveryTag;
+    private boolean trackSettlement = false;
 
     public RabbitMQDeliveryObserverContext(Channel channel, String queueName, String handlerName, Envelope envelope,
                                            AMQP.BasicProperties properties, int size) {
@@ -47,10 +52,17 @@ public class RabbitMQDeliveryObserverContext extends RabbitMQObserverContext {
         addTag(RabbitMQObservabilityConstants.TAG_CHANNEL, RabbitMQObservabilityUtil.getChannelName(channel));
         addTag(RabbitMQObservabilityConstants.TAG_HANDLER_NAME, handlerName);
         this.deliveryTags = RabbitMQObservabilityUtil.deliveryTags(queueName, envelope, properties, size);
+        this.channel = new WeakReference<>(channel);
+        this.queueName = queueName;
+        this.deliveryTag = envelope.getDeliveryTag();
         Map<String, String> traceContext = RabbitMQObservabilityUtil.headersOf(properties);
         if (!traceContext.isEmpty()) {
             addProperty(ObservabilityConstants.PROPERTY_TRACE_PROPERTIES, traceContext);
         }
+    }
+
+    public void trackSettlement() {
+        this.trackSettlement = true;
     }
 
     @Override
@@ -61,6 +73,10 @@ public class RabbitMQDeliveryObserverContext extends RabbitMQObserverContext {
         }
         try {
             span.addTags(deliveryTags);
+            Channel deliveryChannel = channel.get();
+            if (trackSettlement && deliveryChannel != null) {
+                RabbitMQTracingUtil.trackHandler(deliveryChannel, queueName, deliveryTag, span);
+            }
         } catch (Throwable t) {
             log.debug("Failed to tag a RabbitMQ handler span", t);
         }

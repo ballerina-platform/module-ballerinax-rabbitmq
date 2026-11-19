@@ -18,6 +18,7 @@
 
 package io.ballerina.stdlib.rabbitmq.observability;
 
+import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Envelope;
 import com.rabbitmq.client.GetResponse;
@@ -30,8 +31,15 @@ import io.opentelemetry.api.trace.StatusCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
+import java.util.Set;
+import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import static io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityUtil.deliveryTags;
 import static io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityUtil.exchangeTemplate;
@@ -49,6 +57,12 @@ import static io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityUt
 public class RabbitMQTracingUtil {
 
     private static final Logger log = LoggerFactory.getLogger(RabbitMQTracingUtil.class);
+
+    // Unsettled deliveries per channel, by delivery tag, for the links of a multiple ack or nack.
+    private static final Map<Channel, ConcurrentSkipListMap<Long, RabbitMQSpanLink>> DELIVERIES =
+            Collections.synchronizedMap(new WeakHashMap<>());
+    private static final Set<Channel> SHUTDOWN_LISTENED = Collections.newSetFromMap(
+            Collections.synchronizedMap(new WeakHashMap<>()));
 
     public static void traceResourceInvocation(Channel channel, Environment environment) {
         ObserverContext observerContext = observedContext(environment);
@@ -137,7 +151,10 @@ public class RabbitMQTracingUtil {
     }
 
     public static void traceClientReceive(Environment environment, Channel channel, String queueName,
-                                          GetResponse response) {
+                                          GetResponse response, boolean autoAck) {
+        if (!autoAck && response != null) {
+            trackDelivery(channel, queueName, response.getEnvelope(), response.getProps());
+        }
         try {
             ObserverContext observerContext = observedContext(environment);
             if (observerContext == null) {
@@ -150,6 +167,9 @@ public class RabbitMQTracingUtil {
                 return;
             }
             Envelope envelope = response.getEnvelope();
+            if (!autoAck) {
+                trackHandler(channel, queueName, envelope.getDeliveryTag(), span);
+            }
             span.addTags(deliveryTags(queueName, envelope, response.getProps(), response.getBody().length));
             Map<String, String> traceContext = headersOf(response.getProps());
             if (!traceContext.isEmpty()) {
@@ -160,16 +180,57 @@ public class RabbitMQTracingUtil {
         }
     }
 
-    public static void traceSettlement(Channel channel, String type, String outcome, Environment environment) {
-        ObserverContext observerContext = observedContext(environment);
-        if (observerContext == null) {
+    public static List<RabbitMQSpanLink> traceSettlement(Channel channel, String type, String outcome,
+                                                         long deliveryTag, boolean multiple,
+                                                         Environment environment) {
+        if (!ObserveUtils.isTracingEnabled()) {
+            return List.of();
+        }
+        List<RabbitMQSpanLink> settled = settleDeliveries(channel, deliveryTag, multiple);
+        try {
+            ObserverContext observerContext = observedContext(environment);
+            if (observerContext == null) {
+                return settled;
+            }
+            setTags(observerContext, channel);
+            observerContext.addTag(RabbitMQObservabilityConstants.TAG_TYPE, type);
+            observerContext.addTag(RabbitMQObservabilityConstants.TAG_EVENT_STAGE,
+                    RabbitMQObservabilityConstants.STAGE_SETTLED);
+            observerContext.addTag(RabbitMQObservabilityConstants.TAG_EVENT_OUTCOME, outcome);
+            BSpan span = observerContext.getSpan();
+            if (span != null && multiple) {
+                span.addTag(RabbitMQObservabilityConstants.TAG_EVENT_BATCH_SIZE, String.valueOf(settled.size()));
+                // No link to the handler of the settlement's own delivery: it is already the parent.
+                Map<String, String> parentContext = traceContextOfParent(observerContext);
+                settled.stream().filter(link -> !link.pointsTo(parentContext))
+                        .limit(RabbitMQObservabilityConstants.MAX_SPAN_LINKS)
+                        .forEach(link -> link.addTo(span));
+            }
+        } catch (Throwable t) {
+            log.debug("Failed to trace a RabbitMQ settlement", t);
+        }
+        return settled;
+    }
+
+    public static void trackDelivery(Channel channel, String queueName, Envelope envelope,
+                                     AMQP.BasicProperties properties) {
+        if (!ObserveUtils.isTracingEnabled()) {
             return;
         }
-        setTags(observerContext, channel);
-        observerContext.addTag(RabbitMQObservabilityConstants.TAG_TYPE, type);
-        observerContext.addTag(RabbitMQObservabilityConstants.TAG_EVENT_STAGE,
-                RabbitMQObservabilityConstants.STAGE_SETTLED);
-        observerContext.addTag(RabbitMQObservabilityConstants.TAG_EVENT_OUTCOME, outcome);
+        try {
+            Map<String, String> traceContext = headersOf(properties);
+            if (!traceContext.isEmpty()) {
+                trackDelivery(channel, envelope.getDeliveryTag(), new RabbitMQSpanLink(traceContext,
+                        linkAttributes(queueName, envelope.getDeliveryTag())));
+            }
+        } catch (Throwable t) {
+            log.debug("Failed to track a RabbitMQ delivery", t);
+        }
+    }
+
+    static void trackHandler(Channel channel, String queueName, long deliveryTag, BSpan handlerSpan) {
+        trackDelivery(channel, deliveryTag, new RabbitMQSpanLink(handlerSpan.extractContextAsHttpHeaders(),
+                linkAttributes(queueName, deliveryTag)));
     }
 
     // The reply is published after onRequest returns, so this span starts after its parent ends.
@@ -230,11 +291,46 @@ public class RabbitMQTracingUtil {
         return observerContext == null ? null : observerContext.getSpan();
     }
 
+    private static Map<String, String> traceContextOfParent(ObserverContext observerContext) {
+        BSpan parentSpan = spanOf(observerContext.getParent());
+        return parentSpan == null ? Map.of() : parentSpan.extractContextAsHttpHeaders();
+    }
+
     private static Map<String, String> linkAttributes(String queueName, long deliveryTag) {
         Map<String, String> attributes = new HashMap<>();
         attributes.put(RabbitMQObservabilityConstants.TAG_DESTINATION_NAME, queueName);
         attributes.put(RabbitMQObservabilityConstants.TAG_EVENT_POSITION, String.valueOf(deliveryTag));
         return attributes;
+    }
+
+    private static void trackDelivery(Channel channel, long deliveryTag, RabbitMQSpanLink link) {
+        // A shut down channel's unacked messages go back to the queue, and a recovered channel restarts its tags.
+        if (SHUTDOWN_LISTENED.add(channel)) {
+            channel.addShutdownListener(cause -> DELIVERIES.remove(channel));
+        }
+        ConcurrentSkipListMap<Long, RabbitMQSpanLink> deliveries =
+                DELIVERIES.computeIfAbsent(channel, c -> new ConcurrentSkipListMap<>());
+        deliveries.put(deliveryTag, link);
+        while (deliveries.size() > RabbitMQObservabilityConstants.MAX_TRACKED_DELIVERIES) {
+            deliveries.pollFirstEntry();
+        }
+    }
+
+    // A multiple settlement covers every delivery up to its tag; with tag 0, all of them.
+    private static List<RabbitMQSpanLink> settleDeliveries(Channel channel, long deliveryTag, boolean multiple) {
+        ConcurrentSkipListMap<Long, RabbitMQSpanLink> deliveries = DELIVERIES.get(channel);
+        if (deliveries == null) {
+            return List.of();
+        }
+        if (!multiple) {
+            RabbitMQSpanLink link = deliveries.remove(deliveryTag);
+            return link == null ? List.of() : List.of(link);
+        }
+        NavigableMap<Long, RabbitMQSpanLink> settled = deliveryTag == 0 ? deliveries
+                : deliveries.headMap(deliveryTag, true);
+        List<RabbitMQSpanLink> links = new ArrayList<>(settled.values());
+        settled.clear();
+        return links;
     }
 
     private static void setTags(ObserverContext observerContext, Channel channel) {
