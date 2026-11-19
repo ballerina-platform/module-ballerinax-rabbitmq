@@ -149,10 +149,12 @@ public class ChannelUtils {
         }
     }
 
-    public static Object consumeMessage(BObject clientObj, BString queueName, boolean ackMode, BTypedesc bTypedesc) {
+    public static Object consumeMessage(Environment environment, BObject clientObj, BString queueName,
+                                        boolean ackMode, BTypedesc bTypedesc) {
         Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         try {
             GetResponse response = channel.basicGet(queueName.getValue(), ackMode);
+            RabbitMQTracingUtil.traceClientReceive(environment, channel, queueName.getValue(), response);
             if (Objects.isNull(response)) {
                 return RabbitMQUtils.returnErrorValue("No messages are found in the queue.");
             }
@@ -171,10 +173,12 @@ public class ChannelUtils {
         }
     }
 
-    public static Object consumePayload(BObject clientObj, BString queueName, boolean ackMode, BTypedesc bTypedesc) {
+    public static Object consumePayload(Environment environment, BObject clientObj, BString queueName,
+                                        boolean ackMode, BTypedesc bTypedesc) {
         Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         try {
             GetResponse response = channel.basicGet(queueName.getValue(), ackMode);
+            RabbitMQTracingUtil.traceClientReceive(environment, channel, queueName.getValue(), response);
             if (Objects.isNull(response)) {
                 return RabbitMQUtils.returnErrorValue("No messages are found in the queue.");
             }
@@ -284,16 +288,16 @@ public class ChannelUtils {
         if (exchangeName != null) {
             defaultExchangeName = exchangeName.getValue();
         }
+        String correlationId = null;
         try {
             AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties.Builder();
+            Map<String, Object> headers = new HashMap<>();
             if (properties != null) {
                 @SuppressWarnings(RabbitMQConstants.UNCHECKED)
                 BMap<BString, Object> basicPropsMap = (BMap) properties;
                 String replyTo = null;
                 String contentType = null;
                 String contentEncoding = null;
-                String correlationId = null;
-                Map<String, Object> headers = new HashMap<>();
                 if (basicPropsMap.containsKey(RabbitMQConstants.ALIAS_REPLY_TO)) {
                     replyTo = basicPropsMap.getStringValue(RabbitMQConstants.ALIAS_REPLY_TO).getValue();
                 }
@@ -328,9 +332,10 @@ public class ChannelUtils {
                 if (correlationId != null) {
                     builder.correlationId(correlationId);
                 }
-                if (!headers.isEmpty()) {
-                    builder.headers(headers);
-                }
+            }
+            RabbitMQTracingUtil.injectTraceContext(environment, headers);
+            if (!headers.isEmpty()) {
+                builder.headers(headers);
             }
             if (TransactionResourceManager.getInstance().isInTransaction()) {
                 RabbitMQUtils.handleTransaction(channelObj);
@@ -341,6 +346,7 @@ public class ChannelUtils {
             RabbitMQMetricsUtil.reportPublish(channel, defaultExchangeName, routingKey.getValue(),
                                               messageContentBytes.length);
             RabbitMQTracingUtil.tracePublishResourceInvocation(channel, defaultExchangeName, routingKey.getValue(),
+                                                               correlationId, messageContentBytes.length,
                                                                environment);
         } catch (IOException | BError | ShutdownSignalException exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_PUBLISH);
