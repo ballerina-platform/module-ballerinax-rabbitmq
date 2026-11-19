@@ -21,6 +21,7 @@ package io.ballerina.stdlib.rabbitmq.observability;
 import io.ballerina.runtime.observability.tracer.BSpan;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A span link to a message: the trace context it points to and the tags that identify the message.
@@ -30,6 +31,8 @@ import java.util.Map;
 public final class RabbitMQSpanLink {
 
     private static final String TRACEPARENT = "traceparent";
+    // Span links need Ballerina 2201.14.2 or later. On earlier runtimes they are skipped.
+    private static final AtomicBoolean SUPPORTED = new AtomicBoolean(true);
 
     private final Map<String, String> traceContext;
     private final Map<String, String> attributes;
@@ -40,7 +43,14 @@ public final class RabbitMQSpanLink {
     }
 
     void addTo(BSpan span) {
-        span.addLink(traceContext, attributes);
+        if (!SUPPORTED.get()) {
+            return;
+        }
+        try {
+            span.addLink(traceContext, attributes);
+        } catch (NoSuchMethodError e) {
+            SUPPORTED.set(false);
+        }
     }
 
     boolean pointsTo(Map<String, String> otherContext) {
