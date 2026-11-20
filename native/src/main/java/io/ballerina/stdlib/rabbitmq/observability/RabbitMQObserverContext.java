@@ -40,7 +40,7 @@ public class RabbitMQObserverContext extends ObserverContext {
 
     public RabbitMQObserverContext(Channel channel) {
         this(channel.getConnection());
-        addTag(RabbitMQObservabilityConstants.TAG_CHANNEL, channel.toString());
+        addTag(RabbitMQObservabilityConstants.TAG_CHANNEL, RabbitMQObservabilityUtil.getChannelName(channel));
     }
 
 }

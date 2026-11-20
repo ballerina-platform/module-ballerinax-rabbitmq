@@ -1,32 +1,32 @@
 [package]
 org = "ballerinax"
 name = "rabbitmq"
-version = "3.6.1"
+version = "3.7.0"
 authors = ["Ballerina"]
 keywords = ["service", "client", "messaging", "network", "pubsub", "Vendor/RabbitMQ", "Area/Messaging", "Type/Connector", "Type/Trigger"]
 repository = "https://github.com/ballerina-platform/module-ballerinax-rabbitmq"
 icon = "icon.png"
 license = ["Apache-2.0"]
-distribution = "2201.12.0"
+distribution = "2201.14.2"
 include = ["metadata/**"]
 
-[platform.java21]
+[platform.java25]
 graalvmCompatible = true
 
-[[platform.java21.dependency]]
-path = "./lib/amqp-client-5.35.0.jar"
+[[platform.java25.dependency]]
+path = "./lib/amqp-client-5.37.0.jar"
 
-[[platform.java21.dependency]]
+[[platform.java25.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "rabbitmq-native"
-version = "3.6.1"
-path = "../native/build/libs/rabbitmq-native-3.6.1.jar"
+version = "3.7.0"
+path = "../native/build/libs/rabbitmq-native-3.7.0-SNAPSHOT.jar"
 
-[[platform.java21.dependency]]
+[[platform.java25.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "constraint-native"
-version = "1.7.0"
-path = "./lib/constraint-native-1.7.0.jar"
+version = "1.7.1"
+path = "./lib/constraint-native-1.7.1.jar"
 
 [build-options]
-observabilityIncluded=false
+observabilityIncluded=true

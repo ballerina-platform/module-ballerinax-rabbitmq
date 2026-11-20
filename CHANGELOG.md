@@ -9,14 +9,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed
 
 - [Declare queues and exchanges as durable and non-auto-delete by default](https://github.com/ballerina-platform/ballerina-library/issues/8828). RabbitMQ 4.3+ [denies transient non-exclusive queues by default](https://www.rabbitmq.com/release-information/deprecated-features-list), and [all transient entities will be removed with Mnesia later in the 4.x series](https://github.com/rabbitmq/rabbitmq-server/discussions/13161).
+- Move to Ballerina Swan Lake Update 14 (2201.14.2) and Java 25
+- Remove the user name from the `url` and `channel` observability tags
 
 ### Added
 
 - [Add support for configurable consumer tag with fallback to auto-generated value](https://github.com/ballerina-platform/ballerina-library/issues/8799)
+- Propagate the trace context through message headers
+- Add the standard event-integration tags to RabbitMQ spans
+- Trace `onRequest` replies and transaction commits and rollbacks
+- Link acknowledgements, commits and rollbacks to the messages they settle
 
 ### Fixed
 
 - [Fix RabbitMQ consumer tag conflict during service consolidation](https://github.com/ballerina-platform/ballerina-library/issues/8799)
+- Add the request's correlation ID to `onRequest` replies
+- Allow non-string message header values
+- Fix traced calls failing after a listener starts with tracing enabled
 
 ## [3.4.0] - 2026-05-21
 

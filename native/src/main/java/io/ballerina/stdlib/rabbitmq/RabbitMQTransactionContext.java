@@ -19,11 +19,15 @@
 package io.ballerina.stdlib.rabbitmq;
 
 import com.rabbitmq.client.Channel;
+import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.transactions.BallerinaTransactionContext;
 import io.ballerina.runtime.transactions.TransactionLocalContext;
 import io.ballerina.runtime.transactions.TransactionResourceManager;
+import io.ballerina.stdlib.rabbitmq.observability.RabbitMQSpanLink;
+import io.ballerina.stdlib.rabbitmq.observability.RabbitMQTransactionTrace;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 
 import javax.transaction.xa.XAResource;
@@ -36,37 +40,46 @@ import javax.transaction.xa.XAResource;
 public class RabbitMQTransactionContext implements BallerinaTransactionContext {
     private final Channel channel;
     private final String connectorId;
+    private final RabbitMQTransactionTrace trace;
 
     /**
      * Initializes the rabbitmq transaction context.
      *
      * @param channel     RabbitMQ Channel.
      * @param connectorId Connector ID.
+     * @param type        Client or listener.
      */
-    public RabbitMQTransactionContext(Channel channel, String connectorId) {
+    public RabbitMQTransactionContext(Channel channel, String connectorId, String type) {
         this.channel = channel;
         this.connectorId = connectorId;
+        this.trace = new RabbitMQTransactionTrace(type);
     }
 
     @Override
     public void commit() {
-        try {
-            channel.txCommit();
-        } catch (IOException exception) {
-            throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.COMMIT_FAILED
-                    + exception.getMessage());
-        }
+        end(true);
     }
 
     @Override
     public void rollback() {
-        try {
-            channel.txRollback();
-        } catch (IOException exception) {
-            throw RabbitMQUtils.returnErrorValue(RabbitMQConstants.ROLLBACK_FAILED
-                    + exception.getMessage());
-        }
+        end(false);
+    }
 
+    private void end(boolean commit) {
+        boolean failed = true;
+        try {
+            if (commit) {
+                channel.txCommit();
+            } else {
+                channel.txRollback();
+            }
+            failed = false;
+        } catch (IOException exception) {
+            String message = commit ? RabbitMQConstants.COMMIT_FAILED : RabbitMQConstants.ROLLBACK_FAILED;
+            throw RabbitMQUtils.returnErrorValue(message + exception.getMessage());
+        } finally {
+            trace.finish(channel, commit, failed);
+        }
     }
 
     @Override
@@ -78,6 +91,10 @@ public class RabbitMQTransactionContext implements BallerinaTransactionContext {
     public XAResource getXAResource() {
         // Not supported
         return null;
+    }
+
+    void addSpanLinks(Environment environment, List<RabbitMQSpanLink> links) {
+        trace.record(environment, links);
     }
 
     /**

@@ -49,6 +49,52 @@ public class RabbitMQObservabilityConstants {
     static final String TAG_ACK_TYPE = "ack_type";
     static final String TAG_CONSUME_TYPE = "consume_type";
 
+    // Span tags of the Observability Standard for Event Integrations.
+    static final String TAG_MODULE = "module";
+    static final String TAG_PROTOCOL = "protocol";
+    static final String TAG_TYPE = "type";
+    static final String TAG_SERVER_ADDRESS = "server.address";
+    static final String TAG_SERVER_PORT = "server.port";
+    static final String TAG_DESTINATION_KIND = "destination.kind";
+    static final String TAG_DESTINATION_TEMPLATE = "destination.template";
+    static final String TAG_DESTINATION_NAME = "destination.name";
+    static final String TAG_HANDLER_NAME = "handler.name";
+    static final String TAG_EVENT_TYPE = "event.type";
+    static final String TAG_EVENT_ID = "event.id";
+    static final String TAG_EVENT_CORRELATION_ID = "event.correlation_id";
+    static final String TAG_EVENT_SIZE = "event.size";
+    static final String TAG_EVENT_KEY = "event.key";
+    static final String TAG_EVENT_POSITION = "event.position";
+    static final String TAG_EVENT_CREATED = "event.created";
+    static final String TAG_EVENT_REDELIVERY_COUNT = "event.redelivery_count";
+    static final String TAG_EVENT_STAGE = "event.stage";
+    static final String TAG_EVENT_OUTCOME = "event.outcome";
+    static final String TAG_EVENT_OUTCOME_REASON = "event.outcome_reason";
+    static final String TAG_EVENT_BATCH_SIZE = "event.batch_size";
+
+    static final String MODULE_RABBITMQ = "rabbitmq";
+    static final String PROTOCOL_AMQP = "amqp";
+    public static final String TYPE_CLIENT = "client";
+    public static final String TYPE_LISTENER = "listener";
+    static final String DESTINATION_KIND_EXCHANGE = "exchange";
+    static final String DESTINATION_KIND_QUEUE = "queue";
+    static final String DEFAULT_EXCHANGE = "amq.default";
+    static final String SERVER_NAMED_QUEUE_PREFIX = "amq.gen-";
+    static final String OBJECT_LISTENER = "Listener";
+    static final String OBJECT_TRANSACTION = "Transaction";
+    static final String ACTION_REPLY = "reply";
+    static final String ACTION_COMMIT = "commit";
+    static final String ACTION_ROLLBACK = "rollback";
+    static final int MAX_SPAN_LINKS = 128;
+    static final int MAX_TRACKED_DELIVERIES = 10000;
+    static final String EVENT_TYPE_MESSAGE = "message";
+    static final String STAGE_SETTLED = "settled";
+    public static final String OUTCOME_ACCEPTED = "accepted";
+    public static final String OUTCOME_RELEASED = "released";
+    public static final String OUTCOME_REJECTED = "rejected";
+    static final String OUTCOME_COMMITTED = "committed";
+    static final String OUTCOME_ROLLED_BACK = "rolled_back";
+
     public static final String ERROR_TYPE_CONNECTION = "connection";
     public static final String ERROR_TYPE_CONNECTION_CLOSE = "connection_close";
     public static final String ERROR_TYPE_CONNECTION_ABORT = "connection_abort";

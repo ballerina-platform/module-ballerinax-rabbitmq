@@ -33,6 +33,12 @@ dependencies {
     implementation group: 'com.rabbitmq', name: 'amqp-client', version: "${amqpClientVersion}"
     implementation group: 'io.ballerina.stdlib', name: 'crypto-native', version: "${stdlibCryptoVersion}"
     implementation group: 'io.ballerina.stdlib', name: 'constraint-native', version: "${stdlibConstraintVersion}"
+    compileOnly group: 'io.opentelemetry', name: 'opentelemetry-api', version: "${openTelemetryVersion}"
+    testImplementation group: 'org.testng', name: 'testng', version: "${testngVersion}"
+}
+
+test {
+    useTestNG()
 }
 
 checkstyle {
@@ -47,6 +53,7 @@ tasks.withType(Checkstyle) {
 }
 
 checkstyleMain.dependsOn(":checkstyle:downloadCheckstyleRuleFiles")
+checkstyleTest.dependsOn(":checkstyle:downloadCheckstyleRuleFiles")
 
 spotbugsMain {
     def classLoader = plugins["com.github.spotbugs"].class.classLoader
@@ -54,10 +61,10 @@ spotbugsMain {
     def SpotBugsEffort = classLoader.findLoadedClass("com.github.spotbugs.snom.Effort")
     effort = SpotBugsEffort.MAX
     reportLevel = SpotBugsConfidence.LOW
-    reportsDir = file("$project.buildDir/reports/spotbugs")
+    reportsDir = layout.buildDirectory.dir("reports/spotbugs").get().asFile
     reports {
-        html.enabled true
-        text.enabled = true
+        html.required = true
+        text.required = true
     }
     def excludeFile = file("${rootDir}/spotbugs-exclude.xml")
     if(excludeFile.exists()) {

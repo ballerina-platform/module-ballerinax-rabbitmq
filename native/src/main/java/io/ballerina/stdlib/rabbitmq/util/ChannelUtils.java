@@ -33,7 +33,6 @@ import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BTypedesc;
-import io.ballerina.runtime.transactions.TransactionResourceManager;
 import io.ballerina.stdlib.rabbitmq.RabbitMQConstants;
 import io.ballerina.stdlib.rabbitmq.RabbitMQTransactionContext;
 import io.ballerina.stdlib.rabbitmq.RabbitMQUtils;
@@ -76,7 +75,8 @@ public class ChannelUtils {
                 channelObj.addNativeData(CONSTRAINT_VALIDATION,
                         connectionConfig.getBooleanValue(StringUtils.fromString(CONSTRAINT_VALIDATION)));
                 channelObj.addNativeData(RabbitMQConstants.RABBITMQ_TRANSACTION_CONTEXT,
-                        new RabbitMQTransactionContext(channel, connectorId));
+                        new RabbitMQTransactionContext(channel, connectorId,
+                                RabbitMQObservabilityConstants.TYPE_CLIENT));
                 return null;
             } catch (IOException exception) {
                 RabbitMQMetricsUtil.reportError(connection, RabbitMQObservabilityConstants.ERROR_TYPE_CHANNEL_CREATE);
@@ -149,10 +149,12 @@ public class ChannelUtils {
         }
     }
 
-    public static Object consumeMessage(BObject clientObj, BString queueName, boolean ackMode, BTypedesc bTypedesc) {
+    public static Object consumeMessage(Environment environment, BObject clientObj, BString queueName,
+                                        boolean ackMode, BTypedesc bTypedesc) {
         Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         try {
             GetResponse response = channel.basicGet(queueName.getValue(), ackMode);
+            RabbitMQTracingUtil.traceClientReceive(environment, channel, queueName.getValue(), response, ackMode);
             if (Objects.isNull(response)) {
                 return RabbitMQUtils.returnErrorValue("No messages are found in the queue.");
             }
@@ -171,10 +173,12 @@ public class ChannelUtils {
         }
     }
 
-    public static Object consumePayload(BObject clientObj, BString queueName, boolean ackMode, BTypedesc bTypedesc) {
+    public static Object consumePayload(Environment environment, BObject clientObj, BString queueName,
+                                        boolean ackMode, BTypedesc bTypedesc) {
         Channel channel = (Channel) clientObj.getNativeData(RabbitMQConstants.CHANNEL_NATIVE_OBJECT);
         try {
             GetResponse response = channel.basicGet(queueName.getValue(), ackMode);
+            RabbitMQTracingUtil.traceClientReceive(environment, channel, queueName.getValue(), response, ackMode);
             if (Objects.isNull(response)) {
                 return RabbitMQUtils.returnErrorValue("No messages are found in the queue.");
             }
@@ -202,7 +206,8 @@ public class ChannelUtils {
         try {
             channel.basicAck(deliveryTag, multiple);
             RabbitMQMetricsUtil.reportAcknowledgement(channel, RabbitMQObservabilityConstants.ACK);
-            RabbitMQTracingUtil.traceResourceInvocation(channel, environment);
+            RabbitMQTracingUtil.traceSettlement(channel, RabbitMQObservabilityConstants.TYPE_CLIENT,
+                    RabbitMQObservabilityConstants.OUTCOME_ACCEPTED, deliveryTag, multiple, environment);
         } catch (IOException | ShutdownSignalException exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_ACK);
             return RabbitMQUtils.returnErrorValue(RabbitMQConstants.ACK_ERROR + exception.getMessage());
@@ -219,7 +224,8 @@ public class ChannelUtils {
         try {
             channel.basicNack(deliveryTag, multiple, requeue);
             RabbitMQMetricsUtil.reportAcknowledgement(channel, RabbitMQObservabilityConstants.NACK);
-            RabbitMQTracingUtil.traceResourceInvocation(channel, environment);
+            RabbitMQTracingUtil.traceSettlement(channel, RabbitMQObservabilityConstants.TYPE_CLIENT,
+                    RabbitMQTracingUtil.nackOutcome(requeue), deliveryTag, multiple, environment);
         } catch (IOException | ShutdownSignalException exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_NACK);
             return RabbitMQUtils.returnErrorValue(RabbitMQConstants.NACK_ERROR
@@ -284,16 +290,16 @@ public class ChannelUtils {
         if (exchangeName != null) {
             defaultExchangeName = exchangeName.getValue();
         }
+        String correlationId = null;
         try {
             AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties.Builder();
+            Map<String, Object> headers = new HashMap<>();
             if (properties != null) {
                 @SuppressWarnings(RabbitMQConstants.UNCHECKED)
                 BMap<BString, Object> basicPropsMap = (BMap) properties;
                 String replyTo = null;
                 String contentType = null;
                 String contentEncoding = null;
-                String correlationId = null;
-                Map<String, Object> headers = new HashMap<>();
                 if (basicPropsMap.containsKey(RabbitMQConstants.ALIAS_REPLY_TO)) {
                     replyTo = basicPropsMap.getStringValue(RabbitMQConstants.ALIAS_REPLY_TO).getValue();
                 }
@@ -309,11 +315,12 @@ public class ChannelUtils {
                 }
                 if (basicPropsMap.containsKey(RabbitMQConstants.ALIAS_HEADERS)) {
                     @SuppressWarnings(RabbitMQConstants.UNCHECKED)
-                    BMap<BString, BString> headersMap = (BMap<BString, BString>) basicPropsMap
+                    BMap<BString, Object> headersMap = (BMap<BString, Object>) basicPropsMap
                             .getMapValue(RabbitMQConstants.ALIAS_HEADERS);
-                    headersMap.entrySet()
+                    headersMap.entrySet().stream()
+                            .filter(entry -> entry.getValue() != null)
                             .forEach(entry -> headers.put(entry.getKey().getValue(),
-                                    headersMap.getStringValue(entry.getKey()).getValue()));
+                                    StringUtils.getStringValue(entry.getValue())));
                 }
                 if (replyTo != null) {
                     builder.replyTo(replyTo);
@@ -327,20 +334,23 @@ public class ChannelUtils {
                 if (correlationId != null) {
                     builder.correlationId(correlationId);
                 }
-                if (!headers.isEmpty()) {
-                    builder.headers(headers);
-                }
             }
-            if (TransactionResourceManager.getInstance().isInTransaction()) {
-                RabbitMQUtils.handleTransaction(channelObj);
+            RabbitMQTracingUtil.injectTraceContext(environment, headers);
+            if (!headers.isEmpty()) {
+                builder.headers(headers);
             }
+            RabbitMQUtils.handleTransaction(channelObj);
             AMQP.BasicProperties basicProps = builder.build();
             byte[] messageContentBytes = messageContent.getBytes();
             channel.basicPublish(defaultExchangeName, routingKey.getValue(), basicProps, messageContentBytes);
             RabbitMQMetricsUtil.reportPublish(channel, defaultExchangeName, routingKey.getValue(),
                                               messageContentBytes.length);
             RabbitMQTracingUtil.tracePublishResourceInvocation(channel, defaultExchangeName, routingKey.getValue(),
+                                                               correlationId, messageContentBytes.length,
                                                                environment);
+            String exchange = defaultExchangeName;
+            RabbitMQUtils.linkToTransaction(channelObj, environment,
+                    () -> RabbitMQTracingUtil.publishLinks(environment, exchange, routingKey.getValue()));
         } catch (IOException | BError | ShutdownSignalException exception) {
             RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_PUBLISH);
             return RabbitMQUtils.returnErrorValue("Error occurred while publishing the message: "

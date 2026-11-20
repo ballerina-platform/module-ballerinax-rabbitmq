@@ -26,15 +26,16 @@ import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
-import io.ballerina.runtime.transactions.TransactionResourceManager;
 import io.ballerina.stdlib.rabbitmq.RabbitMQConstants;
 import io.ballerina.stdlib.rabbitmq.RabbitMQUtils;
 import io.ballerina.stdlib.rabbitmq.observability.RabbitMQMetricsUtil;
 import io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityConstants;
+import io.ballerina.stdlib.rabbitmq.observability.RabbitMQSpanLink;
 import io.ballerina.stdlib.rabbitmq.observability.RabbitMQTracingUtil;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * Util class for RabbitMQ Message handling.
@@ -58,10 +59,10 @@ public class MessageUtils {
                 channel.basicAck(deliveryTag, multiple);
                 callerObj.addNativeData(RabbitMQConstants.ACK_STATUS, true);
                 RabbitMQMetricsUtil.reportAcknowledgement(channel, RabbitMQObservabilityConstants.ACK);
-                RabbitMQTracingUtil.traceResourceInvocation(channel, environment);
-                if (TransactionResourceManager.getInstance().isInTransaction()) {
-                    RabbitMQUtils.handleTransaction(callerObj);
-                }
+                List<RabbitMQSpanLink> settled = RabbitMQTracingUtil.traceSettlement(channel,
+                        RabbitMQObservabilityConstants.TYPE_LISTENER, RabbitMQObservabilityConstants.OUTCOME_ACCEPTED,
+                        deliveryTag, multiple, environment);
+                RabbitMQUtils.handleTransaction(callerObj, environment, () -> settled);
             } catch (IOException | AlreadyClosedException exception) {
                 RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_ACK);
                 return RabbitMQUtils.returnErrorValue(RabbitMQConstants.ACK_ERROR + exception.getMessage());
@@ -87,10 +88,10 @@ public class MessageUtils {
                 channel.basicNack(deliveryTag, multiple, requeue);
                 callerObj.addNativeData(RabbitMQConstants.ACK_STATUS, true);
                 RabbitMQMetricsUtil.reportAcknowledgement(channel, RabbitMQObservabilityConstants.NACK);
-                RabbitMQTracingUtil.traceResourceInvocation(channel, environment);
-                if (TransactionResourceManager.getInstance().isInTransaction()) {
-                    RabbitMQUtils.handleTransaction(callerObj);
-                }
+                List<RabbitMQSpanLink> settled = RabbitMQTracingUtil.traceSettlement(channel,
+                        RabbitMQObservabilityConstants.TYPE_LISTENER, RabbitMQTracingUtil.nackOutcome(requeue),
+                        deliveryTag, multiple, environment);
+                RabbitMQUtils.handleTransaction(callerObj, environment, () -> settled);
             } catch (IOException | AlreadyClosedException exception) {
                 RabbitMQMetricsUtil.reportError(channel, RabbitMQObservabilityConstants.ERROR_TYPE_NACK);
                 return RabbitMQUtils.returnErrorValue(RabbitMQConstants.NACK_ERROR
