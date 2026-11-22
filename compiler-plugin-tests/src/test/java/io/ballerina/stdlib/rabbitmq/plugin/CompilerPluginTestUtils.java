@@ -18,6 +18,8 @@
 
 package io.ballerina.stdlib.rabbitmq.plugin;
 
+import io.ballerina.projects.DiagnosticResult;
+import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.ProjectEnvironmentBuilder;
 import io.ballerina.projects.environment.Environment;
 import io.ballerina.projects.environment.EnvironmentBuilder;
@@ -41,6 +43,13 @@ public class CompilerPluginTestUtils {
     public static ProjectEnvironmentBuilder getEnvironmentBuilder() {
         Environment environment = EnvironmentBuilder.getBuilder().setBallerinaHome(DISTRIBUTION_PATH).build();
         return ProjectEnvironmentBuilder.getBuilder(environment);
+    }
+
+    // Leaves out the diagnostics of dependencies, whose file paths are absolute paths into the bala cache.
+    public static DiagnosticResult diagnosticResultOf(PackageCompilation compilation) {
+        return new DiagnosticResult(compilation.diagnosticResult().diagnostics().stream()
+                .filter(diagnostic -> !Paths.get(diagnostic.location().lineRange().fileName()).isAbsolute())
+                .toList()) { };
     }
 
     public static boolean isWithinRange(LineRange lineRange, LinePosition pos) {

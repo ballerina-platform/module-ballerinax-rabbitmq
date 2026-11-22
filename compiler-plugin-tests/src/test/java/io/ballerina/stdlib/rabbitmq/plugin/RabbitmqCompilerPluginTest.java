@@ -30,6 +30,7 @@ import java.nio.file.Path;
 
 import static io.ballerina.stdlib.rabbitmq.plugin.CompilerPluginTestUtils.BALLERINA_SOURCES;
 import static io.ballerina.stdlib.rabbitmq.plugin.CompilerPluginTestUtils.RESOURCE_DIRECTORY;
+import static io.ballerina.stdlib.rabbitmq.plugin.CompilerPluginTestUtils.diagnosticResultOf;
 import static io.ballerina.stdlib.rabbitmq.plugin.CompilerPluginTestUtils.getEnvironmentBuilder;
 import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.FUNCTION_SHOULD_BE_REMOTE;
 import static io.ballerina.stdlib.rabbitmq.plugin.PluginConstants.CompilationErrors.INVALID_FUNCTION;
@@ -60,7 +61,7 @@ public class RabbitmqCompilerPluginTest {
     public void testValidService1() {
         Package currentPackage = loadPackage("valid_service_1");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
@@ -68,7 +69,7 @@ public class RabbitmqCompilerPluginTest {
     public void testValidService2() {
         Package currentPackage = loadPackage("valid_service_2");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
@@ -76,7 +77,7 @@ public class RabbitmqCompilerPluginTest {
     public void testValidService3() {
         Package currentPackage = loadPackage("valid_service_3");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
@@ -84,7 +85,7 @@ public class RabbitmqCompilerPluginTest {
     public void testValidService4() {
         Package currentPackage = loadPackage("valid_service_4");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
@@ -92,7 +93,7 @@ public class RabbitmqCompilerPluginTest {
     public void testValidService5() {
         Package currentPackage = loadPackage("valid_service_5");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
@@ -100,7 +101,7 @@ public class RabbitmqCompilerPluginTest {
     public void testValidService6() {
         Package currentPackage = loadPackage("valid_service_6");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
@@ -108,7 +109,7 @@ public class RabbitmqCompilerPluginTest {
     public void testValidService7() {
         Package currentPackage = loadPackage("valid_service_7");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
@@ -116,7 +117,7 @@ public class RabbitmqCompilerPluginTest {
     public void testValidService8() {
         Package currentPackage = loadPackage("valid_service_8");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
@@ -124,7 +125,7 @@ public class RabbitmqCompilerPluginTest {
     public void testValidService9() {
         Package currentPackage = loadPackage("valid_service_9");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
@@ -132,7 +133,7 @@ public class RabbitmqCompilerPluginTest {
     public void testValidService10() {
         Package currentPackage = loadPackage("valid_service_10");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 0);
     }
 
@@ -140,7 +141,7 @@ public class RabbitmqCompilerPluginTest {
     public void testInvalidService1() {
         Package currentPackage = loadPackage("invalid_service_1");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 1);
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
         assertDiagnostic(diagnostic, NO_ON_MESSAGE_OR_ON_REQUEST);
@@ -150,7 +151,7 @@ public class RabbitmqCompilerPluginTest {
     public void testInvalidService2() {
         Package currentPackage = loadPackage("invalid_service_2");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 1);
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
         assertDiagnostic(diagnostic, ON_MESSAGE_OR_ON_REQUEST);
@@ -160,7 +161,7 @@ public class RabbitmqCompilerPluginTest {
     public void testInvalidService3() {
         Package currentPackage = loadPackage("invalid_service_3");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 1);
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
         assertDiagnostic(diagnostic, INVALID_REMOTE_FUNCTION);
@@ -170,7 +171,7 @@ public class RabbitmqCompilerPluginTest {
     public void testInvalidService4() {
         Package currentPackage = loadPackage("invalid_service_4");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 3);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
@@ -183,7 +184,7 @@ public class RabbitmqCompilerPluginTest {
     public void testInvalidService5() {
         Package currentPackage = loadPackage("invalid_service_5");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
@@ -196,7 +197,7 @@ public class RabbitmqCompilerPluginTest {
     public void testInvalidService6() {
         Package currentPackage = loadPackage("invalid_service_6");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
@@ -209,7 +210,7 @@ public class RabbitmqCompilerPluginTest {
     public void testInvalidService7() {
         Package currentPackage = loadPackage("invalid_service_7");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
@@ -222,7 +223,7 @@ public class RabbitmqCompilerPluginTest {
     public void testInvalidService8() {
         Package currentPackage = loadPackage("invalid_service_8");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
@@ -235,7 +236,7 @@ public class RabbitmqCompilerPluginTest {
     public void testInvalidService9() {
         Package currentPackage = loadPackage("invalid_service_9");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
@@ -248,7 +249,7 @@ public class RabbitmqCompilerPluginTest {
     public void testInvalidService10() {
         Package currentPackage = loadPackage("invalid_service_10");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
@@ -261,7 +262,7 @@ public class RabbitmqCompilerPluginTest {
     public void testInvalidService11() {
         Package currentPackage = loadPackage("invalid_service_11");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 1);
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
         assertDiagnostic(diagnostic, MUST_HAVE_MESSAGE_AND_ERROR);
@@ -271,7 +272,7 @@ public class RabbitmqCompilerPluginTest {
     public void testInvalidService12() {
         Package currentPackage = loadPackage("invalid_service_12");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 1);
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
         assertDiagnostic(diagnostic, ONLY_PARAMS_ALLOWED_ON_ERROR);
@@ -281,7 +282,7 @@ public class RabbitmqCompilerPluginTest {
     public void testInvalidService13() {
         Package currentPackage = loadPackage("invalid_service_13");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
@@ -294,7 +295,7 @@ public class RabbitmqCompilerPluginTest {
     public void testInvalidService14() {
         Package currentPackage = loadPackage("invalid_service_14");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 1);
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
         assertDiagnostic(diagnostic, INVALID_MULTIPLE_LISTENERS);
@@ -304,7 +305,7 @@ public class RabbitmqCompilerPluginTest {
     public void testInvalidService15() {
         Package currentPackage = loadPackage("invalid_service_15");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 1);
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
         assertDiagnostic(diagnostic, INVALID_FUNCTION);
@@ -314,7 +315,7 @@ public class RabbitmqCompilerPluginTest {
     public void testInvalidService16() {
         Package currentPackage = loadPackage("invalid_service_16");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
@@ -327,7 +328,7 @@ public class RabbitmqCompilerPluginTest {
     public void testInvalidService17() {
         Package currentPackage = loadPackage("invalid_service_17");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
@@ -340,7 +341,7 @@ public class RabbitmqCompilerPluginTest {
     public void testInvalidService18() {
         Package currentPackage = loadPackage("invalid_service_18");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
@@ -353,7 +354,7 @@ public class RabbitmqCompilerPluginTest {
     public void testInvalidService19() {
         Package currentPackage = loadPackage("invalid_service_19");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
@@ -366,7 +367,7 @@ public class RabbitmqCompilerPluginTest {
     public void testInvalidService20() {
         Package currentPackage = loadPackage("invalid_service_20");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
@@ -379,7 +380,7 @@ public class RabbitmqCompilerPluginTest {
     public void testInvalidService21() {
         Package currentPackage = loadPackage("invalid_service_21");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 2);
         Object[] diagnostics = diagnosticResult.errors().toArray();
         for (Object obj : diagnostics) {
@@ -392,7 +393,7 @@ public class RabbitmqCompilerPluginTest {
     public void testInvalidService22() {
         Package currentPackage = loadPackage("invalid_service_22");
         PackageCompilation compilation = currentPackage.getCompilation();
-        DiagnosticResult diagnosticResult = compilation.diagnosticResult();
+        DiagnosticResult diagnosticResult = diagnosticResultOf(compilation);
         Assert.assertEquals(diagnosticResult.errorCount(), 1);
         Diagnostic diagnostic = (Diagnostic) diagnosticResult.errors().toArray()[0];
         assertDiagnostic(diagnostic, NO_ANNOTATION);
