@@ -18,13 +18,18 @@
 
 package io.ballerina.stdlib.rabbitmq;
 
+import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import io.ballerina.runtime.api.values.BError;
+import io.ballerina.runtime.observability.ObserverContext;
+import io.ballerina.runtime.observability.tracer.BSpan;
 import io.ballerina.stdlib.rabbitmq.observability.RabbitMQMetricsUtil;
 import io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityConstants;
+import io.ballerina.stdlib.rabbitmq.observability.RabbitMQTracingUtil;
 import io.ballerina.stdlib.rabbitmq.util.MessageUtils;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -39,6 +44,8 @@ public class RabbitMQResourceCallback {
     private final int size;
     private String replyTo = null;
     private String exchange = null;
+    private String correlationId = null;
+    private ObserverContext observerContext = null;
 
     RabbitMQResourceCallback(CountDownLatch countDownLatch, Channel channel, String queueName, int size) {
         this.countDownLatch = countDownLatch;
@@ -55,22 +62,48 @@ public class RabbitMQResourceCallback {
         this.size = size;
         this.replyTo = replyTo;
         this.exchange = exchange;
+    }
 
+    RabbitMQResourceCallback(CountDownLatch countDownLatch, Channel channel, String queueName, int size,
+                             String replyTo, String exchange, String correlationId, ObserverContext observerContext) {
+        this(countDownLatch, channel, queueName, size, replyTo, exchange);
+        this.correlationId = correlationId;
+        this.observerContext = observerContext;
     }
 
     public void notifySuccess(Object obj) {
         if (obj instanceof BError) {
             ((BError) obj).printStackTrace();
         } else if (replyTo != null) {
+            BSpan replySpan = null;
+            boolean failed = true;
             try {
-                channel.basicPublish(exchange, replyTo, null, MessageUtils.convertDataIntoByteArray(obj));
+                byte[] reply = MessageUtils.convertDataIntoByteArray(obj);
+                replySpan = RabbitMQTracingUtil.startReplySpan(observerContext, channel, exchange, replyTo,
+                        correlationId, reply.length);
+                channel.basicPublish(exchange, replyTo, replyProperties(replySpan), reply);
+                failed = false;
             } catch (IOException e) {
                 throw RabbitMQUtils.returnErrorValue("error occurred while replying to the message");
+            } finally {
+                RabbitMQTracingUtil.finishSpan(replySpan, failed);
             }
         }
         RabbitMQMetricsUtil.reportConsume(channel, queueName, size,
                                           RabbitMQObservabilityConstants.CONSUME_TYPE_SERVICE);
         countDownLatch.countDown();
+    }
+
+    private AMQP.BasicProperties replyProperties(BSpan replySpan) {
+        AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties.Builder();
+        if (correlationId != null) {
+            builder.correlationId(correlationId);
+        }
+        Map<String, Object> headers = RabbitMQTracingUtil.traceContextOf(replySpan);
+        if (!headers.isEmpty()) {
+            builder.headers(headers);
+        }
+        return builder.build();
     }
 
     public void notifyFailure(BError error) {

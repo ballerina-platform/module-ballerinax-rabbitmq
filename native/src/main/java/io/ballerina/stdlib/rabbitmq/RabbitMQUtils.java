@@ -20,6 +20,7 @@ package io.ballerina.stdlib.rabbitmq;
 
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Envelope;
+import io.ballerina.runtime.api.Environment;
 import io.ballerina.runtime.api.creators.ErrorCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
@@ -38,12 +39,16 @@ import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.api.values.BTypedesc;
+import io.ballerina.runtime.transactions.TransactionResourceManager;
 import io.ballerina.stdlib.constraint.Constraints;
+import io.ballerina.stdlib.rabbitmq.observability.RabbitMQSpanLink;
 import org.ballerinalang.langlib.value.CloneReadOnly;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static io.ballerina.runtime.api.types.TypeTags.INTERSECTION_TAG;
 import static io.ballerina.runtime.api.types.TypeTags.STRING_TAG;
@@ -109,11 +114,35 @@ public class RabbitMQUtils {
     }
 
     public static void handleTransaction(BObject objectValue) {
-        RabbitMQTransactionContext transactionContext =
-                (RabbitMQTransactionContext) objectValue.getNativeData(RabbitMQConstants.RABBITMQ_TRANSACTION_CONTEXT);
+        RabbitMQTransactionContext transactionContext = transactionContextOf(objectValue);
         if (transactionContext != null) {
             transactionContext.handleTransactionBlock();
         }
+    }
+
+    public static void handleTransaction(BObject objectValue, Environment environment,
+                                         Supplier<List<RabbitMQSpanLink>> links) {
+        handleTransaction(objectValue);
+        linkToTransaction(objectValue, environment, links);
+    }
+
+    // Links a completed operation, a publish or a settlement, to the transaction's commit or rollback span.
+    public static void linkToTransaction(BObject objectValue, Environment environment,
+                                         Supplier<List<RabbitMQSpanLink>> links) {
+        RabbitMQTransactionContext transactionContext = transactionContextOf(objectValue);
+        if (transactionContext != null) {
+            List<RabbitMQSpanLink> operationLinks = links.get();
+            if (!operationLinks.isEmpty()) {
+                transactionContext.addSpanLinks(environment, operationLinks);
+            }
+        }
+    }
+
+    private static RabbitMQTransactionContext transactionContextOf(BObject objectValue) {
+        if (!TransactionResourceManager.getInstance().isInTransaction()) {
+            return null;
+        }
+        return (RabbitMQTransactionContext) objectValue.getNativeData(RabbitMQConstants.RABBITMQ_TRANSACTION_CONTEXT);
     }
 
     public static BMap<BString, Object> createAndPopulateMessageRecord(byte[] message, Envelope envelope,

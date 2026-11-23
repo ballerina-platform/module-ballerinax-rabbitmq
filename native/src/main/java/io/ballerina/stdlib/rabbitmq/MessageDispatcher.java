@@ -38,9 +38,10 @@ import io.ballerina.runtime.api.values.BObject;
 import io.ballerina.runtime.api.values.BString;
 import io.ballerina.runtime.observability.ObservabilityConstants;
 import io.ballerina.runtime.observability.ObserveUtils;
+import io.ballerina.stdlib.rabbitmq.observability.RabbitMQDeliveryObserverContext;
 import io.ballerina.stdlib.rabbitmq.observability.RabbitMQMetricsUtil;
 import io.ballerina.stdlib.rabbitmq.observability.RabbitMQObservabilityConstants;
-import io.ballerina.stdlib.rabbitmq.observability.RabbitMQObserverContext;
+import io.ballerina.stdlib.rabbitmq.observability.RabbitMQTracingUtil;
 import io.ballerina.stdlib.rabbitmq.util.ChannelUtils;
 import io.ballerina.stdlib.rabbitmq.util.ModuleUtils;
 
@@ -144,19 +145,30 @@ public class MessageDispatcher {
 
     private void handleDispatch(byte[] message, Envelope envelope, AMQP.BasicProperties properties) {
         CountDownLatch countDownLatch = new CountDownLatch(1);
+        boolean isRequest = properties.getReplyTo() != null
+                && getAttachedFunctionType(service, FUNC_ON_REQUEST) != null;
+        RabbitMQDeliveryObserverContext observerContext = createObserverContext(
+                isRequest ? FUNC_ON_REQUEST : FUNC_ON_MESSAGE, message, envelope, properties);
+        if (!autoAck) {
+            RabbitMQTracingUtil.trackDelivery(channel, queueName, envelope, properties);
+            if (observerContext != null) {
+                observerContext.trackSettlement();
+            }
+        }
         RabbitMQResourceCallback callback = new RabbitMQResourceCallback(countDownLatch, channel, queueName,
-                message.length, properties.getReplyTo(), envelope.getExchange());
+                message.length, properties.getReplyTo(), envelope.getExchange(), properties.getCorrelationId(),
+                observerContext);
         try {
-            if (properties.getReplyTo() != null && getAttachedFunctionType(service, FUNC_ON_REQUEST) != null) {
+            if (isRequest) {
                 MethodType onRequestFunction = getAttachedFunctionType(service, FUNC_ON_REQUEST);
                 Type returnType = onRequestFunction.getReturnType();
                 Object[] arguments = getResourceParameters(message, envelope, properties, onRequestFunction);
-                executeResourceOnRequest(callback, returnType, arguments);
+                executeResourceOnRequest(callback, observerContext, returnType, arguments);
             } else {
                 MethodType onMessageFunction = getAttachedFunctionType(service, FUNC_ON_MESSAGE);
                 Type returnType = onMessageFunction.getReturnType();
                 Object[] arguments = getResourceParameters(message, envelope, properties, onMessageFunction);
-                executeResourceOnMessage(callback, returnType, arguments);
+                executeResourceOnMessage(callback, observerContext, returnType, arguments);
             }
             countDownLatch.await();
         } catch (InterruptedException | AlreadyClosedException | BError exception) {
@@ -235,26 +247,32 @@ public class MessageDispatcher {
         return callerObj;
     }
 
-    private void executeResourceOnMessage(RabbitMQResourceCallback callback, Type returnType, Object... args) {
-        executeResource(RabbitMQConstants.FUNC_ON_MESSAGE, callback, args);
+    private void executeResourceOnMessage(RabbitMQResourceCallback callback,
+                                          RabbitMQDeliveryObserverContext observerContext, Type returnType,
+                                          Object... args) {
+        executeResource(RabbitMQConstants.FUNC_ON_MESSAGE, callback, observerContext, args);
     }
 
-    private void executeResourceOnRequest(RabbitMQResourceCallback callback, Type returnType, Object... args) {
-        executeResource(FUNC_ON_REQUEST, callback, args);
+    private void executeResourceOnRequest(RabbitMQResourceCallback callback,
+                                          RabbitMQDeliveryObserverContext observerContext, Type returnType,
+                                          Object... args) {
+        executeResource(FUNC_ON_REQUEST, callback, observerContext, args);
     }
 
     private void executeOnError(MethodType onErrorMethod, byte[] message, Envelope envelope,
                                AMQP.BasicProperties properties, BError bError) {
-        executeResource(FUNC_ON_ERROR, null, createAndPopulateMessageRecord(message, envelope, properties,
+        executeResource(FUNC_ON_ERROR, null, createObserverContext(FUNC_ON_ERROR, message, envelope, properties),
+                createAndPopulateMessageRecord(message, envelope, properties,
                         getReferredType(onErrorMethod.getParameters()[0].type)), bError);
     }
 
-    private void executeResource(String function, RabbitMQResourceCallback callback, Object... args) {
+    private void executeResource(String function, RabbitMQResourceCallback callback,
+                                 RabbitMQDeliveryObserverContext observerContext, Object... args) {
         ObjectType serviceType = (ObjectType) TypeUtils.getReferredType(TypeUtils.getType(service));
         Thread.startVirtualThread(() -> {
             Map<String, Object> properties = getProperties(function);
-            if (ObserveUtils.isTracingEnabled()) {
-                properties = getNewObserverContextInProperties();
+            if (observerContext != null) {
+                properties.put(ObservabilityConstants.KEY_OBSERVER_CONTEXT, observerContext);
             }
             boolean isConcurrentSafe = serviceType.isIsolated() && serviceType.isIsolated(function);
             StrandMetadata strandMetadata = new StrandMetadata(isConcurrentSafe, properties);
@@ -294,12 +312,13 @@ public class MessageDispatcher {
         }
     }
 
-    private Map<String, Object> getNewObserverContextInProperties() {
-        Map<String, Object> properties = new HashMap<>();
-        RabbitMQObserverContext observerContext = new RabbitMQObserverContext(channel);
-        observerContext.addTag(RabbitMQObservabilityConstants.TAG_QUEUE, queueName);
-        properties.put(ObservabilityConstants.KEY_OBSERVER_CONTEXT, observerContext);
-        return properties;
+    private RabbitMQDeliveryObserverContext createObserverContext(String function, byte[] message, Envelope envelope,
+                                                                  AMQP.BasicProperties properties) {
+        if (!ObserveUtils.isTracingEnabled()) {
+            return null;
+        }
+        return new RabbitMQDeliveryObserverContext(channel, queueName, function, envelope, properties,
+                message.length);
     }
 
     private static MethodType getAttachedFunctionType(BObject serviceObject, String functionName) {
